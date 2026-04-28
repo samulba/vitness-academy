@@ -2,7 +2,15 @@ import { CheckCircle2, Info, AlertTriangle, Video } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
-import type { ContentBlock } from "@/lib/lektion";
+import type {
+  AkkordeonContent,
+  AufdeckKarteContent,
+  ContentBlock,
+  InlineQuizContent,
+} from "@/lib/lektion";
+import { AufdeckKarte } from "@/components/lektion/blocks/AufdeckKarte";
+import { InlineQuiz } from "@/components/lektion/blocks/InlineQuiz";
+import { Akkordeon } from "@/components/lektion/blocks/Akkordeon";
 
 export function ContentBlockView({ block }: { block: ContentBlock }) {
   switch (block.block_type) {
@@ -27,6 +35,20 @@ export function ContentBlockView({ block }: { block: ContentBlock }) {
           url={String(block.content?.url ?? "")}
           title={String(block.content?.title ?? "Video")}
         />
+      );
+    case "aufdeck_karte":
+      return (
+        <AufdeckKarte
+          content={block.content as unknown as AufdeckKarteContent}
+        />
+      );
+    case "inline_quiz":
+      return (
+        <InlineQuiz content={block.content as unknown as InlineQuizContent} />
+      );
+    case "akkordeon":
+      return (
+        <Akkordeon content={block.content as unknown as AkkordeonContent} />
       );
     default:
       return null;
