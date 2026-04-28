@@ -7,10 +7,16 @@ import type {
   AufdeckKarteContent,
   ContentBlock,
   InlineQuizContent,
+  SchritteContent,
+  SortierenContent,
+  SzenarioContent,
 } from "@/lib/lektion";
 import { AufdeckKarte } from "@/components/lektion/blocks/AufdeckKarte";
 import { InlineQuiz } from "@/components/lektion/blocks/InlineQuiz";
 import { Akkordeon } from "@/components/lektion/blocks/Akkordeon";
+import { SortierAufgabe } from "@/components/lektion/blocks/SortierAufgabe";
+import { Szenario } from "@/components/lektion/blocks/Szenario";
+import { Schritte } from "@/components/lektion/blocks/Schritte";
 
 export function ContentBlockView({ block }: { block: ContentBlock }) {
   switch (block.block_type) {
@@ -49,6 +55,20 @@ export function ContentBlockView({ block }: { block: ContentBlock }) {
     case "akkordeon":
       return (
         <Akkordeon content={block.content as unknown as AkkordeonContent} />
+      );
+    case "sortieren":
+      return (
+        <SortierAufgabe
+          content={block.content as unknown as SortierenContent}
+        />
+      );
+    case "szenario":
+      return (
+        <Szenario content={block.content as unknown as SzenarioContent} />
+      );
+    case "schritte":
+      return (
+        <Schritte content={block.content as unknown as SchritteContent} />
       );
     default:
       return null;

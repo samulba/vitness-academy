@@ -13,6 +13,14 @@ import {
   AkkordeonItemsEditor,
   type AkkordeonItemEntry,
 } from "@/components/admin/AkkordeonItemsEditor";
+import {
+  SzenarioOptionenEditor,
+  type SzenarioOptionItem,
+} from "@/components/admin/SzenarioOptionenEditor";
+import {
+  SchritteEditor,
+  type SchrittEntry,
+} from "@/components/admin/SchritteEditor";
 
 type BlockTyp =
   | "text"
@@ -21,7 +29,10 @@ type BlockTyp =
   | "hinweis"
   | "aufdeck_karte"
   | "inline_quiz"
-  | "akkordeon";
+  | "akkordeon"
+  | "sortieren"
+  | "szenario"
+  | "schritte";
 
 type Props = {
   action: (formData: FormData) => void | Promise<void>;
@@ -54,6 +65,21 @@ export function BlockEditor({ action, initial, modus, onAbbrechen }: Props) {
   ) && typ === "akkordeon"
     ? ((c as { items: AkkordeonItemEntry[] }).items ?? [])
     : [];
+  const initialSortierString = Array.isArray(
+    (c as { schritte_korrekt?: unknown[] }).schritte_korrekt,
+  )
+    ? ((c as { schritte_korrekt: string[] }).schritte_korrekt ?? []).join("\n")
+    : "";
+  const initialSzenarioOptionen = Array.isArray(
+    (c as { optionen?: unknown[] }).optionen,
+  ) && typ === "szenario"
+    ? ((c as { optionen: SzenarioOptionItem[] }).optionen ?? [])
+    : [];
+  const initialSchritte = Array.isArray(
+    (c as { schritte?: unknown[] }).schritte,
+  )
+    ? ((c as { schritte: SchrittEntry[] }).schritte ?? [])
+    : [];
 
   return (
     <form action={action} className="space-y-3">
@@ -73,6 +99,9 @@ export function BlockEditor({ action, initial, modus, onAbbrechen }: Props) {
           <option value="aufdeck_karte">Aufdeck-Karte</option>
           <option value="inline_quiz">Mini-Quiz inline</option>
           <option value="akkordeon">Akkordeon (FAQ)</option>
+          <option value="sortieren">Sortier-Aufgabe</option>
+          <option value="szenario">Szenario / Entscheidung</option>
+          <option value="schritte">Schritt-für-Schritt-Walkthrough</option>
         </select>
       </div>
 
@@ -244,6 +273,85 @@ export function BlockEditor({ action, initial, modus, onAbbrechen }: Props) {
           <AkkordeonItemsEditor
             initial={initialAkkordeonItems}
             hiddenName="items_json"
+          />
+        </>
+      ) : null}
+
+      {typ === "sortieren" ? (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="aufgabe">Aufgabe / Frage</Label>
+            <Input
+              id="aufgabe"
+              name="aufgabe"
+              required
+              defaultValue={String((c as { aufgabe?: string }).aufgabe ?? "")}
+              placeholder="z.B. „Bringe die Schritte des Check-ins in die richtige Reihenfolge."
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="schritte_korrekt">
+              Schritte in der korrekten Reihenfolge (eine Zeile pro Schritt)
+            </Label>
+            <textarea
+              id="schritte_korrekt"
+              name="schritte_korrekt"
+              rows={6}
+              defaultValue={initialSortierString}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              placeholder={
+                "Mitglied begrüßen\nMitgliedskarte einscannen\nAuf grünes Signal warten\nFreundlich verabschieden"
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              Mitarbeiter sehen die Schritte zufällig gemischt und müssen sie
+              in diese Reihenfolge bringen.
+            </p>
+          </div>
+        </>
+      ) : null}
+
+      {typ === "szenario" ? (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="situation_markdown">Situation (Markdown)</Label>
+            <textarea
+              id="situation_markdown"
+              name="situation_markdown"
+              rows={4}
+              required
+              defaultValue={String(
+                (c as { situation_markdown?: string }).situation_markdown ?? "",
+              )}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              placeholder="Beschreibe die Lage. _Mitglied wirkt aufgebracht und beschwert sich über…_"
+            />
+          </div>
+          <SzenarioOptionenEditor
+            initial={initialSzenarioOptionen}
+            hiddenName="szenario_optionen_json"
+          />
+          <p className="text-xs text-muted-foreground">
+            Pro Option ein Feedback — Mitarbeiter sehen es nach ihrer Wahl.
+          </p>
+        </>
+      ) : null}
+
+      {typ === "schritte" ? (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="schritte_titel">Walkthrough-Titel</Label>
+            <Input
+              id="schritte_titel"
+              name="schritte_titel"
+              required
+              defaultValue={String((c as { titel?: string }).titel ?? "")}
+              placeholder="z.B. „Standard-Check-in in 4 Schritten"
+            />
+          </div>
+          <SchritteEditor
+            initial={initialSchritte}
+            hiddenName="schritte_json"
           />
         </>
       ) : null}

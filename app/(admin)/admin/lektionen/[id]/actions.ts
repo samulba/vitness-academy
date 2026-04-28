@@ -58,7 +58,10 @@ type BlockTyp =
   | "hinweis"
   | "aufdeck_karte"
   | "inline_quiz"
-  | "akkordeon";
+  | "akkordeon"
+  | "sortieren"
+  | "szenario"
+  | "schritte";
 
 const ERLAUBTE_TYPEN: BlockTyp[] = [
   "text",
@@ -68,6 +71,9 @@ const ERLAUBTE_TYPEN: BlockTyp[] = [
   "aufdeck_karte",
   "inline_quiz",
   "akkordeon",
+  "sortieren",
+  "szenario",
+  "schritte",
 ];
 
 function parseJsonField<T>(formData: FormData, name: string, fallback: T): T {
@@ -131,6 +137,29 @@ function buildContent(typ: BlockTyp, formData: FormData): Record<string, unknown
         [],
       );
       return { einleitung, items };
+    }
+    case "sortieren": {
+      const aufgabe = String(formData.get("aufgabe") ?? "").trim();
+      const raw = String(formData.get("schritte_korrekt") ?? "");
+      const schritte_korrekt = raw
+        .split("\n")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+      return { aufgabe, schritte_korrekt };
+    }
+    case "szenario": {
+      const situation_markdown = String(formData.get("situation_markdown") ?? "");
+      const optionen = parseJsonField<
+        { text: string; korrekt: boolean; feedback_markdown: string }[]
+      >(formData, "szenario_optionen_json", []);
+      return { situation_markdown, optionen };
+    }
+    case "schritte": {
+      const titel = String(formData.get("schritte_titel") ?? "").trim();
+      const schritte = parseJsonField<
+        { titel: string; body_markdown: string; hinweis?: string | null }[]
+      >(formData, "schritte_json", []);
+      return { titel, schritte };
     }
   }
 }
