@@ -256,3 +256,35 @@ values
   ('99999999-9999-9999-9999-999999999933', '88888888-8888-8888-8888-888888888803', 'Telefonat sofort abbrechen, ohne den Anrufer zu informieren', false, 3),
   ('99999999-9999-9999-9999-999999999934', '88888888-8888-8888-8888-888888888803', 'Mit dem Telefon weitergehen und das Mitglied stehen lassen', false, 4)
 on conflict (id) do update set label = excluded.label, is_correct = excluded.is_correct;
+
+-- ----------------------------------------------------------
+-- Praxisaufgaben (Vorlagen)
+-- ----------------------------------------------------------
+insert into public.practical_tasks (id, title, description, learning_path_id, lesson_id, status, sort_order, created_by)
+values
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa01',
+   'Check-in eines Mitglieds selbstständig durchführen',
+   'Du führst einen kompletten Check-in selbstständig und ohne Hilfe durch. Eine Führungskraft beobachtet und gibt frei.',
+   '33333333-3333-3333-3333-333333333301',
+   '55555555-5555-5555-5555-555555555503',
+   'aktiv', 1, '22222222-2222-2222-2222-222222222203'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa02',
+   'Begrüßung am Empfang im Live-Betrieb',
+   'Du begrüßt fünf Mitglieder hintereinander aktiv und freundlich. Eine Führungskraft beobachtet und gibt Feedback.',
+   '33333333-3333-3333-3333-333333333301',
+   '55555555-5555-5555-5555-555555555501',
+   'aktiv', 2, '22222222-2222-2222-2222-222222222203'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa03',
+   'Beschwerde professionell aufnehmen und lösen',
+   'Du nimmst eine Beschwerde eines Mitglieds entgegen, dokumentierst sie und schlägst eine Lösung vor. Eine Führungskraft prüft.',
+   '33333333-3333-3333-3333-333333333301',
+   '55555555-5555-5555-5555-555555555506',
+   'aktiv', 3, '22222222-2222-2222-2222-222222222203')
+on conflict (id) do update set title = excluded.title, description = excluded.description;
+
+insert into public.user_practical_signoffs (user_id, task_id, status)
+values
+  ('22222222-2222-2222-2222-222222222201', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa01', 'offen'),
+  ('22222222-2222-2222-2222-222222222201', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa02', 'offen'),
+  ('22222222-2222-2222-2222-222222222201', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa03', 'offen')
+on conflict (user_id, task_id) do nothing;

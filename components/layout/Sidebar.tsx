@@ -26,7 +26,7 @@ type NavEintrag = {
 const MITARBEITER_NAV: NavEintrag[] = [
   { href: "/dashboard", label: "Mein Dashboard", icon: Home },
   { href: "/lernpfade", label: "Meine Lernpfade", icon: GraduationCap },
-  { href: "/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare, bald: true },
+  { href: "/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare },
   { href: "/wissen", label: "Wissensdatenbank", icon: BookOpen, bald: true },
 ];
 
@@ -35,6 +35,7 @@ const ADMIN_NAV: NavEintrag[] = [
   { href: "/admin/benutzer", label: "Benutzer", icon: Users },
   { href: "/admin/lernpfade", label: "Lernpfade", icon: GraduationCap },
   { href: "/admin/quizze", label: "Quizze", icon: HelpCircle },
+  { href: "/admin/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare },
   { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity, bald: true },
 ];
 
