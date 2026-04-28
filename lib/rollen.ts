@@ -1,0 +1,24 @@
+export type Rolle = "mitarbeiter" | "fuehrungskraft" | "admin" | "superadmin";
+
+export type Profil = {
+  id: string;
+  full_name: string | null;
+  role: Rolle;
+  location_id: string | null;
+};
+
+export function istAdmin(role: Rolle | undefined | null): boolean {
+  return role === "admin" || role === "superadmin";
+}
+
+export function istFuehrungskraftOderHoeher(
+  role: Rolle | undefined | null,
+): boolean {
+  return (
+    role === "fuehrungskraft" || role === "admin" || role === "superadmin"
+  );
+}
+
+export function startseiteFuerRolle(role: Rolle): string {
+  return istAdmin(role) ? "/admin" : "/dashboard";
+}

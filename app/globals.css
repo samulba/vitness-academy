@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Hintergrund / Vordergrund - sehr helles Off-White */
+    --background: 220 20% 99%;
+    --foreground: 222 47% 11%;
+
+    /* Karten */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primaer: dunkles Indigo */
+    --primary: 234 60% 32%;
+    --primary-foreground: 220 20% 99%;
+
+    /* Sekundaer */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    /* Muted */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    /* Akzent: helles Gruen fuer Fortschritt/Erfolg */
+    --accent: 152 65% 92%;
+    --accent-foreground: 152 70% 22%;
+
+    --success: 152 65% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 234 60% 32%;
+
+    --radius: 0.625rem;
+
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  }
+
+  .dark {
+    --background: 222 47% 7%;
+    --foreground: 220 20% 96%;
+    --card: 222 47% 9%;
+    --card-foreground: 220 20% 96%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 220 20% 96%;
+    --primary: 234 70% 70%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 222 30% 14%;
+    --secondary-foreground: 220 20% 96%;
+    --muted: 222 30% 14%;
+    --muted-foreground: 220 14% 65%;
+    --accent: 152 30% 20%;
+    --accent-foreground: 152 65% 75%;
+    --success: 152 55% 50%;
+    --success-foreground: 222 47% 7%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 222 47% 7%;
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 30% 18%;
+    --input: 222 30% 18%;
+    --ring: 234 70% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+}
+
+@layer components {
+  .prose-vitness {
+    @apply text-foreground leading-relaxed;
+  }
+  .prose-vitness h1,
+  .prose-vitness h2,
+  .prose-vitness h3 {
+    @apply font-semibold tracking-tight mt-6 mb-2;
+  }
+  .prose-vitness h1 {
+    @apply text-2xl;
+  }
+  .prose-vitness h2 {
+    @apply text-xl;
+  }
+  .prose-vitness h3 {
+    @apply text-lg;
+  }
+  .prose-vitness p {
+    @apply mb-3;
+  }
+  .prose-vitness ul {
+    @apply list-disc pl-6 mb-3 space-y-1;
+  }
+  .prose-vitness ol {
+    @apply list-decimal pl-6 mb-3 space-y-1;
+  }
+  .prose-vitness a {
+    @apply text-primary underline underline-offset-4;
+  }
+  .prose-vitness strong {
+    @apply font-semibold;
+  }
+  .prose-vitness code {
+    @apply rounded bg-muted px-1.5 py-0.5 text-sm;
+  }
+}
