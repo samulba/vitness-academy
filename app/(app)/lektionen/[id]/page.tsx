@@ -13,9 +13,11 @@ import {
   AbschliessenSubmit,
   ZurueckSetzenSubmit,
 } from "@/components/lektion/AbschliessenButton";
+import { QuizCard } from "@/components/lektion/QuizCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { requireProfile } from "@/lib/auth";
 import { ladeLektionFuerUser } from "@/lib/lektion";
+import { ladeLetztenVersuch, ladeQuizFuerLektion } from "@/lib/quiz";
 import {
   lektionAbschliessen,
   lektionZurueckSetzen,
@@ -32,6 +34,11 @@ export default async function LektionPage({
   if (!lektion) notFound();
 
   const bereitsFertig = lektion.status === "abgeschlossen";
+
+  const quiz = await ladeQuizFuerLektion(lektion.id);
+  const letzterVersuch = quiz
+    ? await ladeLetztenVersuch(quiz.id, profile.id)
+    : null;
 
   const abschliessen = lektionAbschliessen.bind(null, lektion.id);
   const zuruecksetzen = lektionZurueckSetzen.bind(null, lektion.id);
@@ -82,6 +89,8 @@ export default async function LektionPage({
           )}
         </CardContent>
       </Card>
+
+      {quiz ? <QuizCard quiz={quiz} letzterVersuch={letzterVersuch} /> : null}
 
       <Card>
         <CardHeader>

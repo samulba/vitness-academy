@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Users,
   Activity,
+  HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { istAdmin, istFuehrungskraftOderHoeher, type Rolle } from "@/lib/rollen";
@@ -33,6 +34,7 @@ const ADMIN_NAV: NavEintrag[] = [
   { href: "/admin", label: "Übersicht", icon: ShieldCheck },
   { href: "/admin/benutzer", label: "Benutzer", icon: Users },
   { href: "/admin/lernpfade", label: "Lernpfade", icon: GraduationCap },
+  { href: "/admin/quizze", label: "Quizze", icon: HelpCircle },
   { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity, bald: true },
 ];
 
