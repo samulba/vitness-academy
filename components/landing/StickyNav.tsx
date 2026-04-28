@@ -28,7 +28,7 @@ export function StickyNav() {
           href="/"
           className="flex items-center gap-2.5 text-[hsl(var(--brand-cream))]"
         >
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--brand-lime))] text-sm font-bold text-[hsl(var(--brand-ink))]">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-sm font-bold text-[hsl(var(--primary-foreground))]">
             VA
           </span>
           <span className="text-[15px] font-semibold tracking-tight">
@@ -47,7 +47,7 @@ export function StickyNav() {
 
         <Link
           href="/login"
-          className="inline-flex items-center gap-1.5 rounded-full bg-[hsl(var(--brand-lime))] px-4 py-2 text-sm font-semibold text-[hsl(var(--brand-ink))] transition-transform hover:scale-[1.02]"
+          className="inline-flex items-center gap-1.5 rounded-full bg-[hsl(var(--primary))] px-4 py-2 text-sm font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.02]"
         >
           Anmelden
         </Link>

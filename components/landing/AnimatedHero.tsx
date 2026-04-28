@@ -31,7 +31,7 @@ export function AnimatedHero() {
             style={{ animationDelay: "120ms" }}
             className="inline-flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-cream)/0.5)]"
           >
-            <span className="h-px w-10 bg-[hsl(var(--brand-lime))]" />
+            <span className="h-px w-10 bg-[hsl(var(--primary))]" />
             Vitness Academy · Onboarding
           </span>
         </div>
@@ -60,7 +60,7 @@ export function AnimatedHero() {
                       {akzent && (
                         <span
                           aria-hidden
-                          className="pointer-events-none absolute -bottom-[0.12em] left-0 right-[0.08em] h-[0.08em] rounded-full bg-[hsl(var(--brand-lime))]"
+                          className="pointer-events-none absolute -bottom-[0.12em] left-0 right-[0.08em] h-[0.08em] rounded-full bg-[hsl(var(--primary))]"
                           style={{
                             transformOrigin: "left center",
                             transform: "scaleX(0)",
@@ -98,7 +98,7 @@ export function AnimatedHero() {
           >
             <Link
               href="/login"
-              className="group inline-flex items-center gap-3 rounded-full bg-[hsl(var(--brand-lime))] px-8 py-4 text-base font-semibold text-[hsl(var(--brand-ink))] transition-transform hover:scale-[1.02]"
+              className="group inline-flex items-center gap-3 rounded-full bg-[hsl(var(--primary))] px-8 py-4 text-base font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.02]"
             >
               Anmelden
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

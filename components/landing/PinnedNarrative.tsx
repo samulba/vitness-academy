@@ -91,14 +91,9 @@ export function PinnedNarrative() {
           style={{
             background: `radial-gradient(700px circle at ${
               30 + aktuellerIdx * 15
-            }% ${50 - aktuelleSubProgress * 10}%, hsl(${
-              [
-                "var(--brand-pink)",
-                "var(--primary)",
-                "var(--brand-lime)",
-                "var(--brand-coral)",
-              ][aktuellerIdx]
-            } / 0.18), transparent 70%)`,
+            }% ${50 - aktuelleSubProgress * 10}%, hsl(var(--primary) / ${
+              [0.16, 0.2, 0.24, 0.18][aktuellerIdx]
+            }), transparent 70%)`,
             transition: "background 600ms cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         />
@@ -113,7 +108,7 @@ export function PinnedNarrative() {
                 <div key={p.marker} className="flex flex-1 flex-col gap-2">
                   <div className="h-[2px] w-full overflow-hidden rounded-full bg-white/10">
                     <div
-                      className="h-full origin-left rounded-full bg-[hsl(var(--brand-lime))] transition-transform duration-500 ease-out"
+                      className="h-full origin-left rounded-full bg-[hsl(var(--primary))] transition-transform duration-500 ease-out"
                       style={{
                         transform: `scaleX(${
                           istVorbei ? 1 : istAktiv ? aktuelleSubProgress : 0
@@ -140,15 +135,14 @@ export function PinnedNarrative() {
 
         {/* Inhalt */}
         <div className="relative z-10 mx-auto grid w-full max-w-[1600px] grid-cols-1 items-center gap-16 px-6 pt-16 lg:grid-cols-12 lg:px-12 lg:pt-0 2xl:px-20">
-          {/* Linke Spalte: Text */}
-          <div className="lg:col-span-6 xl:col-span-7">
+          {/* Linke Spalte: Text — alle Frames in EINER Grid-Cell uebereinander */}
+          <div className="grid grid-cols-1 grid-rows-1 lg:col-span-6 xl:col-span-7">
             {PHASEN.map((p, i) => (
               <div
                 key={p.marker}
                 aria-hidden={i !== aktuellerIdx}
-                className="grid"
+                className="col-start-1 row-start-1"
                 style={{
-                  gridArea: "1 / 1",
                   opacity: i === aktuellerIdx ? 1 : 0,
                   transform:
                     i === aktuellerIdx
@@ -161,7 +155,7 @@ export function PinnedNarrative() {
                   pointerEvents: i === aktuellerIdx ? "auto" : "none",
                 }}
               >
-                <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-lime))]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
                   {p.ueber}
                 </p>
                 <h2 className="mt-6 max-w-[16ch] text-balance font-semibold leading-[0.95] tracking-[-0.035em] text-[clamp(2.5rem,5.5vw,5.5rem)]">
@@ -176,7 +170,7 @@ export function PinnedNarrative() {
 
           {/* Rechte Spalte: morphender Visual */}
           <div className="lg:col-span-6 xl:col-span-5">
-            <PhasenVisual phase={PHASEN[aktuellerIdx]} idx={aktuellerIdx} />
+            <PhasenVisual phase={PHASEN[aktuellerIdx]} />
           </div>
         </div>
       </div>
@@ -188,7 +182,7 @@ export function PinnedNarrative() {
 /* Phasen-Visual                                                         */
 /* -------------------------------------------------------------------- */
 
-function PhasenVisual({ phase, idx }: { phase: Phase; idx: number }) {
+function PhasenVisual({ phase }: { phase: Phase }) {
   return (
     <div className="relative mx-auto w-full max-w-md">
       {/* Glow */}
@@ -196,14 +190,7 @@ function PhasenVisual({ phase, idx }: { phase: Phase; idx: number }) {
         aria-hidden
         className="absolute -inset-8 -z-10 rounded-[2rem] opacity-25 blur-3xl"
         style={{
-          background: `hsl(${
-            [
-              "var(--brand-pink)",
-              "var(--primary)",
-              "var(--brand-lime)",
-              "var(--brand-coral)",
-            ][idx]
-          })`,
+          background: "hsl(var(--primary))",
           transition: "background 600ms",
         }}
       />
@@ -246,7 +233,7 @@ function VisualLogin() {
   return (
     <div>
       <div className="flex items-center gap-2">
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[hsl(var(--brand-lime))] text-xs font-bold text-[hsl(var(--brand-ink))]">
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[hsl(var(--primary))] text-xs font-bold text-[hsl(var(--primary-foreground))]">
           VA
         </span>
         <span className="text-sm font-semibold">Vitness Academy</span>
@@ -318,7 +305,7 @@ function VisualLektion() {
       <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-[11px]">
         <span className="text-muted-foreground">3 von 4 erledigt</span>
         <div className="h-1 w-20 overflow-hidden rounded-full bg-muted">
-          <div className="h-full w-3/4 bg-[hsl(var(--brand-lime))]" />
+          <div className="h-full w-3/4 bg-[hsl(var(--primary))]" />
         </div>
       </div>
     </div>

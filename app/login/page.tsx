@@ -33,7 +33,7 @@ export default async function LoginPage({
 
         <div className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-16">
           <Link href="/" className="flex w-fit items-center gap-2.5">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--brand-lime))] text-sm font-bold text-[hsl(var(--brand-ink))]">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-sm font-bold text-[hsl(var(--primary-foreground))]">
               VA
             </span>
             <span className="text-[15px] font-semibold tracking-tight">
@@ -43,7 +43,7 @@ export default async function LoginPage({
 
           <div className="max-w-lg space-y-8">
             <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.55)]">
-              <span className="h-1 w-6 rounded-full bg-[hsl(var(--brand-lime))]" />
+              <span className="h-1 w-6 rounded-full bg-[hsl(var(--primary))]" />
               Willkommen zurück
             </span>
             <h2 className="text-balance font-semibold leading-[1.02] tracking-[-0.025em] text-[clamp(2.25rem,4vw,3.5rem)]">
@@ -76,7 +76,7 @@ export default async function LoginPage({
 
           <div className="space-y-3">
             <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
-              <span className="h-1 w-6 rounded-full bg-[hsl(var(--brand-lime))]" />
+              <span className="h-1 w-6 rounded-full bg-[hsl(var(--primary))]" />
               Anmelden
             </span>
             <h1 className="text-balance font-semibold leading-[1.05] tracking-[-0.02em] text-[clamp(2rem,3vw,2.5rem)]">
