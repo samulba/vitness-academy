@@ -1,5 +1,14 @@
+import Link from "next/link";
+import { ExternalLink, Pencil, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -8,8 +17,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ReihenfolgeButtons } from "@/components/admin/ReihenfolgeButtons";
 import { createClient } from "@/lib/supabase/server";
 import { formatDatum } from "@/lib/format";
+import { lernpfadReihenfolge } from "./actions";
 
 type Zeile = {
   id: string;
@@ -23,24 +34,25 @@ type Zeile = {
 
 async function ladeLernpfade(): Promise<Zeile[]> {
   const supabase = await createClient();
-
-  const { data: pfade } = await supabase
+  const { data } = await supabase
     .from("learning_paths")
     .select(
-      `id, title, status, updated_at,
+      `id, title, status, updated_at, sort_order,
        modules ( id, lessons ( id ) ),
        user_learning_path_assignments ( id )`,
     )
     .order("sort_order", { ascending: true });
 
-  return ((pfade ?? []) as unknown as {
+  type Roh = {
     id: string;
     title: string;
     status: string;
     updated_at: string;
-    modules: { id: string; lessons: { id: string }[] }[];
-    user_learning_path_assignments: { id: string }[];
-  }[]).map((p) => ({
+    modules: { id: string; lessons: { id: string }[] }[] | null;
+    user_learning_path_assignments: { id: string }[] | null;
+  };
+
+  return ((data ?? []) as unknown as Roh[]).map((p) => ({
     id: p.id,
     title: p.title,
     status: p.status,
@@ -54,23 +66,32 @@ async function ladeLernpfade(): Promise<Zeile[]> {
   }));
 }
 
-export default async function AdminLernpfadePage() {
+export default async function AdminLernpfadeListe() {
   const pfade = await ladeLernpfade();
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Lernpfade</h1>
-        <p className="mt-1 text-muted-foreground">
-          Alle Lernpfade in der Akademie.
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Lernpfade</h1>
+          <p className="mt-1 text-muted-foreground">
+            Lernpfade verwalten – Module und Lektionen pflegst du auf der
+            Detailseite.
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/admin/lernpfade/neu">
+            <Plus className="h-4 w-4" />
+            Neuer Lernpfad
+          </Link>
+        </Button>
       </header>
 
       <Card>
         <CardHeader>
           <CardTitle>Lernpfade ({pfade.length})</CardTitle>
           <CardDescription>
-            Anlegen und Bearbeiten folgt in einer späteren Iteration.
+            Reihenfolge bestimmt die Anzeige im Mitarbeiter-Bereich.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -83,19 +104,31 @@ export default async function AdminLernpfadePage() {
                 <TableHead className="text-right">Lektionen</TableHead>
                 <TableHead className="text-right">Zuweisungen</TableHead>
                 <TableHead>Aktualisiert</TableHead>
+                <TableHead className="text-right">Sortierung</TableHead>
+                <TableHead className="text-right">Aktionen</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {pfade.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={8}
+                    className="py-10 text-center text-muted-foreground"
+                  >
                     Noch keine Lernpfade angelegt.
                   </TableCell>
                 </TableRow>
               ) : (
-                pfade.map((p) => (
+                pfade.map((p, idx) => (
                   <TableRow key={p.id}>
-                    <TableCell className="font-medium">{p.title}</TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/admin/lernpfade/${p.id}`}
+                        className="font-medium hover:text-primary"
+                      >
+                        {p.title}
+                      </Link>
+                    </TableCell>
                     <TableCell>
                       <Badge
                         variant={
@@ -109,11 +142,43 @@ export default async function AdminLernpfadePage() {
                         {p.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">{p.module_anzahl}</TableCell>
-                    <TableCell className="text-right">{p.lektion_anzahl}</TableCell>
-                    <TableCell className="text-right">{p.zugewiesen}</TableCell>
+                    <TableCell className="text-right">
+                      {p.module_anzahl}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {p.lektion_anzahl}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {p.zugewiesen}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDatum(p.updated_at)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end">
+                        <ReihenfolgeButtons
+                          hoch={lernpfadReihenfolge.bind(null, p.id, "hoch")}
+                          runter={lernpfadReihenfolge.bind(null, p.id, "runter")}
+                          hochDeaktiviert={idx === 0}
+                          runterDeaktiviert={idx === pfade.length - 1}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button asChild size="sm" variant="outline">
+                          <Link href={`/lernpfade/${p.id}`}>
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            Vorschau
+                          </Link>
+                        </Button>
+                        <Button asChild size="sm">
+                          <Link href={`/admin/lernpfade/${p.id}`}>
+                            <Pencil className="h-3.5 w-3.5" />
+                            Bearbeiten
+                          </Link>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
