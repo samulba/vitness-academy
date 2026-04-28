@@ -8,7 +8,7 @@ export function StickyNav() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => setScrolled(window.scrollY > 16);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -17,38 +17,49 @@ export function StickyNav() {
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-all duration-300",
+        "fixed inset-x-0 top-0 z-50 transition-colors duration-200",
         scrolled
-          ? "border-b border-white/10 bg-[hsl(var(--brand-ink)/0.8)] backdrop-blur"
-          : "bg-transparent",
+          ? "border-b border-white/[0.08] bg-[hsl(var(--brand-ink)/0.75)] backdrop-blur-md"
+          : "border-b border-transparent bg-transparent",
       )}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-12">
         <Link
           href="/"
-          className="flex items-center gap-2 font-semibold tracking-tight text-[hsl(var(--brand-cream))]"
+          className="flex items-center gap-2.5 text-[hsl(var(--brand-cream))]"
         >
-          <span className="brand-gradient inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold text-[hsl(var(--brand-ink))] shadow-lg">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--brand-lime))] text-sm font-bold text-[hsl(var(--brand-ink))]">
             VA
           </span>
-          <span>Vitness Academy</span>
+          <span className="text-[15px] font-semibold tracking-tight">
+            Vitness Academy
+          </span>
         </Link>
 
-        <nav className="hidden items-center gap-7 text-sm text-[hsl(var(--brand-cream)/0.8)] md:flex">
-          <a href="#problem" className="hover:text-[hsl(var(--brand-lime))]">
+        <nav className="hidden items-center gap-8 text-sm text-[hsl(var(--brand-cream)/0.7)] md:flex">
+          <a
+            href="#problem"
+            className="transition-colors hover:text-[hsl(var(--brand-cream))]"
+          >
             Warum
           </a>
-          <a href="#features" className="hover:text-[hsl(var(--brand-lime))]">
-            Was du bekommst
+          <a
+            href="#features"
+            className="transition-colors hover:text-[hsl(var(--brand-cream))]"
+          >
+            Was drin ist
           </a>
-          <a href="#prozess" className="hover:text-[hsl(var(--brand-lime))]">
-            So läuft&apos;s
+          <a
+            href="#prozess"
+            className="transition-colors hover:text-[hsl(var(--brand-cream))]"
+          >
+            Ablauf
           </a>
         </nav>
 
         <Link
           href="/login"
-          className="rounded-full bg-[hsl(var(--brand-lime))] px-4 py-2 text-sm font-semibold text-[hsl(var(--brand-ink))] shadow-md transition-colors hover:bg-[hsl(var(--brand-lime)/0.85)]"
+          className="inline-flex items-center gap-1.5 rounded-full bg-[hsl(var(--brand-lime))] px-4 py-2 text-sm font-semibold text-[hsl(var(--brand-ink))] transition-transform hover:scale-[1.02]"
         >
           Anmelden
         </Link>

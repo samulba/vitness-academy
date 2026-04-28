@@ -1,11 +1,5 @@
 import Link from "next/link";
-import {
-  ArrowLeft,
-  CheckCircle2,
-  GraduationCap,
-  HelpCircle,
-  Sparkles,
-} from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { LoginFormular } from "./LoginFormular";
 
 export default async function LoginPage({
@@ -16,87 +10,79 @@ export default async function LoginPage({
   const { weiter, fehler } = await searchParams;
 
   return (
-    <main className="grid min-h-screen lg:grid-cols-2">
+    <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
       {/* Branding-Pane */}
-      <div className="brand-gradient relative hidden overflow-hidden lg:flex">
-        <div className="bg-dot-pattern absolute inset-0 opacity-20" />
+      <aside className="relative hidden overflow-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))] lg:flex">
         <div
-          className="blob -top-32 -right-32 h-96 w-96 opacity-40"
-          style={{ backgroundColor: "hsl(var(--brand-pink))" }}
+          aria-hidden
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "linear-gradient(hsl(var(--brand-cream)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--brand-cream)) 1px, transparent 1px)",
+            backgroundSize: "72px 72px",
+          }}
         />
         <div
-          className="blob bottom-0 -left-32 h-80 w-80 opacity-30"
-          style={{ backgroundColor: "white" }}
+          aria-hidden
+          className="absolute -bottom-32 -left-20 h-[420px] w-[420px] rounded-full opacity-25 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(closest-side, hsl(var(--brand-teal)), transparent)",
+          }}
         />
 
-        <div className="relative z-10 flex w-full flex-col justify-between p-12 text-white">
-          <Link href="/" className="flex w-fit items-center gap-2 font-semibold">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 text-sm font-bold backdrop-blur">
+        <div className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-16">
+          <Link href="/" className="flex w-fit items-center gap-2.5">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--brand-lime))] text-sm font-bold text-[hsl(var(--brand-ink))]">
               VA
             </span>
-            <span>Vitness Academy</span>
+            <span className="text-[15px] font-semibold tracking-tight">
+              Vitness Academy
+            </span>
           </Link>
 
-          <div className="space-y-8">
-            <div className="space-y-3">
-              <h2 className="max-w-md text-3xl font-semibold leading-tight tracking-tight">
-                Willkommen zurück.
-                <br />
-                Schön, dass du wieder da bist.
-              </h2>
-              <p className="max-w-md text-white/80">
-                Melde dich mit deiner dienstlichen E-Mail an und mach da weiter,
-                wo du aufgehört hast.
-              </p>
-            </div>
-
-            <ul className="space-y-3 text-sm">
-              <Vorteil
-                icon={<GraduationCap className="h-4 w-4" />}
-                text="Strukturierte Lernpfade für alle Bereiche"
-              />
-              <Vorteil
-                icon={<HelpCircle className="h-4 w-4" />}
-                text="Quizze mit sofortiger Auswertung"
-              />
-              <Vorteil
-                icon={<CheckCircle2 className="h-4 w-4" />}
-                text="Praxisfreigaben durch deine Führungskraft"
-              />
-            </ul>
+          <div className="max-w-lg space-y-8">
+            <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.55)]">
+              <span className="h-1 w-6 rounded-full bg-[hsl(var(--brand-lime))]" />
+              Willkommen zurück
+            </span>
+            <h2 className="text-balance font-semibold leading-[1.02] tracking-[-0.025em] text-[clamp(2.25rem,4vw,3.5rem)]">
+              Schön, dass du
+              <br />
+              wieder da bist.
+            </h2>
+            <p className="max-w-md text-base leading-relaxed text-[hsl(var(--brand-cream)/0.7)]">
+              Melde dich mit deiner dienstlichen E-Mail an und mach da weiter,
+              wo du aufgehört hast.
+            </p>
           </div>
 
-          <p className="text-xs text-white/60">
-            © Vitness Academy · Interne Schulungsplattform
+          <p className="text-xs text-[hsl(var(--brand-cream)/0.4)]">
+            © {new Date().getFullYear()} Vitness Academy · Interne Plattform
           </p>
         </div>
-      </div>
+      </aside>
 
       {/* Formular-Pane */}
-      <div className="relative flex items-center justify-center bg-background px-4 py-12">
-        <div
-          className="blob -top-20 right-0 h-72 w-72 opacity-20 lg:hidden"
-          style={{ backgroundColor: "hsl(var(--brand-violet))" }}
-        />
-
-        <div className="relative w-full max-w-sm space-y-6">
+      <section className="relative flex items-center justify-center bg-[hsl(var(--brand-cream))] px-6 py-12 lg:px-16">
+        <div className="w-full max-w-sm space-y-10">
           <Link
             href="/"
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
             Zurück zur Startseite
           </Link>
 
-          <div className="space-y-2">
-            <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-2.5 py-0.5 text-xs font-medium text-primary">
-              <Sparkles className="h-3 w-3" />
+          <div className="space-y-3">
+            <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-teal))]">
+              <span className="h-1 w-6 rounded-full bg-[hsl(var(--brand-lime))]" />
               Anmelden
             </span>
-            <h1 className="text-3xl font-semibold tracking-tight">
+            <h1 className="text-balance font-semibold leading-[1.05] tracking-[-0.02em] text-[clamp(2rem,3vw,2.5rem)]">
               Hallo, schön dass du da bist.
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm leading-relaxed text-muted-foreground">
               Melde dich mit deiner dienstlichen E-Mail an. Noch keinen Zugang?
               Kurz beim Studio-Team melden.
             </p>
@@ -104,24 +90,7 @@ export default async function LoginPage({
 
           <LoginFormular weiter={weiter} fehler={fehler} />
         </div>
-      </div>
+      </section>
     </main>
-  );
-}
-
-function Vorteil({
-  icon,
-  text,
-}: {
-  icon: React.ReactNode;
-  text: string;
-}) {
-  return (
-    <li className="flex items-center gap-3">
-      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 backdrop-blur">
-        {icon}
-      </span>
-      <span>{text}</span>
-    </li>
   );
 }

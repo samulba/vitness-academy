@@ -34,12 +34,17 @@ function initialen(name: string | null): string {
 
 export function Topbar({ fullName, role }: Props) {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-6">
-      <Link href="/dashboard" className="flex items-center gap-2 font-semibold tracking-tight">
-        <span className="brand-gradient inline-flex h-8 w-8 items-center justify-center rounded-xl text-sm font-bold text-white shadow-md">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/70 lg:px-6">
+      <Link
+        href="/dashboard"
+        className="flex items-center gap-2.5 text-foreground"
+      >
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--brand-lime))] text-sm font-bold text-[hsl(var(--brand-ink))]">
           VA
         </span>
-        <span className="hidden sm:inline">Vitness Academy</span>
+        <span className="hidden text-[15px] font-semibold tracking-tight sm:inline">
+          Vitness Academy
+        </span>
       </Link>
 
       <DropdownMenu>

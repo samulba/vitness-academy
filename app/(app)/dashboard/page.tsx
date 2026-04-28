@@ -5,19 +5,14 @@ import {
   CheckSquare,
   GraduationCap,
   HelpCircle,
-  Sparkles,
   Trophy,
 } from "lucide-react";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { PfadCard } from "@/components/lernpfad/PfadCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { requireProfile } from "@/lib/auth";
@@ -48,52 +43,41 @@ export default async function DashboardPage() {
   const offen = offeneLektionen(pfade, 5);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-3xl border bg-card p-6 sm:p-8">
-        <div className="brand-gradient-soft absolute inset-0" />
-        <div className="bg-dot-pattern absolute inset-0 opacity-50" />
-        <div
-          className="blob -top-20 -right-20 h-64 w-64 opacity-30"
-          style={{ backgroundColor: "hsl(var(--brand-violet))" }}
-        />
-        <div
-          className="blob bottom-0 -left-10 h-56 w-56 opacity-25"
-          style={{ backgroundColor: "hsl(var(--primary))" }}
-        />
-
-        <div className="relative grid gap-6 lg:grid-cols-[1.3fr_1fr] lg:items-center">
-          <div className="space-y-3">
-            <Badge
-              variant="outline"
-              className="gap-1 rounded-full border-primary/30 bg-card/70 px-3 py-1 text-primary backdrop-blur"
-            >
-              <Sparkles className="h-3 w-3" />
+      <section className="space-y-8">
+        <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
+          <div className="lg:col-span-7">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-teal))]">
               Mein Dashboard
-            </Badge>
-            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
-              {tageszeitGruss(profile.full_name)}!
+            </p>
+            <h1 className="mt-3 text-balance font-semibold leading-[1.05] tracking-[-0.025em] text-[clamp(2rem,3.5vw,3rem)]">
+              {tageszeitGruss(profile.full_name)}.
             </h1>
-            <p className="max-w-xl text-muted-foreground">
-              Schön, dass du da bist. Hier siehst du auf einen Blick, wo du
-              stehst und was als Nächstes ansteht.
+            <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground">
+              Hier siehst du auf einen Blick, wo du stehst und was als
+              Nächstes ansteht.
             </p>
           </div>
 
-          <div className="rounded-2xl border bg-card/80 p-5 backdrop-blur shadow-sm">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">
-              Gesamtfortschritt
-            </div>
-            <div className="mt-1 flex items-baseline gap-2">
-              <div className="text-4xl font-semibold brand-text-gradient">
-                {formatProzent(prozent)}
+          <div className="lg:col-span-5">
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <div className="flex items-baseline justify-between">
+                <p className="text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
+                  Gesamtfortschritt
+                </p>
+                <span className="text-xs text-muted-foreground">
+                  {abgeschlossen} / {gesamt} Lektionen
+                </span>
               </div>
-              <div className="text-sm text-muted-foreground">
-                {abgeschlossen}/{gesamt} Lektionen
+              <div className="mt-2 flex items-baseline gap-3">
+                <span className="text-5xl font-semibold tracking-tight text-foreground">
+                  {formatProzent(prozent)}
+                </span>
               </div>
-            </div>
-            <div className="mt-3">
-              <Progress value={prozent} />
+              <div className="mt-4">
+                <Progress value={prozent} />
+              </div>
             </div>
           </div>
         </div>
@@ -105,14 +89,14 @@ export default async function DashboardPage() {
           icon={<GraduationCap className="h-5 w-5" />}
           label="Lernpfade"
           wert={pfade.length}
-          akzent="primary"
+          akzent="lime"
           href="/lernpfade"
         />
         <KennzahlCard
           icon={<BookOpen className="h-5 w-5" />}
           label="Offene Lektionen"
           wert={offen.length}
-          akzent="violet"
+          akzent="teal"
         />
         <KennzahlCard
           icon={<Trophy className="h-5 w-5" />}
@@ -124,22 +108,24 @@ export default async function DashboardPage() {
           icon={<CheckSquare className="h-5 w-5" />}
           label="Praxis offen"
           wert={anzOffenePraxis}
-          akzent="pink"
+          akzent="coral"
           href="/praxisfreigaben"
         />
       </section>
 
       {/* Lernpfade */}
-      <section className="space-y-3">
+      <section className="space-y-5">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-xl font-semibold">Meine Lernpfade</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Meine Lernpfade
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
               Alle dir zugewiesenen Lernpfade auf einen Blick.
             </p>
           </div>
           <Button asChild variant="ghost" size="sm">
-            <Link href="/lernpfade" className="text-primary">
+            <Link href="/lernpfade" className="text-foreground">
               Alle ansehen
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -148,7 +134,7 @@ export default async function DashboardPage() {
 
         {pfade.length === 0 ? (
           <Card>
-            <CardContent className="py-10 text-center text-muted-foreground">
+            <CardContent className="py-12 text-center text-muted-foreground">
               Dir wurden noch keine Lernpfade zugewiesen. Sprich kurz dein
               Studio-Team an.
             </CardContent>
@@ -172,12 +158,14 @@ export default async function DashboardPage() {
       </section>
 
       {/* Offene Lektionen */}
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold">Offene Lektionen</h2>
+      <section className="space-y-5">
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Offene Lektionen
+        </h2>
         {offen.length === 0 ? (
           <Card>
-            <CardContent className="py-10 text-center">
-              <div className="brand-gradient mx-auto flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-lg">
+            <CardContent className="py-12 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[hsl(var(--brand-lime))] text-[hsl(var(--brand-ink))]">
                 <Trophy className="h-6 w-6" />
               </div>
               <div className="mt-3 text-sm font-medium">
@@ -188,11 +176,11 @@ export default async function DashboardPage() {
           </Card>
         ) : (
           <Card>
-            <ul className="divide-y">
+            <ul className="divide-y divide-border">
               {offen.map((eintrag) => (
                 <li
                   key={eintrag.lesson_id}
-                  className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6"
+                  className="flex flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6"
                 >
                   <div className="min-w-0">
                     <Link
@@ -221,31 +209,37 @@ export default async function DashboardPage() {
       </section>
 
       {/* Wissensdatenbank-Promo */}
-      <Card className="overflow-hidden border-0 brand-gradient text-white">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
-            <HelpCircle className="h-5 w-5" />
-            Wissensdatenbank
-          </CardTitle>
-          <CardDescription className="text-white/80">
-            Schnelle Antworten für den Studio-Alltag – durchsuchbar nach
-            Stichworten und Kategorien.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild variant="secondary" className="bg-white text-primary hover:bg-white/90">
-            <Link href="/wissen">
+      <section className="overflow-hidden rounded-2xl border border-border bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
+        <div className="grid gap-6 p-6 sm:p-10 lg:grid-cols-12 lg:items-center lg:gap-10">
+          <div className="lg:col-span-8">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.5)]">
+              <HelpCircle className="mr-1 inline h-3 w-3" />
+              Wissensdatenbank
+            </p>
+            <h3 className="mt-3 text-balance text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
+              Schnelle Antworten für den Studio-Alltag.
+            </h3>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-[hsl(var(--brand-cream)/0.7)]">
+              Durchsuchbar nach Stichworten und Kategorien — vom Notfallplan
+              bis zur Reinigungsroutine.
+            </p>
+          </div>
+          <div className="lg:col-span-4 lg:text-right">
+            <Link
+              href="/wissen"
+              className="group inline-flex items-center gap-2 rounded-full bg-[hsl(var(--brand-lime))] px-5 py-3 text-sm font-semibold text-[hsl(var(--brand-ink))] transition-transform hover:scale-[1.02]"
+            >
               Wissensdatenbank öffnen
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
-          </Button>
-        </CardContent>
-      </Card>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
 
-type Akzent = "primary" | "violet" | "pink" | "success";
+type Akzent = "lime" | "teal" | "coral" | "success";
 
 function KennzahlCard({
   icon,
@@ -261,20 +255,22 @@ function KennzahlCard({
   href?: string;
 }) {
   const akzentBg: Record<Akzent, string> = {
-    primary: "bg-primary/10 text-primary",
-    violet: "bg-[hsl(var(--brand-violet)/0.12)] text-[hsl(var(--brand-violet))]",
-    pink: "bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]",
-    success: "bg-success/10 text-success",
+    lime: "bg-[hsl(var(--brand-lime)/0.18)] text-[hsl(var(--primary))]",
+    teal: "bg-[hsl(var(--brand-teal)/0.12)] text-[hsl(var(--brand-teal))]",
+    coral: "bg-[hsl(var(--brand-coral)/0.12)] text-[hsl(var(--brand-coral))]",
+    success: "bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]",
   };
 
   const inhalt = (
-    <Card className="hover-lift h-full">
-      <CardContent className="flex items-center gap-4 py-5">
-        <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${akzentBg[akzent]}`}>
+    <Card className="h-full transition-colors hover:border-foreground/20">
+      <CardContent className="flex items-center gap-4 py-6">
+        <div
+          className={`flex h-11 w-11 items-center justify-center rounded-xl ${akzentBg[akzent]}`}
+        >
           {icon}
         </div>
         <div>
-          <div className="text-2xl font-semibold">{wert}</div>
+          <div className="text-2xl font-semibold tracking-tight">{wert}</div>
           <div className="text-sm text-muted-foreground">{label}</div>
         </div>
       </CardContent>
