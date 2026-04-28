@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Pencil, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -86,12 +87,19 @@ export default async function AdminQuizzePage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Quizze</h1>
-        <p className="mt-1 text-muted-foreground">
-          Übersicht aller Quizze. Anlegen, Bearbeiten und Fragen-Verwaltung
-          folgen in einer späteren Iteration.
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Quizze</h1>
+          <p className="mt-1 text-muted-foreground">
+            Quizze inkl. Fragen und Antworten verwalten.
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/admin/quizze/neu">
+            <Plus className="h-4 w-4" />
+            Neues Quiz
+          </Link>
+        </Button>
       </header>
 
       <Card>
@@ -114,13 +122,14 @@ export default async function AdminQuizzePage() {
                 <TableHead className="text-right">Versuche</TableHead>
                 <TableHead className="text-right">Bestanden</TableHead>
                 <TableHead>Aktualisiert</TableHead>
+                <TableHead className="text-right">Aktionen</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {quizze.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={8}
+                    colSpan={9}
                     className="py-10 text-center text-muted-foreground"
                   >
                     Noch keine Quizze angelegt.
@@ -131,11 +140,10 @@ export default async function AdminQuizzePage() {
                   <TableRow key={q.id}>
                     <TableCell>
                       <Link
-                        href={`/quiz/${q.id}`}
-                        className="inline-flex items-center gap-1 font-medium hover:text-primary"
+                        href={`/admin/quizze/${q.id}`}
+                        className="font-medium hover:text-primary"
                       >
                         {q.title}
-                        <ExternalLink className="h-3.5 w-3.5" />
                       </Link>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
@@ -177,6 +185,22 @@ export default async function AdminQuizzePage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDatum(q.updated_at)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button asChild size="sm" variant="outline">
+                          <Link href={`/quiz/${q.id}`}>
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            Vorschau
+                          </Link>
+                        </Button>
+                        <Button asChild size="sm">
+                          <Link href={`/admin/quizze/${q.id}`}>
+                            <Pencil className="h-3.5 w-3.5" />
+                            Bearbeiten
+                          </Link>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
