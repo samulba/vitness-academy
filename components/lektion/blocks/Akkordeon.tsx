@@ -50,7 +50,7 @@ export function Akkordeon({ content }: { content: AkkordeonContent }) {
                 <ChevronDown
                   className={cn(
                     "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-300",
-                    istOffen && "rotate-180 text-[hsl(var(--brand-teal))]",
+                    istOffen && "rotate-180 text-[hsl(var(--brand-pink))]",
                   )}
                 />
               </button>

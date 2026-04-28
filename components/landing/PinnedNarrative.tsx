@@ -93,7 +93,7 @@ export function PinnedNarrative() {
               30 + aktuellerIdx * 15
             }% ${50 - aktuelleSubProgress * 10}%, hsl(${
               [
-                "var(--brand-teal)",
+                "var(--brand-pink)",
                 "var(--primary)",
                 "var(--brand-lime)",
                 "var(--brand-coral)",
@@ -198,7 +198,7 @@ function PhasenVisual({ phase, idx }: { phase: Phase; idx: number }) {
         style={{
           background: `hsl(${
             [
-              "var(--brand-teal)",
+              "var(--brand-pink)",
               "var(--primary)",
               "var(--brand-lime)",
               "var(--brand-coral)",
@@ -329,11 +329,11 @@ function VisualQuiz() {
   return (
     <div>
       <div className="flex items-start gap-2.5">
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--brand-teal)/0.15)] text-[hsl(var(--brand-teal))]">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--brand-pink)/0.15)] text-[hsl(var(--brand-pink))]">
           <Sparkles className="h-3 w-3" />
         </span>
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-teal))]">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
             Mini-Quiz · Mehrere Antworten
           </p>
           <p className="mt-1 text-sm font-semibold leading-tight">

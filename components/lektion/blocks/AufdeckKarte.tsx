@@ -18,7 +18,7 @@ export function AufdeckKarte({ content }: { content: AufdeckKarteContent }) {
         "group relative w-full overflow-hidden rounded-2xl border-2 p-6 text-left transition-all",
         aufgedeckt
           ? "border-[hsl(var(--brand-lime))] bg-[hsl(var(--brand-lime)/0.08)]"
-          : "border-dashed border-border bg-card hover:border-[hsl(var(--brand-teal))] hover:bg-[hsl(var(--brand-teal)/0.04)]",
+          : "border-dashed border-border bg-card hover:border-[hsl(var(--brand-pink))] hover:bg-[hsl(var(--brand-pink)/0.04)]",
       )}
     >
       <div className="flex items-start gap-3">
@@ -27,7 +27,7 @@ export function AufdeckKarte({ content }: { content: AufdeckKarteContent }) {
             "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors",
             aufgedeckt
               ? "bg-[hsl(var(--brand-lime))] text-[hsl(var(--brand-ink))]"
-              : "bg-muted text-muted-foreground group-hover:bg-[hsl(var(--brand-teal)/0.15)] group-hover:text-[hsl(var(--brand-teal))]",
+              : "bg-muted text-muted-foreground group-hover:bg-[hsl(var(--brand-pink)/0.15)] group-hover:text-[hsl(var(--brand-pink))]",
           )}
         >
           {aufgedeckt ? (
@@ -63,7 +63,7 @@ export function AufdeckKarte({ content }: { content: AufdeckKarteContent }) {
           </div>
 
           {!aufgedeckt && (
-            <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--brand-teal))]">
+            <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--brand-pink))]">
               <Eye className="h-3.5 w-3.5" />
               Tippen zum Aufdecken
             </p>

@@ -19,7 +19,7 @@ export function AnimatedHero() {
         className="pointer-events-none absolute -top-40 right-[-10%] h-[700px] w-[700px] rounded-full opacity-[0.28] blur-[120px]"
         style={{
           background:
-            "radial-gradient(closest-side, hsl(var(--brand-teal)), transparent)",
+            "radial-gradient(closest-side, hsl(var(--brand-pink)), transparent)",
         }}
       />
 

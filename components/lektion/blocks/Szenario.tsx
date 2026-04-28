@@ -22,15 +22,15 @@ export function Szenario({ content }: { content: SzenarioContent }) {
   const auswahl = gewaehlt !== null ? content.optionen[gewaehlt] : null;
 
   return (
-    <div className="overflow-hidden rounded-2xl border-2 border-[hsl(var(--brand-teal)/0.3)] bg-card">
+    <div className="overflow-hidden rounded-2xl border-2 border-[hsl(var(--brand-pink)/0.3)] bg-card">
       {/* Situation */}
-      <div className="border-b border-border bg-[hsl(var(--brand-teal)/0.06)] p-5 sm:p-6">
+      <div className="border-b border-border bg-[hsl(var(--brand-pink)/0.06)] p-5 sm:p-6">
         <div className="flex items-start gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--brand-teal)/0.18)] text-[hsl(var(--brand-teal))]">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--brand-pink)/0.18)] text-[hsl(var(--brand-pink))]">
             <MessagesSquare className="h-4 w-4" />
           </span>
           <div className="flex-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-teal))]">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
               Szenario · Was würdest du tun?
             </p>
             <div className="prose-vitness mt-2 text-sm sm:text-base">
@@ -57,7 +57,7 @@ export function Szenario({ content }: { content: SzenarioContent }) {
               className={cn(
                 "group flex w-full items-start gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all",
                 gewaehlt === null &&
-                  "border-border bg-background hover:border-[hsl(var(--brand-teal))] hover:bg-[hsl(var(--brand-teal)/0.06)]",
+                  "border-border bg-background hover:border-[hsl(var(--brand-pink))] hover:bg-[hsl(var(--brand-pink)/0.06)]",
                 zeigeRichtigStatus &&
                   opt.korrekt &&
                   "border-[hsl(var(--success))] bg-[hsl(var(--success)/0.1)]",
@@ -73,7 +73,7 @@ export function Szenario({ content }: { content: SzenarioContent }) {
                 className={cn(
                   "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors",
                   gewaehlt === null &&
-                    "border-muted-foreground/40 bg-background text-muted-foreground group-hover:border-[hsl(var(--brand-teal))] group-hover:text-[hsl(var(--brand-teal))]",
+                    "border-muted-foreground/40 bg-background text-muted-foreground group-hover:border-[hsl(var(--brand-pink))] group-hover:text-[hsl(var(--brand-pink))]",
                   zeigeRichtigStatus &&
                     opt.korrekt &&
                     "border-[hsl(var(--success))] bg-[hsl(var(--success))] text-white",

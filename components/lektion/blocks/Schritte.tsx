@@ -44,7 +44,7 @@ export function Schritte({ content }: { content: SchritteContent }) {
             <Footprints className="h-4 w-4" />
           </span>
           <div className="flex-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-teal))]">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
               Schritt für Schritt
             </p>
             <p className="text-base font-semibold text-foreground sm:text-lg">

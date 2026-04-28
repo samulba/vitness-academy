@@ -14,25 +14,28 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 30% 10%;
 
-    /* Primaer: Deep Teal-Emerald */
-    --primary: 175 65% 22%;
+    /* Vitness-Markenfarbe: #b50f5f -> HSL 331 85% 38% */
+    --primary: 331 85% 38%;
     --primary-foreground: 40 30% 98%;
 
-    /* Brand-Akzentfarben */
+    /* Brand-Akzentfarben
+       brand-pink ist der hellere Magenta-Akzent fuer Eyebrow-Labels
+       und Text-on-Cream. brand-lime bleibt der energetische CTA-
+       Akzent (Lime + Magenta = Fitness-Energie). */
     --brand-lime: 75 95% 58%;
-    --brand-teal: 175 85% 42%;
+    --brand-pink: 331 75% 52%;
     --brand-coral: 14 95% 64%;
     --brand-ink: 222 30% 7%;
     --brand-cream: 40 30% 97%;
 
-    --secondary: 175 20% 95%;
+    --secondary: 331 20% 95%;
     --secondary-foreground: 222 30% 12%;
 
-    --muted: 175 15% 95%;
+    --muted: 331 15% 95%;
     --muted-foreground: 220 9% 42%;
 
-    --accent: 75 100% 92%;
-    --accent-foreground: 165 70% 18%;
+    --accent: 331 60% 95%;
+    --accent-foreground: 331 80% 30%;
 
     --success: 145 65% 38%;
     --success-foreground: 0 0% 100%;
@@ -43,9 +46,9 @@
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 175 15% 88%;
-    --input: 175 15% 88%;
-    --ring: 175 65% 22%;
+    --border: 331 15% 88%;
+    --input: 331 15% 88%;
+    --ring: 331 85% 38%;
 
     --radius: 0.875rem;
 
@@ -60,10 +63,10 @@
     --card-foreground: 40 30% 96%;
     --popover: 222 30% 10%;
     --popover-foreground: 40 30% 96%;
-    --primary: 75 95% 58%;
+    --primary: 331 80% 60%;
     --primary-foreground: 222 30% 7%;
     --brand-lime: 75 95% 60%;
-    --brand-teal: 175 85% 50%;
+    --brand-pink: 331 75% 65%;
     --brand-coral: 14 95% 64%;
     --brand-ink: 222 30% 5%;
     --brand-cream: 40 30% 96%;
@@ -71,8 +74,8 @@
     --secondary-foreground: 40 30% 96%;
     --muted: 222 25% 14%;
     --muted-foreground: 220 14% 65%;
-    --accent: 175 60% 18%;
-    --accent-foreground: 75 95% 70%;
+    --accent: 331 50% 22%;
+    --accent-foreground: 331 80% 70%;
     --success: 145 65% 50%;
     --success-foreground: 222 30% 7%;
     --warning: 24 95% 60%;
@@ -81,7 +84,7 @@
     --destructive-foreground: 0 0% 100%;
     --border: 222 25% 16%;
     --input: 222 25% 16%;
-    --ring: 75 95% 58%;
+    --ring: 331 80% 60%;
   }
 }
 
@@ -106,7 +109,7 @@
     background-image: linear-gradient(
       135deg,
       hsl(var(--primary)) 0%,
-      hsl(var(--brand-teal)) 55%,
+      hsl(var(--brand-pink)) 55%,
       hsl(var(--brand-lime)) 100%
     );
   }
@@ -114,7 +117,7 @@
     background-image: linear-gradient(
       135deg,
       hsl(var(--primary) / 0.06) 0%,
-      hsl(var(--brand-teal) / 0.08) 55%,
+      hsl(var(--brand-pink) / 0.08) 55%,
       hsl(var(--brand-lime) / 0.10) 100%
     );
   }
@@ -122,7 +125,7 @@
     background-image: linear-gradient(
       135deg,
       hsl(var(--primary)) 0%,
-      hsl(var(--brand-teal)) 60%,
+      hsl(var(--brand-pink)) 60%,
       hsl(var(--brand-lime)) 100%
     );
     -webkit-background-clip: text;
@@ -133,7 +136,7 @@
     background-image: linear-gradient(
       120deg,
       hsl(var(--brand-lime)) 0%,
-      hsl(var(--brand-teal)) 100%
+      hsl(var(--brand-pink)) 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -164,7 +167,7 @@
     position: absolute;
     inset: -25%;
     background:
-      radial-gradient(closest-side, hsl(var(--brand-teal) / 0.55), transparent 70%) 10% 20% / 60% 60% no-repeat,
+      radial-gradient(closest-side, hsl(var(--brand-pink) / 0.55), transparent 70%) 10% 20% / 60% 60% no-repeat,
       radial-gradient(closest-side, hsl(var(--brand-lime) / 0.45), transparent 70%) 80% 30% / 55% 55% no-repeat,
       radial-gradient(closest-side, hsl(var(--brand-coral) / 0.35), transparent 70%) 30% 80% / 65% 65% no-repeat,
       radial-gradient(closest-side, hsl(var(--primary) / 0.65), transparent 70%) 70% 75% / 70% 70% no-repeat;
@@ -225,7 +228,7 @@
     box-shadow:
       0 1px 2px 0 hsl(var(--primary) / 0.04),
       0 8px 24px -8px hsl(var(--primary) / 0.18),
-      0 30px 60px -30px hsl(var(--brand-teal) / 0.25);
+      0 30px 60px -30px hsl(var(--brand-pink) / 0.25);
   }
   .glow-lime {
     box-shadow:

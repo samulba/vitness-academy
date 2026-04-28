@@ -27,7 +27,7 @@ export default async function LoginPage({
           className="absolute -bottom-32 -left-20 h-[420px] w-[420px] rounded-full opacity-25 blur-3xl"
           style={{
             background:
-              "radial-gradient(closest-side, hsl(var(--brand-teal)), transparent)",
+              "radial-gradient(closest-side, hsl(var(--brand-pink)), transparent)",
           }}
         />
 
@@ -75,7 +75,7 @@ export default async function LoginPage({
           </Link>
 
           <div className="space-y-3">
-            <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-teal))]">
+            <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
               <span className="h-1 w-6 rounded-full bg-[hsl(var(--brand-lime))]" />
               Anmelden
             </span>

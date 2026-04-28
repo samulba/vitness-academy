@@ -48,7 +48,7 @@ export default async function DashboardPage() {
       <section className="space-y-8">
         <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
           <div className="lg:col-span-7">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-teal))]">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
               Mein Dashboard
             </p>
             <h1 className="mt-3 text-balance font-semibold leading-[1.05] tracking-[-0.025em] text-[clamp(2rem,3.5vw,3rem)]">
@@ -96,7 +96,7 @@ export default async function DashboardPage() {
           icon={<BookOpen className="h-5 w-5" />}
           label="Offene Lektionen"
           wert={offen.length}
-          akzent="teal"
+          akzent="pink"
         />
         <KennzahlCard
           icon={<Trophy className="h-5 w-5" />}
@@ -239,7 +239,7 @@ export default async function DashboardPage() {
   );
 }
 
-type Akzent = "lime" | "teal" | "coral" | "success";
+type Akzent = "lime" | "pink" | "coral" | "success";
 
 function KennzahlCard({
   icon,
@@ -256,7 +256,7 @@ function KennzahlCard({
 }) {
   const akzentBg: Record<Akzent, string> = {
     lime: "bg-[hsl(var(--brand-lime)/0.18)] text-[hsl(var(--primary))]",
-    teal: "bg-[hsl(var(--brand-teal)/0.12)] text-[hsl(var(--brand-teal))]",
+    pink: "bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]",
     coral: "bg-[hsl(var(--brand-coral)/0.12)] text-[hsl(var(--brand-coral))]",
     success: "bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]",
   };

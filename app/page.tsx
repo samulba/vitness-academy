@@ -68,7 +68,7 @@ function Bausteine() {
       <div className="mx-auto max-w-[1600px] px-6 py-32 lg:px-12 lg:py-48 2xl:px-20">
         <div className="max-w-3xl">
           <Reveal>
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-teal))]">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
               Womit du arbeitest
             </p>
           </Reveal>
@@ -90,7 +90,7 @@ function Bausteine() {
                 <span className="font-mono text-xs text-muted-foreground">
                   {it.kicker}
                 </span>
-                <div className="mt-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-white text-[hsl(var(--brand-teal))] transition-colors group-hover:border-[hsl(var(--brand-teal))]">
+                <div className="mt-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-white text-[hsl(var(--brand-pink))] transition-colors group-hover:border-[hsl(var(--brand-pink))]">
                   <it.icon className="h-5 w-5" strokeWidth={1.75} />
                 </div>
                 <h3 className="mt-6 text-2xl font-semibold tracking-tight">

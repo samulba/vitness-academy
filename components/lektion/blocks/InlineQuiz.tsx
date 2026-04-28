@@ -43,13 +43,13 @@ export function InlineQuiz({ content }: { content: InlineQuizContent }) {
     content.optionen.every((opt, i) => opt.korrekt === auswahl.has(i));
 
   return (
-    <div className="rounded-2xl border-2 border-[hsl(var(--brand-teal)/0.3)] bg-[hsl(var(--brand-teal)/0.04)] p-5 sm:p-6">
+    <div className="rounded-2xl border-2 border-[hsl(var(--brand-pink)/0.3)] bg-[hsl(var(--brand-pink)/0.04)] p-5 sm:p-6">
       <div className="flex items-start gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--brand-teal)/0.15)] text-[hsl(var(--brand-teal))]">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--brand-pink)/0.15)] text-[hsl(var(--brand-pink))]">
           <HelpCircle className="h-4 w-4" />
         </span>
         <div className="flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-teal))]">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
             Mini-Quiz · {istMultiple ? "Mehrere Antworten möglich" : "Eine Antwort"}
           </p>
           <p className="mt-1 text-base font-semibold text-foreground sm:text-lg">
@@ -74,10 +74,10 @@ export function InlineQuiz({ content }: { content: InlineQuizContent }) {
                   "group flex w-full items-start gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all",
                   !geprueft &&
                     !istGewaehlt &&
-                    "border-border bg-background hover:border-[hsl(var(--brand-teal))] hover:bg-[hsl(var(--brand-teal)/0.06)]",
+                    "border-border bg-background hover:border-[hsl(var(--brand-pink))] hover:bg-[hsl(var(--brand-pink)/0.06)]",
                   !geprueft &&
                     istGewaehlt &&
-                    "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal)/0.1)]",
+                    "border-[hsl(var(--brand-pink))] bg-[hsl(var(--brand-pink)/0.1)]",
                   zeigeAlsRichtig &&
                     "border-[hsl(var(--success))] bg-[hsl(var(--success)/0.1)]",
                   zeigeAlsFalsch &&
@@ -97,7 +97,7 @@ export function InlineQuiz({ content }: { content: InlineQuizContent }) {
                       "border-muted-foreground/40 bg-background",
                     !geprueft &&
                       istGewaehlt &&
-                      "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]",
+                      "border-[hsl(var(--brand-pink))] bg-[hsl(var(--brand-pink))]",
                     zeigeAlsRichtig &&
                       "border-[hsl(var(--success))] bg-[hsl(var(--success))]",
                     zeigeAlsFalsch &&
