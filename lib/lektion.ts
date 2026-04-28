@@ -1,7 +1,75 @@
 import { createClient } from "@/lib/supabase/server";
 import type { LektionStatus } from "@/lib/lernpfade";
 
-export type ContentBlockTyp = "text" | "checkliste" | "video_url" | "hinweis";
+export type ContentBlockTyp =
+  | "text"
+  | "checkliste"
+  | "video_url"
+  | "hinweis"
+  | "aufdeck_karte"
+  | "inline_quiz"
+  | "akkordeon"
+  | "sortieren"
+  | "szenario"
+  | "schritte";
+
+export type TextBlockContent = { markdown: string };
+export type ChecklisteBlockContent = { items: string[] };
+export type VideoUrlBlockContent = { url: string; title?: string };
+export type HinweisBlockContent = {
+  variant: "info" | "warnung";
+  markdown: string;
+};
+
+export type AufdeckKarteContent = {
+  frage: string;
+  antwort_markdown: string;
+};
+
+export type InlineQuizOption = {
+  text: string;
+  korrekt: boolean;
+  erklaerung?: string;
+};
+export type InlineQuizContent = {
+  typ: "single" | "multiple";
+  frage: string;
+  optionen: InlineQuizOption[];
+};
+
+export type AkkordeonItem = {
+  frage: string;
+  antwort_markdown: string;
+};
+export type AkkordeonContent = {
+  einleitung?: string | null;
+  items: AkkordeonItem[];
+};
+
+export type SortierenContent = {
+  aufgabe: string;
+  schritte_korrekt: string[];
+};
+
+export type SzenarioOption = {
+  text: string;
+  korrekt: boolean;
+  feedback_markdown: string;
+};
+export type SzenarioContent = {
+  situation_markdown: string;
+  optionen: SzenarioOption[];
+};
+
+export type SchrittItem = {
+  titel: string;
+  body_markdown: string;
+  hinweis?: string | null;
+};
+export type SchritteContent = {
+  titel: string;
+  schritte: SchrittItem[];
+};
 
 export type ContentBlock = {
   id: string;
