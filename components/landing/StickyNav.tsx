@@ -38,28 +38,10 @@ export function StickyNav() {
 
         <nav className="hidden items-center gap-8 text-sm text-[hsl(var(--brand-cream)/0.7)] md:flex">
           <a
-            href="#worum-geht-es"
+            href="#story"
             className="transition-colors hover:text-[hsl(var(--brand-cream))]"
           >
-            Was ist das?
-          </a>
-          <a
-            href="#bausteine"
-            className="transition-colors hover:text-[hsl(var(--brand-cream))]"
-          >
-            Wie du lernst
-          </a>
-          <a
-            href="#themen"
-            className="transition-colors hover:text-[hsl(var(--brand-cream))]"
-          >
-            Was du kannst
-          </a>
-          <a
-            href="#loslegen"
-            className="transition-colors hover:text-[hsl(var(--brand-cream))]"
-          >
-            Loslegen
+            Wie das läuft
           </a>
         </nav>
 

@@ -2,20 +2,16 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowRight,
-  CheckCircle2,
-  Coffee,
+  BookOpen,
   Compass,
-  Dumbbell,
-  HeartPulse,
   ListChecks,
-  Sparkles,
   UserCheck,
-  Users,
 } from "lucide-react";
 import { getCurrentProfile, startseiteFuerRolle } from "@/lib/auth";
 import { StickyNav } from "@/components/landing/StickyNav";
 import { Reveal } from "@/components/landing/Reveal";
 import { AnimatedHero } from "@/components/landing/AnimatedHero";
+import { PinnedNarrative } from "@/components/landing/PinnedNarrative";
 
 export default async function RootPage() {
   const profile = await getCurrentProfile();
@@ -24,86 +20,19 @@ export default async function RootPage() {
   }
 
   return (
-    <main className="bg-[hsl(var(--brand-cream))] text-foreground">
+    <main className="bg-[hsl(var(--brand-ink))] text-foreground">
       <StickyNav />
       <AnimatedHero />
-      <WorumGehtEs />
+      <PinnedNarrative />
       <Bausteine />
-      <Themen />
-      <Loslegen />
-      <Willkommen />
+      <Closer />
       <Footer />
     </main>
   );
 }
 
-/* Hero ist als eigene Client-Component <AnimatedHero /> ausgelagert. */
-
 /* -------------------------------------------------------------------- */
-/* Worum geht es?                                                        */
-/* -------------------------------------------------------------------- */
-
-function WorumGehtEs() {
-  return (
-    <section
-      id="worum-geht-es"
-      className="border-b border-border bg-[hsl(var(--brand-cream))]"
-    >
-      <div className="mx-auto max-w-7xl px-6 py-24 lg:px-12 lg:py-36">
-        <div className="grid gap-16 lg:grid-cols-12 lg:gap-12">
-          <div className="lg:col-span-5">
-            <Reveal>
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-teal))]">
-                Was ist das hier?
-              </p>
-            </Reveal>
-            <Reveal delay={120}>
-              <h2 className="mt-6 text-balance font-semibold leading-[1.02] tracking-[-0.025em] text-[clamp(2rem,4vw,3.75rem)]">
-                Dein Onboarding — ohne Zettelwirtschaft.
-              </h2>
-            </Reveal>
-          </div>
-
-          <div className="lg:col-span-6 lg:col-start-7">
-            <Reveal delay={120}>
-              <p className="text-balance text-lg leading-relaxed text-foreground sm:text-xl">
-                Statt zwei Wochen hinter Kolleginnen herzulaufen, dir Notizen
-                auf Klebezettel zu kritzeln und immer wieder dieselbe Frage zu
-                stellen, gehst du hier strukturiert durch.
-              </p>
-            </Reveal>
-            <Reveal delay={240}>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground">
-                Alles, was du wissen musst, ist an einem Ort. Dein:e
-                Studioleiter:in und das ganze Team haben das mit aufgebaut —
-                damit du dich von Tag eins an sicher fühlst, wenn das erste
-                Mitglied an der Theke steht.
-              </p>
-            </Reveal>
-
-            <Reveal delay={360}>
-              <ul className="mt-10 space-y-4 text-sm text-foreground">
-                {[
-                  "In deinem Tempo — keine Stoppuhr, keine Bewertung",
-                  "Auf dem Handy, am Laptop, an der Theke",
-                  "Jederzeit nachlesbar, auch nach Monaten noch",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-3">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-[hsl(var(--success))]" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* -------------------------------------------------------------------- */
-/* Drei Bausteine                                                        */
+/* Bausteine — bricht die Dunkelheit auf, drei klare Tiles               */
 /* -------------------------------------------------------------------- */
 
 function Bausteine() {
@@ -112,135 +41,63 @@ function Bausteine() {
       icon: Compass,
       kicker: "01",
       titel: "Lernpfade",
-      text: "Pro Bereich ein Pfad — Theke, Trainingsfläche, Reha, Verkauf. In Module und Lektionen aufgeteilt, in der richtigen Reihenfolge. Du klickst dich durch, in deinem Tempo.",
+      text: "Pro Bereich ein Pfad. Modul für Modul. In der richtigen Reihenfolge — du kannst dich nicht verlaufen.",
     },
     {
       icon: ListChecks,
       kicker: "02",
-      titel: "Mini-Quizze & Aufdeck-Karten",
-      text: "Kurze Checks direkt in der Lektion. Statt nur zu lesen, prüfst du sofort: hab ich's verstanden? Bei falschen Antworten gibt's eine Erklärung — kein Drama, einfach nochmal.",
+      titel: "Quizze & Aufdeck-Karten",
+      text: "Direkt in der Lektion prüfen, ob's sitzt. Falsche Antwort? Erklärung, nochmal. Kein Drama.",
     },
     {
       icon: UserCheck,
       kicker: "03",
       titel: "Praxisfreigabe",
-      text: "Manche Sachen muss man am Tresen können, nicht nur erklären. Wenn du dich bereit fühlst, meldest du dich, deine Studioleitung schaut zu und gibt frei. Dann bist du offiziell startklar.",
+      text: "Manche Dinge muss man am Tresen können. Studioleitung schaut zu, gibt Häkchen, du bist drin.",
+    },
+    {
+      icon: BookOpen,
+      kicker: "04",
+      titel: "Wissensdatenbank",
+      text: "Wenn du im Alltag eine Frage hast — kurz suchen, Antwort lesen, weiter geht's.",
     },
   ];
 
   return (
-    <section
-      id="bausteine"
-      className="border-b border-border bg-[hsl(var(--brand-cream))]"
-    >
-      <div className="mx-auto max-w-7xl px-6 py-24 lg:px-12 lg:py-36">
-        <div className="grid gap-16 lg:grid-cols-12 lg:gap-12">
-          <div className="lg:col-span-5 lg:sticky lg:top-32 lg:self-start">
-            <Reveal>
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-teal))]">
-                Wie du lernst
-              </p>
-            </Reveal>
-            <Reveal delay={120}>
-              <h2 className="mt-6 text-balance font-semibold leading-[1.02] tracking-[-0.025em] text-[clamp(2rem,4vw,3.75rem)]">
-                Drei Bausteine. Mehr brauchst du nicht.
-              </h2>
-            </Reveal>
-            <Reveal delay={240}>
-              <p className="mt-8 max-w-md text-base leading-relaxed text-muted-foreground">
-                Wir wollen, dass du Lust hast, durchzugehen — kein
-                Frontalunterricht, keine PDFs, kein Powerpoint.
-              </p>
-            </Reveal>
-          </div>
-
-          <div className="lg:col-span-7 lg:col-start-6">
-            <ol className="space-y-12 lg:space-y-16">
-              {items.map((it, i) => (
-                <Reveal key={it.titel} delay={i * 100}>
-                  <li className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t-2 border-foreground pt-6 lg:gap-x-8 lg:pt-8">
-                    <span className="row-span-3 font-mono text-sm text-muted-foreground">
-                      {it.kicker}
-                    </span>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-white text-[hsl(var(--brand-teal))]">
-                      <it.icon className="h-5 w-5" strokeWidth={1.75} />
-                    </div>
-                    <h3 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                      {it.titel}
-                    </h3>
-                    <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-                      {it.text}
-                    </p>
-                  </li>
-                </Reveal>
-              ))}
-            </ol>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* -------------------------------------------------------------------- */
-/* Themen — was du konkret lernst                                        */
-/* -------------------------------------------------------------------- */
-
-function Themen() {
-  const bereiche = [
-    {
-      icon: Coffee,
-      titel: "Theke & Empfang",
-      text: "Begrüßung, Check-in im Magicline, häufige Fragen, Beschwerden professionell aufnehmen.",
-    },
-    {
-      icon: Dumbbell,
-      titel: "Trainingsfläche",
-      text: "Geräteeinweisungen, Sicherheitschecks, wie du Mitglieder bei Fragen unterstützt.",
-    },
-    {
-      icon: HeartPulse,
-      titel: "Reha & Prävention",
-      text: "Anfragen sauber aufnehmen, was bei Verordnungen wichtig ist, wann du an wen verweist.",
-    },
-    {
-      icon: Users,
-      titel: "Beratung & Verkauf",
-      text: "Mitgliedsanfragen beantworten, Beiträge erklären, Probetraining sauber durchführen.",
-    },
-  ];
-
-  return (
-    <section
-      id="themen"
-      className="border-b border-border bg-[hsl(var(--brand-cream))]"
-    >
-      <div className="mx-auto max-w-7xl px-6 py-24 lg:px-12 lg:py-36">
+    <section className="bg-[hsl(var(--brand-cream))] text-foreground">
+      <div className="mx-auto max-w-[1600px] px-6 py-32 lg:px-12 lg:py-48 2xl:px-20">
         <div className="max-w-3xl">
           <Reveal>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-teal))]">
-              Was du nach den ersten Wochen kannst
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-teal))]">
+              Womit du arbeitest
             </p>
           </Reveal>
           <Reveal delay={120}>
-            <h2 className="mt-6 text-balance font-semibold leading-[1.02] tracking-[-0.025em] text-[clamp(2rem,4vw,3.75rem)]">
-              Du wirst den Laden kennen — Bereich für Bereich.
+            <h2 className="mt-8 text-balance font-semibold leading-[1.0] tracking-[-0.03em] text-[clamp(2.5rem,5vw,4.5rem)]">
+              Vier Werkzeuge.
+              <br />
+              <span className="text-muted-foreground">
+                Mehr brauchst du nicht.
+              </span>
             </h2>
           </Reveal>
         </div>
 
-        <div className="mt-20 grid gap-x-12 gap-y-16 sm:grid-cols-2 lg:grid-cols-4">
-          {bereiche.map((b, i) => (
-            <Reveal key={b.titel} delay={i * 80}>
-              <article>
-                <div className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-[hsl(var(--brand-lime)/0.18)] text-[hsl(var(--primary))]">
-                  <b.icon className="h-5 w-5" strokeWidth={1.75} />
+        <div className="mt-24 grid gap-x-12 gap-y-20 md:grid-cols-2 lg:gap-y-24 xl:grid-cols-4">
+          {items.map((it, i) => (
+            <Reveal key={it.titel} delay={i * 90}>
+              <article className="group">
+                <span className="font-mono text-xs text-muted-foreground">
+                  {it.kicker}
+                </span>
+                <div className="mt-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-white text-[hsl(var(--brand-teal))] transition-colors group-hover:border-[hsl(var(--brand-teal))]">
+                  <it.icon className="h-5 w-5" strokeWidth={1.75} />
                 </div>
-                <h3 className="mt-5 text-xl font-semibold tracking-tight">
-                  {b.titel}
+                <h3 className="mt-6 text-2xl font-semibold tracking-tight">
+                  {it.titel}
                 </h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  {b.text}
+                <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+                  {it.text}
                 </p>
               </article>
             </Reveal>
@@ -252,109 +109,63 @@ function Themen() {
 }
 
 /* -------------------------------------------------------------------- */
-/* Loslegen                                                              */
+/* Closer                                                                */
 /* -------------------------------------------------------------------- */
 
-function Loslegen() {
-  const schritte = [
-    {
-      titel: "Login-Daten checken",
-      text: "Du hast eine E-Mail von uns mit deinem Zugang bekommen. Falls nicht: kurz bei deiner Studioleitung melden.",
-    },
-    {
-      titel: "Anmelden",
-      text: "Klick oben rechts auf „Anmelden“, E-Mail + Passwort eingeben, fertig.",
-    },
-    {
-      titel: "Erster Lernpfad",
-      text: "Auf deinem Dashboard wartet schon der erste zugewiesene Pfad. Lektion eins anklicken, loslegen.",
-    },
-  ];
-
+function Closer() {
   return (
-    <section
-      id="loslegen"
-      className="border-b border-border bg-[hsl(var(--brand-cream))]"
-    >
-      <div className="mx-auto max-w-7xl px-6 py-24 lg:px-12 lg:py-36">
-        <div className="max-w-3xl">
-          <Reveal>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-teal))]">
-              So fängst du an
+    <section className="relative isolate overflow-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-40 left-[-10%] h-[700px] w-[700px] rounded-full opacity-25 blur-[120px]"
+        style={{
+          background:
+            "radial-gradient(closest-side, hsl(var(--brand-lime)), transparent)",
+        }}
+      />
+
+      <div className="relative mx-auto max-w-[1600px] px-6 py-40 lg:px-12 lg:py-56 2xl:px-20">
+        <Reveal>
+          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-cream)/0.5)]">
+            Bevor du loslegst
+          </p>
+        </Reveal>
+
+        <Reveal delay={120}>
+          <h2 className="mt-8 max-w-[18ch] text-balance font-semibold leading-[0.92] tracking-[-0.04em] text-[clamp(3rem,8vw,8rem)]">
+            Willkommen
+            <br />
+            <span className="relative inline-block">
+              im Team.
+              <span
+                aria-hidden
+                className="absolute -bottom-3 left-0 right-2 h-[6px] rounded-full bg-[hsl(var(--brand-lime))]"
+              />
+            </span>
+          </h2>
+        </Reveal>
+
+        <Reveal delay={240}>
+          <p className="mt-14 max-w-2xl text-pretty text-lg leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:text-xl">
+            Niemand erwartet, dass du alles auf einmal kannst. Wenn unterwegs
+            etwas hängt — deine Studioleitung weiß Bescheid und hilft jederzeit.
+          </p>
+        </Reveal>
+
+        <Reveal delay={360}>
+          <div className="mt-16 flex flex-col items-start gap-y-8 sm:flex-row sm:items-center sm:gap-x-16">
+            <Link
+              href="/login"
+              className="group inline-flex items-center gap-3 rounded-full bg-[hsl(var(--brand-lime))] px-8 py-4 text-base font-semibold text-[hsl(var(--brand-ink))] transition-transform hover:scale-[1.02]"
+            >
+              Zum Login
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <p className="max-w-sm text-sm text-[hsl(var(--brand-cream)/0.5)]">
+              Login-Daten kommen per E-Mail von deiner Studioleitung.
             </p>
-          </Reveal>
-          <Reveal delay={120}>
-            <h2 className="mt-6 text-balance font-semibold leading-[1.02] tracking-[-0.025em] text-[clamp(2rem,4vw,3.75rem)]">
-              Du hast schon alles, was du brauchst.
-            </h2>
-          </Reveal>
-        </div>
-
-        <ol className="mt-20 grid gap-10 md:grid-cols-3">
-          {schritte.map((s, i) => (
-            <Reveal key={s.titel} delay={i * 100}>
-              <li className="border-t-2 border-foreground pt-5">
-                <span className="text-2xl font-semibold tracking-tight">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <h3 className="mt-4 text-xl font-semibold tracking-tight">
-                  {s.titel}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  {s.text}
-                </p>
-              </li>
-            </Reveal>
-          ))}
-        </ol>
-      </div>
-    </section>
-  );
-}
-
-/* -------------------------------------------------------------------- */
-/* Willkommen / CTA                                                      */
-/* -------------------------------------------------------------------- */
-
-function Willkommen() {
-  return (
-    <section className="bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
-      <div className="mx-auto max-w-7xl px-6 py-28 lg:px-12 lg:py-40">
-        <div className="grid gap-12 lg:grid-cols-12 lg:items-end lg:gap-16">
-          <div className="lg:col-span-8">
-            <Reveal>
-              <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.55)]">
-                <Sparkles className="h-3 w-3 text-[hsl(var(--brand-lime))]" />
-                Bevor du loslegst
-              </span>
-            </Reveal>
-            <Reveal delay={120}>
-              <h2 className="mt-6 text-balance font-semibold leading-[0.98] tracking-[-0.03em] text-[clamp(2.5rem,5vw,5rem)]">
-                Willkommen bei Vitness.
-                <br />
-                <span className="text-[hsl(var(--brand-cream)/0.6)]">
-                  Wir freuen uns, dass du da bist.
-                </span>
-              </h2>
-            </Reveal>
           </div>
-          <div className="lg:col-span-4">
-            <Reveal delay={240}>
-              <p className="text-base leading-relaxed text-[hsl(var(--brand-cream)/0.7)]">
-                Wenn unterwegs etwas hängt: deine Studioleitung weiß Bescheid
-                und hilft jederzeit. Niemand erwartet, dass du alles auf einmal
-                kannst.
-              </p>
-              <Link
-                href="/login"
-                className="group mt-6 inline-flex items-center gap-2 rounded-full bg-[hsl(var(--brand-lime))] px-6 py-3.5 text-base font-semibold text-[hsl(var(--brand-ink))] transition-transform hover:scale-[1.02]"
-              >
-                Jetzt anmelden
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            </Reveal>
-          </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -366,9 +177,9 @@ function Willkommen() {
 
 function Footer() {
   return (
-    <footer className="bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream)/0.6)]">
+    <footer className="bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream)/0.55)]">
       <div className="w-full border-t border-white/10 px-6 py-10 lg:px-12 2xl:px-20">
-        <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+        <div className="mx-auto flex max-w-[1600px] flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2.5 text-[hsl(var(--brand-cream))]">
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[hsl(var(--brand-lime))] text-xs font-bold text-[hsl(var(--brand-ink))]">
               VA
