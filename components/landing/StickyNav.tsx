@@ -42,7 +42,7 @@ export function StickyNav() {
             Was du bekommst
           </a>
           <a href="#prozess" className="hover:text-[hsl(var(--brand-lime))]">
-            So läuft's
+            So läuft&apos;s
           </a>
         </nav>
 
