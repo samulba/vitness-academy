@@ -51,7 +51,34 @@ export async function lektionLoeschen(lessonId: string): Promise<void> {
 // =========================================================
 // Inhalts-Blöcke
 // =========================================================
-type BlockTyp = "text" | "checkliste" | "video_url" | "hinweis";
+type BlockTyp =
+  | "text"
+  | "checkliste"
+  | "video_url"
+  | "hinweis"
+  | "aufdeck_karte"
+  | "inline_quiz"
+  | "akkordeon";
+
+const ERLAUBTE_TYPEN: BlockTyp[] = [
+  "text",
+  "checkliste",
+  "video_url",
+  "hinweis",
+  "aufdeck_karte",
+  "inline_quiz",
+  "akkordeon",
+];
+
+function parseJsonField<T>(formData: FormData, name: string, fallback: T): T {
+  const raw = String(formData.get(name) ?? "").trim();
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
 
 function buildContent(typ: BlockTyp, formData: FormData): Record<string, unknown> {
   switch (typ) {
@@ -80,6 +107,31 @@ function buildContent(typ: BlockTyp, formData: FormData): Record<string, unknown
       const markdown = String(formData.get("markdown") ?? "");
       return { variant, markdown };
     }
+    case "aufdeck_karte": {
+      const frage = String(formData.get("frage") ?? "").trim();
+      const antwort_markdown = String(formData.get("antwort_markdown") ?? "");
+      return { frage, antwort_markdown };
+    }
+    case "inline_quiz": {
+      const typQuiz =
+        String(formData.get("quiz_typ") ?? "single") === "multiple"
+          ? "multiple"
+          : "single";
+      const frage = String(formData.get("frage") ?? "").trim();
+      const optionen = parseJsonField<
+        { text: string; korrekt: boolean; erklaerung?: string }[]
+      >(formData, "optionen_json", []);
+      return { typ: typQuiz, frage, optionen };
+    }
+    case "akkordeon": {
+      const einleitung = String(formData.get("einleitung") ?? "").trim() || null;
+      const items = parseJsonField<{ frage: string; antwort_markdown: string }[]>(
+        formData,
+        "items_json",
+        [],
+      );
+      return { einleitung, items };
+    }
   }
 }
 
@@ -89,8 +141,7 @@ export async function blockAnlegen(
 ): Promise<void> {
   await ensureAdmin();
   const block_type = String(formData.get("block_type") ?? "text") as BlockTyp;
-  if (!["text", "checkliste", "video_url", "hinweis"].includes(block_type))
-    return;
+  if (!ERLAUBTE_TYPEN.includes(block_type)) return;
 
   const content = buildContent(block_type, formData);
 
@@ -122,8 +173,7 @@ export async function blockAktualisieren(
 ): Promise<void> {
   await ensureAdmin();
   const block_type = String(formData.get("block_type") ?? "text") as BlockTyp;
-  if (!["text", "checkliste", "video_url", "hinweis"].includes(block_type))
-    return;
+  if (!ERLAUBTE_TYPEN.includes(block_type)) return;
   const content = buildContent(block_type, formData);
 
   const supabase = await createClient();
