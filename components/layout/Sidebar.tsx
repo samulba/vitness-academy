@@ -35,7 +35,8 @@ const ADMIN_NAV: NavEintrag[] = [
   { href: "/admin/benutzer", label: "Benutzer", icon: Users },
   { href: "/admin/lernpfade", label: "Lernpfade", icon: GraduationCap },
   { href: "/admin/quizze", label: "Quizze", icon: HelpCircle },
-  { href: "/admin/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare },
+  { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare },
+  { href: "/admin/praxisfreigaben", label: "Anfragen", icon: CheckSquare },
   { href: "/admin/wissen", label: "Wissensdatenbank", icon: BookOpen },
   { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity, bald: true },
 ];
