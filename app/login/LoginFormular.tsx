@@ -9,7 +9,12 @@ import { anmelden } from "./actions";
 function AbsendenButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" className="w-full" disabled={pending}>
+    <Button
+      type="submit"
+      size="lg"
+      className="w-full brand-gradient text-white shadow-lg"
+      disabled={pending}
+    >
       {pending ? "Anmelden …" : "Anmelden"}
     </Button>
   );

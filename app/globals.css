@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    /* Hintergrund / Vordergrund - sehr helles Off-White */
-    --background: 220 20% 99%;
+    /* Hintergrund / Vordergrund */
+    --background: 220 25% 99%;
     --foreground: 222 47% 11%;
 
     /* Karten */
@@ -19,6 +19,11 @@
     /* Primaer: dunkles Indigo */
     --primary: 234 60% 32%;
     --primary-foreground: 220 20% 99%;
+
+    /* Brand Akzentfarben (Stops fuer Gradients) */
+    --brand-violet: 268 75% 56%;
+    --brand-pink: 330 80% 62%;
+    --brand-cyan: 199 90% 56%;
 
     /* Sekundaer */
     --secondary: 220 14% 96%;
@@ -45,7 +50,7 @@
     --input: 220 13% 91%;
     --ring: 234 60% 32%;
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;
 
     --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
       "Helvetica Neue", Arial, "Noto Sans", sans-serif;
@@ -60,6 +65,9 @@
     --popover-foreground: 220 20% 96%;
     --primary: 234 70% 70%;
     --primary-foreground: 222 47% 11%;
+    --brand-violet: 268 80% 70%;
+    --brand-pink: 330 80% 70%;
+    --brand-cyan: 199 90% 65%;
     --secondary: 222 30% 14%;
     --secondary-foreground: 220 20% 96%;
     --muted: 222 30% 14%;
@@ -86,9 +94,78 @@
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
   }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.015em;
+  }
 }
 
 @layer components {
+  /* -------------------------------------------------------
+   * Brand Gradient Utilities
+   * ------------------------------------------------------- */
+  .brand-gradient {
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--brand-violet)) 50%,
+      hsl(var(--brand-pink)) 100%
+    );
+  }
+  .brand-gradient-soft {
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--primary) / 0.08) 0%,
+      hsl(var(--brand-violet) / 0.08) 50%,
+      hsl(var(--brand-pink) / 0.06) 100%
+    );
+  }
+  .brand-text-gradient {
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--brand-violet)) 60%,
+      hsl(var(--brand-pink)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Wabe / Dot-Pattern fuer ruhige Hintergrund-Akzente */
+  .bg-dot-pattern {
+    background-image: radial-gradient(
+      hsl(var(--foreground) / 0.06) 1px,
+      transparent 1px
+    );
+    background-size: 18px 18px;
+  }
+
+  /* Glow-Schatten fuer Hero-Karten */
+  .glow-card {
+    box-shadow:
+      0 1px 2px 0 hsl(var(--primary) / 0.04),
+      0 8px 24px -8px hsl(var(--primary) / 0.18),
+      0 30px 60px -30px hsl(var(--brand-violet) / 0.25);
+  }
+
+  /* Hover-Lift fuer Cards */
+  .hover-lift {
+    transition:
+      transform 200ms ease,
+      box-shadow 200ms ease,
+      border-color 200ms ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px -12px hsl(var(--foreground) / 0.18);
+  }
+
+  /* Sanfte Ringgradient-Ecken (decorative blobs) */
+  .blob {
+    @apply absolute rounded-full opacity-30 blur-3xl pointer-events-none;
+  }
+
+  /* ------ Markdown im Vitness-Stil ------ */
   .prose-vitness {
     @apply text-foreground leading-relaxed;
   }

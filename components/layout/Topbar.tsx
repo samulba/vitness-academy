@@ -36,7 +36,7 @@ export function Topbar({ fullName, role }: Props) {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-6">
       <Link href="/dashboard" className="flex items-center gap-2 font-semibold tracking-tight">
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+        <span className="brand-gradient inline-flex h-8 w-8 items-center justify-center rounded-xl text-sm font-bold text-white shadow-md">
           VA
         </span>
         <span className="hidden sm:inline">Vitness Akademie</span>

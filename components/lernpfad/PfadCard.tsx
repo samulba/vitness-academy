@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle2, GraduationCap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { formatProzent } from "@/lib/format";
 
 type Props = {
@@ -23,17 +24,27 @@ export function PfadCard({
   gesamt,
   prozent,
 }: Props) {
+  const fertig = gesamt > 0 && abgeschlossen === gesamt;
+
   return (
-    <Link
-      href={`/lernpfade/${id}`}
-      className="group block"
-    >
-      <Card className="h-full transition-shadow hover:shadow-md">
-        <CardHeader>
+    <Link href={`/lernpfade/${id}`} className="group block">
+      <Card className="hover-lift relative h-full overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-1 brand-gradient" />
+        <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-3">
-            <CardTitle className="text-lg leading-tight">{title}</CardTitle>
-            <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1" />
+            <div className="brand-gradient-soft flex h-10 w-10 items-center justify-center rounded-xl">
+              <GraduationCap className="h-5 w-5 text-primary" />
+            </div>
+            {fertig ? (
+              <Badge variant="success" className="gap-1">
+                <CheckCircle2 className="h-3 w-3" />
+                Abgeschlossen
+              </Badge>
+            ) : (
+              <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1" />
+            )}
           </div>
+          <CardTitle className="text-lg leading-tight">{title}</CardTitle>
           {description ? (
             <p className="line-clamp-2 text-sm text-muted-foreground">
               {description}

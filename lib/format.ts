@@ -29,6 +29,17 @@ export function rolleLabel(role: string | null | undefined): string {
   }
 }
 
+export function tageszeitGruss(name: string | null): string {
+  const stunde = new Date().getHours();
+  const vorname = name?.split(" ")[0] ?? null;
+  const titel = vorname ?? "willkommen";
+  if (stunde < 5) return `Schön, dass du da bist, ${titel}`;
+  if (stunde < 11) return `Guten Morgen, ${titel}`;
+  if (stunde < 18) return `Hallo, ${titel}`;
+  if (stunde < 22) return `Guten Abend, ${titel}`;
+  return `Schön, dass du da bist, ${titel}`;
+}
+
 export function fortschrittLabel(status: string | null | undefined): string {
   switch (status) {
     case "abgeschlossen":
