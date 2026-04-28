@@ -65,11 +65,11 @@ values
         },
         {
           "frage": "Du bist gerade in einem Verkaufsgespräch",
-          "antwort_markdown": "**Nicken + Lächeln.** Kurz Augenkontakt herstellen, klar zu erkennen geben „ich sehe dich". Niemals wegschauen oder ignorieren — das Mitglied weiß dann: gleich bin ich dran."
+          "antwort_markdown": "**Nicken + Lächeln.** Kurz Augenkontakt herstellen, klar zu erkennen geben „ich sehe dich“. Niemals wegschauen oder ignorieren — das Mitglied weiß dann: gleich bin ich dran."
         },
         {
           "frage": "Mehrere Mitglieder kommen gleichzeitig",
-          "antwort_markdown": "**Reihenfolge benennen.** Alle einzeln ansprechen: „Hallo, ich bin gleich für Sie da" zur zweiten Person. Niemand fühlt sich übergangen. Stresslevel im Studio bleibt niedrig."
+          "antwort_markdown": "**Reihenfolge benennen.** Alle einzeln ansprechen: „Hallo, ich bin gleich für Sie da“ zur zweiten Person. Niemand fühlt sich übergangen. Stresslevel im Studio bleibt niedrig."
         }
       ]
     }'::jsonb,
