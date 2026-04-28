@@ -23,7 +23,7 @@ export function StickyNav() {
           : "border-b border-transparent bg-transparent",
       )}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-12">
+      <div className="flex w-full items-center justify-between px-6 py-4 lg:px-12 2xl:px-20">
         <Link
           href="/"
           className="flex items-center gap-2.5 text-[hsl(var(--brand-cream))]"

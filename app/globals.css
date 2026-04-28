@@ -257,6 +257,137 @@
     to   { transform: translateX(-50%); }
   }
 
+  /* -------------------------------------------------------
+   * Hero-Animationen (für ultra-Scrolltelling)
+   * ------------------------------------------------------- */
+
+  /* Schwebender Orb */
+  .orb-float-a { animation: orb-drift-a 18s ease-in-out infinite alternate; }
+  .orb-float-b { animation: orb-drift-b 22s ease-in-out infinite alternate; }
+  .orb-float-c { animation: orb-drift-c 26s ease-in-out infinite alternate; }
+  @keyframes orb-drift-a {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    100% { transform: translate3d(6%, -8%, 0) scale(1.15); }
+  }
+  @keyframes orb-drift-b {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    100% { transform: translate3d(-8%, 6%, 0) scale(1.1); }
+  }
+  @keyframes orb-drift-c {
+    0%   { transform: translate3d(0, 0, 0) scale(0.95); }
+    100% { transform: translate3d(4%, -4%, 0) scale(1.05); }
+  }
+
+  /* Word-by-word reveal */
+  .word-reveal {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: baseline;
+  }
+  .word-reveal > span {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(110%);
+    animation: word-rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  }
+  @keyframes word-rise {
+    0%   { opacity: 0; transform: translateY(110%); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Pulsing dot */
+  .pulse-dot::before {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    border-radius: 9999px;
+    background: hsl(var(--brand-lime));
+    opacity: 0.6;
+    animation: pulse-ring 2.4s ease-out infinite;
+  }
+  @keyframes pulse-ring {
+    0%   { transform: scale(0.6); opacity: 0.6; }
+    100% { transform: scale(2.4); opacity: 0; }
+  }
+
+  /* Shimmer (für CTA-Button) */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(0 0% 100% / 0.45) 50%,
+      transparent 100%
+    );
+    transform: skewX(-20deg);
+    animation: shimmer-slide 3.5s ease-in-out infinite;
+  }
+  @keyframes shimmer-slide {
+    0%   { left: -100%; }
+    60%  { left: 130%; }
+    100% { left: 130%; }
+  }
+
+  /* Bouncy scroll indicator */
+  .scroll-arrow {
+    animation: scroll-bounce 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+  @keyframes scroll-bounce {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    40%      { transform: translateY(8px); opacity: 1; }
+    60%      { transform: translateY(8px); opacity: 1; }
+  }
+
+  /* Mouse-spot helper (custom property fallback) */
+  .mouse-spot {
+    background:
+      radial-gradient(
+        500px circle at var(--mx, 50%) var(--my, 50%),
+        hsl(var(--brand-lime) / 0.12),
+        transparent 60%
+      );
+    transition: background 200ms ease;
+  }
+
+  /* Tilt-Card auf Hover */
+  .tilt-card {
+    transition: transform 350ms cubic-bezier(0.2, 0.7, 0.2, 1),
+                box-shadow 350ms cubic-bezier(0.2, 0.7, 0.2, 1),
+                border-color 200ms ease;
+    transform-style: preserve-3d;
+  }
+  .tilt-card:hover {
+    transform: translateY(-4px) rotateX(2deg) rotateY(-2deg);
+    box-shadow: 0 24px 60px -24px hsl(var(--brand-ink) / 0.35);
+  }
+
+  /* Scroll-progress line */
+  .progress-line {
+    height: 2px;
+    background: hsl(var(--brand-lime));
+    transform-origin: left center;
+    transform: scaleX(var(--p, 0));
+    transition: transform 200ms ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orb-float-a, .orb-float-b, .orb-float-c,
+    .ticker, .shimmer::after, .scroll-arrow,
+    .pulse-dot::before, .word-reveal > span {
+      animation: none !important;
+    }
+    .word-reveal > span { opacity: 1; transform: none; }
+  }
+
   /* Reveal-Klassen (gesteuert vom Reveal-Component) */
   .reveal-init {
     opacity: 0;

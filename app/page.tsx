@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowRight,
-  ArrowUpRight,
   CheckCircle2,
   Coffee,
   Compass,
@@ -16,6 +15,7 @@ import {
 import { getCurrentProfile, startseiteFuerRolle } from "@/lib/auth";
 import { StickyNav } from "@/components/landing/StickyNav";
 import { Reveal } from "@/components/landing/Reveal";
+import { AnimatedHero } from "@/components/landing/AnimatedHero";
 
 export default async function RootPage() {
   const profile = await getCurrentProfile();
@@ -26,7 +26,7 @@ export default async function RootPage() {
   return (
     <main className="bg-[hsl(var(--brand-cream))] text-foreground">
       <StickyNav />
-      <Hero />
+      <AnimatedHero />
       <WorumGehtEs />
       <Bausteine />
       <Themen />
@@ -37,83 +37,7 @@ export default async function RootPage() {
   );
 }
 
-/* -------------------------------------------------------------------- */
-/* Hero                                                                  */
-/* -------------------------------------------------------------------- */
-
-function Hero() {
-  return (
-    <section className="relative isolate overflow-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
-      <div
-        aria-hidden
-        className="absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage:
-            "linear-gradient(hsl(var(--brand-cream)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--brand-cream)) 1px, transparent 1px)",
-          backgroundSize: "72px 72px",
-        }}
-      />
-      <div
-        aria-hidden
-        className="absolute -top-32 right-[-10%] h-[600px] w-[600px] rounded-full opacity-25 blur-3xl"
-        style={{
-          background:
-            "radial-gradient(closest-side, hsl(var(--brand-teal)), transparent)",
-        }}
-      />
-
-      <div className="relative mx-auto max-w-7xl px-6 pb-32 pt-40 lg:px-12 lg:pb-44 lg:pt-56">
-        <Reveal>
-          <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.55)]">
-            <span className="h-1 w-6 rounded-full bg-[hsl(var(--brand-lime))]" />
-            Für neue Mitglieder im Vitness-Team
-          </span>
-        </Reveal>
-
-        <Reveal delay={120}>
-          <h1 className="mt-8 max-w-5xl text-balance font-semibold leading-[0.98] tracking-[-0.03em] text-[clamp(2.75rem,6.5vw,6rem)]">
-            Willkommen im Team.
-            <br />
-            <span className="relative inline-block">
-              Schön, dass du da bist.
-              <span
-                aria-hidden
-                className="absolute -bottom-2 left-0 right-0 h-1 rounded-full bg-[hsl(var(--brand-lime))]"
-              />
-            </span>
-          </h1>
-        </Reveal>
-
-        <Reveal delay={240}>
-          <p className="mt-10 max-w-2xl text-pretty text-lg leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:text-xl">
-            Hier in der Academy lernst du in deinen ersten Wochen alles, was du
-            bei uns im Studio brauchst — Theke, Trainingsfläche, Reha, Verkauf.
-            In deinem Tempo. Jederzeit nachlesbar.
-          </p>
-        </Reveal>
-
-        <Reveal delay={360}>
-          <div className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-4">
-            <Link
-              href="/login"
-              className="group inline-flex items-center gap-2 rounded-full bg-[hsl(var(--brand-lime))] px-6 py-3.5 text-base font-semibold text-[hsl(var(--brand-ink))] transition-transform hover:scale-[1.02]"
-            >
-              Jetzt anmelden
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-            <a
-              href="#worum-geht-es"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-[hsl(var(--brand-cream)/0.75)] transition-colors hover:text-[hsl(var(--brand-cream))]"
-            >
-              Was dich hier erwartet
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
-          </div>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
+/* Hero ist als eigene Client-Component <AnimatedHero /> ausgelagert. */
 
 /* -------------------------------------------------------------------- */
 /* Worum geht es?                                                        */
@@ -443,7 +367,7 @@ function Willkommen() {
 function Footer() {
   return (
     <footer className="bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream)/0.6)]">
-      <div className="mx-auto max-w-7xl border-t border-white/10 px-6 py-10 lg:px-12">
+      <div className="w-full border-t border-white/10 px-6 py-10 lg:px-12 2xl:px-20">
         <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2.5 text-[hsl(var(--brand-cream))]">
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[hsl(var(--brand-lime))] text-xs font-bold text-[hsl(var(--brand-ink))]">
