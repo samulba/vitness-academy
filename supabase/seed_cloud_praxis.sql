@@ -1,4 +1,4 @@
--- Vitness Akademie -- Cloud-Seed: Praxisaufgaben
+-- Vitness Academy -- Cloud-Seed: Praxisaufgaben
 --
 -- Voraussetzung:
 --   - Migration 0004_praxis.sql wurde angewendet

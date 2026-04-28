@@ -1,4 +1,4 @@
--- Vitness Akademie -- Cloud-Seed
+-- Vitness Academy -- Cloud-Seed
 --
 -- Dieses Skript NICHT lokal ausführen (lokal nutzt supabase/seed.sql).
 -- Es ist für die Erstanwendung in einem Supabase-Cloud-Projekt gedacht.

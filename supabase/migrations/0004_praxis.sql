@@ -1,4 +1,4 @@
--- Vitness Akademie -- Migration 0004: Praxisfreigaben
+-- Vitness Academy -- Migration 0004: Praxisfreigaben
 -- Konzept:
 --   practical_tasks            = Aufgaben-Vorlagen (vom Admin gepflegt),
 --                                koennen optional an Lernpfad/Modul/Lektion haengen

@@ -1,4 +1,4 @@
--- Vitness Akademie -- Cloud-Seed: Wissensdatenbank
+-- Vitness Academy -- Cloud-Seed: Wissensdatenbank
 --
 -- Voraussetzung:
 --   - Migration 0005_wissen.sql wurde angewendet

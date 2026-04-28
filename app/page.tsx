@@ -58,7 +58,7 @@ function Topbar() {
           <span className="brand-gradient inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold text-white shadow-lg">
             VA
           </span>
-          <span>Vitness Akademie</span>
+          <span>Vitness Academy</span>
         </Link>
         <Button asChild>
           <Link href="/login">
@@ -277,7 +277,7 @@ function Features() {
             Alles, was dein Team zum Lernen braucht
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Von der ersten Schicht bis zur Reha-Beratung – die Akademie wächst
+            Von der ersten Schicht bis zur Reha-Beratung – die Academy wächst
             mit deinem Studio.
           </p>
         </div>
@@ -398,7 +398,7 @@ function Footer() {
           <span className="brand-gradient inline-flex h-6 w-6 items-center justify-center rounded-md text-[10px] font-bold text-white">
             VA
           </span>
-          <span>Vitness Akademie</span>
+          <span>Vitness Academy</span>
         </div>
         <div>Interne Schulungsplattform · Made with Care</div>
       </div>

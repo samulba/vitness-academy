@@ -1,4 +1,4 @@
--- Vitness Akademie -- Initiales Schema (Iteration 1)
+-- Vitness Academy -- Initiales Schema (Iteration 1)
 -- Tabellen: locations, profiles, learning_paths, modules, lessons,
 -- lesson_content_blocks, user_learning_path_assignments, user_lesson_progress
 --

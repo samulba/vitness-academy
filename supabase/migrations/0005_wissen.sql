@@ -1,4 +1,4 @@
--- Vitness Akademie -- Migration 0005: Wissensdatenbank
+-- Vitness Academy -- Migration 0005: Wissensdatenbank
 -- Tabellen: knowledge_categories, knowledge_articles
 -- Artikel haben Markdown-Inhalt und sind durchsuchbar.
 

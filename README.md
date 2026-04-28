@@ -1,4 +1,4 @@
-# Vitness Akademie
+# Vitness Academy
 
 Interne Schulungsplattform für Fitnessstudio-Mitarbeiter mit Lernpfaden, Lektionen, Quizzen, Praxisfreigaben und Wissensdatenbank.
 

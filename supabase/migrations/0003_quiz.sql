@@ -1,4 +1,4 @@
--- Vitness Akademie -- Migration 0003: Quiz-System
+-- Vitness Academy -- Migration 0003: Quiz-System
 -- Tabellen: quizzes, quiz_questions, quiz_options, quiz_attempts, quiz_attempt_answers
 -- Ein Quiz haengt entweder an einer Lektion ODER an einem Modul (genau eines).
 

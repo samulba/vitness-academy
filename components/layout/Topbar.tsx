@@ -39,7 +39,7 @@ export function Topbar({ fullName, role }: Props) {
         <span className="brand-gradient inline-flex h-8 w-8 items-center justify-center rounded-xl text-sm font-bold text-white shadow-md">
           VA
         </span>
-        <span className="hidden sm:inline">Vitness Akademie</span>
+        <span className="hidden sm:inline">Vitness Academy</span>
       </Link>
 
       <DropdownMenu>

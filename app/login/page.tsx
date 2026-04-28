@@ -34,7 +34,7 @@ export default async function LoginPage({
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 text-sm font-bold backdrop-blur">
               VA
             </span>
-            <span>Vitness Akademie</span>
+            <span>Vitness Academy</span>
           </Link>
 
           <div className="space-y-8">
@@ -67,7 +67,7 @@ export default async function LoginPage({
           </div>
 
           <p className="text-xs text-white/60">
-            © Vitness Akademie · Interne Schulungsplattform
+            © Vitness Academy · Interne Schulungsplattform
           </p>
         </div>
       </div>

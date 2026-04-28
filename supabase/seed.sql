@@ -1,4 +1,4 @@
--- Vitness Akademie -- Seed-Daten für lokale Entwicklung
+-- Vitness Academy -- Seed-Daten für lokale Entwicklung
 -- Wird automatisch von `supabase db reset` ausgeführt.
 --
 -- Demo-Accounts (alle Passwort: passwort123):

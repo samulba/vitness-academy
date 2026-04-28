@@ -1,4 +1,4 @@
--- Vitness Akademie -- Row Level Security
+-- Vitness Academy -- Row Level Security
 -- Grundregeln:
 --   * Mitarbeiter sehen nur eigene Profile/Fortschritte und nur ihnen zugewiesene Lernpfade.
 --   * Fuehrungskraefte sehen alle Profile/Fortschritte (Standortfilter spaeter).

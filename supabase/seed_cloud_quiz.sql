@@ -1,4 +1,4 @@
--- Vitness Akademie -- Cloud-Seed: Beispiel-Quiz
+-- Vitness Academy -- Cloud-Seed: Beispiel-Quiz
 --
 -- Voraussetzung:
 --   - Migration 0003_quiz.sql wurde angewendet
