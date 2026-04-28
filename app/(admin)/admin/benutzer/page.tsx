@@ -1,5 +1,14 @@
+import Link from "next/link";
+import { Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -17,6 +26,7 @@ type Zeile = {
   role: string;
   created_at: string;
   location_name: string | null;
+  zugewiesen: number;
 };
 
 async function ladeBenutzer(): Promise<Zeile[]> {
@@ -25,26 +35,31 @@ async function ladeBenutzer(): Promise<Zeile[]> {
     .from("profiles")
     .select(
       `id, full_name, role, created_at,
-       locations:location_id ( name )`,
+       locations:location_id ( name ),
+       user_learning_path_assignments ( id )`,
     )
     .order("created_at", { ascending: false });
 
-  return ((data ?? []) as unknown as {
+  type Roh = {
     id: string;
     full_name: string | null;
     role: string;
     created_at: string;
     locations: { name: string } | null;
-  }[]).map((row) => ({
-    id: row.id,
-    full_name: row.full_name,
-    role: row.role,
-    created_at: row.created_at,
-    location_name: row.locations?.name ?? null,
+    user_learning_path_assignments: { id: string }[] | null;
+  };
+
+  return ((data ?? []) as unknown as Roh[]).map((r) => ({
+    id: r.id,
+    full_name: r.full_name,
+    role: r.role,
+    created_at: r.created_at,
+    location_name: r.locations?.name ?? null,
+    zugewiesen: (r.user_learning_path_assignments ?? []).length,
   }));
 }
 
-export default async function AdminBenutzerPage() {
+export default async function AdminBenutzerListe() {
   const benutzer = await ladeBenutzer();
 
   return (
@@ -52,7 +67,8 @@ export default async function AdminBenutzerPage() {
       <header>
         <h1 className="text-3xl font-semibold tracking-tight">Benutzer</h1>
         <p className="mt-1 text-muted-foreground">
-          Übersicht aller Profile in der Akademie.
+          Übersicht aller Profile. Rollen, Standorte und Lernpfad-Zuweisungen
+          pflegst du über die Detailseite.
         </p>
       </header>
 
@@ -60,7 +76,8 @@ export default async function AdminBenutzerPage() {
         <CardHeader>
           <CardTitle>Mitarbeiter ({benutzer.length})</CardTitle>
           <CardDescription>
-            Anlegen und Bearbeiten folgt in einer späteren Iteration.
+            Neue Benutzer werden über das Supabase-Dashboard angelegt
+            (Authentication → Users → „Add user“, mit „Auto Confirm“).
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -70,21 +87,31 @@ export default async function AdminBenutzerPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Rolle</TableHead>
                 <TableHead>Standort</TableHead>
+                <TableHead className="text-right">Lernpfade</TableHead>
                 <TableHead>Angelegt</TableHead>
+                <TableHead className="text-right">Aktionen</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {benutzer.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-10 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="py-10 text-center text-muted-foreground"
+                  >
                     Keine Benutzer gefunden.
                   </TableCell>
                 </TableRow>
               ) : (
                 benutzer.map((b) => (
                   <TableRow key={b.id}>
-                    <TableCell className="font-medium">
-                      {b.full_name ?? "—"}
+                    <TableCell>
+                      <Link
+                        href={`/admin/benutzer/${b.id}`}
+                        className="font-medium hover:text-primary"
+                      >
+                        {b.full_name ?? "—"}
+                      </Link>
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -96,8 +123,17 @@ export default async function AdminBenutzerPage() {
                     <TableCell className="text-muted-foreground">
                       {b.location_name ?? "—"}
                     </TableCell>
+                    <TableCell className="text-right">{b.zugewiesen}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDatum(b.created_at)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button asChild size="sm">
+                        <Link href={`/admin/benutzer/${b.id}`}>
+                          <Pencil className="h-3.5 w-3.5" />
+                          Bearbeiten
+                        </Link>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

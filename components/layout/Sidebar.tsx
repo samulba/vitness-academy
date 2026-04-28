@@ -38,7 +38,7 @@ const ADMIN_NAV: NavEintrag[] = [
   { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare },
   { href: "/admin/praxisfreigaben", label: "Anfragen", icon: CheckSquare },
   { href: "/admin/wissen", label: "Wissensdatenbank", icon: BookOpen },
-  { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity, bald: true },
+  { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity },
 ];
 
 export function Sidebar({ rolle }: { rolle: Rolle }) {
