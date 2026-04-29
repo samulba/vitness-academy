@@ -13,6 +13,7 @@ import {
   HelpCircle,
   Home,
   ListTodo,
+  MapPin,
   Megaphone,
   Settings,
   ShieldCheck,
@@ -50,6 +51,7 @@ const STUDIO_NAV: NavEintrag[] = [
 const ADMIN_NAV: NavEintrag[] = [
   { href: "/admin", label: "Übersicht", icon: ShieldCheck },
   { href: "/admin/benutzer", label: "Benutzer", icon: Users },
+  { href: "/admin/standorte", label: "Standorte", icon: MapPin },
   { href: "/admin/lernpfade", label: "Lernpfade", icon: GraduationCap },
   { href: "/admin/quizze", label: "Quizze", icon: HelpCircle },
   { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare },
