@@ -351,59 +351,177 @@ function WissenVisual() {
 function Closer() {
   return (
     <section className="relative isolate overflow-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
+      {/* Magenta-Glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-40 left-[-10%] h-[700px] w-[700px] rounded-full opacity-25 blur-[120px]"
+        className="pointer-events-none absolute -top-40 right-[-10%] h-[700px] w-[700px] rounded-full opacity-25 blur-[120px]"
         style={{
           background:
             "radial-gradient(closest-side, hsl(var(--primary)), transparent)",
         }}
       />
 
-      <div className="relative mx-auto max-w-[1600px] px-6 py-40 lg:px-12 lg:py-56 2xl:px-20">
-        <Reveal>
-          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-cream)/0.5)]">
-            Bevor du loslegst
-          </p>
-        </Reveal>
+      {/* Watermark VITNESS */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 -bottom-12 select-none overflow-hidden text-center font-semibold leading-none tracking-[-0.05em] sm:-bottom-20 lg:-bottom-32"
+        style={{
+          fontSize: "clamp(8rem, 26vw, 28rem)",
+          color: "transparent",
+          WebkitTextStroke: "1px hsl(var(--brand-cream) / 0.07)",
+        }}
+      >
+        VITNESS
+      </div>
 
-        <Reveal delay={120}>
-          <h2 className="mt-8 max-w-[18ch] text-balance font-semibold leading-[0.92] tracking-[-0.04em] text-[clamp(3rem,8vw,8rem)]">
-            Willkommen
-            <br />
-            <span className="relative inline-block">
-              im Team.
-              <span
-                aria-hidden
-                className="absolute -bottom-3 left-0 right-2 h-[6px] rounded-full bg-[hsl(var(--primary))]"
-              />
-            </span>
-          </h2>
-        </Reveal>
+      <div className="relative mx-auto max-w-[1600px] px-6 pt-32 lg:px-12 lg:pt-48 2xl:px-20">
+        <div className="grid gap-16 lg:grid-cols-12 lg:gap-12">
+          {/* Linke Spalte: Headline */}
+          <div className="lg:col-span-8">
+            <Reveal>
+              <span className="inline-flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-cream)/0.55)]">
+                <span className="h-px w-10 bg-[hsl(var(--primary))]" />
+                PS · Bevor du loslegst
+              </span>
+            </Reveal>
 
-        <Reveal delay={240}>
-          <p className="mt-14 max-w-2xl text-pretty text-lg leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:text-xl">
-            Niemand erwartet, dass du alles auf einmal kannst. Wenn unterwegs
-            etwas hängt — deine Studioleitung weiß Bescheid und hilft jederzeit.
-          </p>
-        </Reveal>
+            <Reveal delay={120}>
+              <h2 className="mt-10 max-w-[16ch] text-balance font-semibold leading-[0.9] tracking-[-0.04em] text-[clamp(3.5rem,9vw,9rem)]">
+                Willkommen
+                <br />
+                <span className="relative inline-block">
+                  im Vitness-Team.
+                  <span
+                    aria-hidden
+                    className="absolute -bottom-3 left-0 right-2 h-[8px] rounded-full bg-[hsl(var(--primary))]"
+                  />
+                </span>
+              </h2>
+            </Reveal>
 
-        <Reveal delay={360}>
-          <div className="mt-16 flex flex-col items-start gap-y-8 sm:flex-row sm:items-center sm:gap-x-16">
+            <Reveal delay={240}>
+              <p className="mt-14 max-w-2xl text-pretty text-lg leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:text-xl">
+                Niemand erwartet, dass du alles auf einmal kannst. Wenn
+                unterwegs etwas hängt — deine Studioleitung weiß Bescheid und
+                hilft jederzeit.{" "}
+                <span className="text-[hsl(var(--brand-cream))]">
+                  Du bist nicht allein.
+                </span>
+              </p>
+            </Reveal>
+          </div>
+
+          {/* Rechte Spalte: Team-Card */}
+          <Reveal delay={360} className="lg:col-span-4">
+            <TeamCard />
+          </Reveal>
+        </div>
+
+        {/* CTA */}
+        <Reveal delay={480}>
+          <div className="mt-24 flex flex-col items-start gap-y-8 lg:mt-32 sm:flex-row sm:items-center sm:gap-x-16">
             <Link
               href="/login"
-              className="group inline-flex items-center gap-3 rounded-full bg-[hsl(var(--primary))] px-8 py-4 text-base font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.02]"
+              className="group inline-flex items-center gap-3 rounded-full bg-[hsl(var(--primary))] px-9 py-5 text-lg font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_25px_70px_-20px_hsl(var(--primary)/0.65)] transition-transform hover:scale-[1.03]"
             >
               Zum Login
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
-            <p className="max-w-sm text-sm text-[hsl(var(--brand-cream)/0.5)]">
+            <p className="max-w-sm text-sm text-[hsl(var(--brand-cream)/0.55)]">
               Login-Daten kommen per E-Mail von deiner Studioleitung.
             </p>
           </div>
         </Reveal>
+
+        {/* Spacer vor Marquee */}
+        <div className="h-32 lg:h-48" />
+      </div>
+
+      {/* Marquee */}
+      <div className="relative z-10 overflow-hidden border-y border-white/10 bg-[hsl(var(--brand-ink)/0.7)] py-5 backdrop-blur-sm">
+        <div className="ticker flex w-max items-center gap-12 whitespace-nowrap text-sm font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.45)]">
+          {Array.from({ length: 3 }).flatMap((_, j) =>
+            [
+              "Theke & Empfang",
+              "Magicline",
+              "Trainingsfläche",
+              "Reha & Prävention",
+              "Verkauf",
+              "Kursplan",
+              "Probetraining",
+              "Beschwerdemanagement",
+            ].map((item, i) => (
+              <span
+                key={`${j}-${i}`}
+                className="flex items-center gap-12"
+              >
+                <span>{item}</span>
+                <span className="h-1 w-1 rounded-full bg-[hsl(var(--primary))]" />
+              </span>
+            )),
+          )}
+        </div>
       </div>
     </section>
+  );
+}
+
+function TeamCard() {
+  const team = [
+    { initial: "M", name: "Maria" },
+    { initial: "L", name: "Lisa" },
+    { initial: "T", name: "Tom" },
+    { initial: "S", name: "Sara" },
+  ];
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-sm">
+      <div className="flex items-center gap-2">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--primary)/0.6)]" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-[hsl(var(--primary))]" />
+        </span>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.55)]">
+          Dein Team wartet
+        </p>
+      </div>
+
+      <div className="mt-6 flex items-center -space-x-3">
+        {team.map((p, i) => (
+          <span
+            key={p.initial}
+            className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[hsl(var(--brand-ink))] text-sm font-bold text-[hsl(var(--primary-foreground))] shadow-md"
+            style={{
+              background: `hsl(var(--primary) / ${1 - i * 0.18})`,
+              zIndex: team.length - i,
+            }}
+          >
+            {p.initial}
+          </span>
+        ))}
+        <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[hsl(var(--brand-ink))] bg-white/[0.06] text-xs font-semibold text-[hsl(var(--brand-cream)/0.7)]">
+          +12
+        </span>
+      </div>
+
+      <p className="mt-6 text-sm leading-relaxed text-[hsl(var(--brand-cream)/0.7)]">
+        Maria, Lisa, Tom und 13 weitere Kolleg:innen — sie haben den Onboarding-
+        Pfad genauso angefangen wie du gleich.
+      </p>
+
+      <div className="mt-6 border-t border-white/10 pt-4">
+        <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.4)]">
+          Diese Woche
+        </p>
+        <div className="mt-2 flex items-baseline gap-2">
+          <span className="text-3xl font-semibold tracking-tight text-[hsl(var(--brand-cream))]">
+            142
+          </span>
+          <span className="text-xs text-[hsl(var(--brand-cream)/0.55)]">
+            Lektionen abgeschlossen
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }
 
