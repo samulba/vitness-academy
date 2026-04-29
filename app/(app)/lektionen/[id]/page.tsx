@@ -14,6 +14,7 @@ import {
   ZurueckSetzenSubmit,
 } from "@/components/lektion/AbschliessenButton";
 import { QuizCard } from "@/components/lektion/QuizCard";
+import { QASection } from "@/components/qa/QASection";
 import { StatusBadge } from "@/components/StatusBadge";
 import { requireProfile } from "@/lib/auth";
 import {
@@ -220,6 +221,12 @@ export default async function LektionPage({
           </div>
         </CardContent>
       </Card>
+
+      <QASection
+        lessonId={lektion.id}
+        currentUserId={profile.id}
+        currentRole={profile.role}
+      />
 
       <nav className="flex items-center justify-between gap-3 pt-2">
         {lektion.vorherige ? (
