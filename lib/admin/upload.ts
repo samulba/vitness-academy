@@ -20,8 +20,22 @@ export type UploadErgebnis =
  * Voraussetzung: Bucket "lesson-images" existiert in Supabase
  * (siehe Migration 0012).
  */
+type Scope = "module" | "lesson" | "path";
+
+function tabelleFuer(scope: Scope): string {
+  if (scope === "module") return "modules";
+  if (scope === "lesson") return "lessons";
+  return "learning_paths";
+}
+
+function revalidatePfadFuer(scope: Scope, id: string): string {
+  if (scope === "module") return `/admin/module/${id}`;
+  if (scope === "lesson") return `/admin/lektionen/${id}`;
+  return `/admin/lernpfade/${id}`;
+}
+
 export async function bildHochladen(
-  scope: "module" | "lesson",
+  scope: Scope,
   id: string,
   formData: FormData,
 ): Promise<UploadErgebnis> {
@@ -64,7 +78,7 @@ export async function bildHochladen(
   }
 
   // DB-Spalte aktualisieren
-  const tabelle = scope === "module" ? "modules" : "lessons";
+  const tabelle = tabelleFuer(scope);
   const { error: updateError } = await admin
     .from(tabelle)
     .update({ hero_image_path: pfad })
@@ -80,21 +94,21 @@ export async function bildHochladen(
     };
   }
 
-  revalidatePath(`/admin/${scope === "module" ? "module" : "lektionen"}/${id}`);
+  revalidatePath(revalidatePfadFuer(scope, id));
   return { ok: true, pfad };
 }
 
 /**
- * Entfernt das Hero-Bild eines Moduls/Lektion (loescht die DB-
- * Referenz, das File im Bucket bleibt fuer Audit-Zwecke).
+ * Entfernt das Hero-Bild eines Moduls/Lektion/Lernpfads (loescht
+ * die DB-Referenz, das File im Bucket bleibt fuer Audit-Zwecke).
  */
 export async function bildEntfernen(
-  scope: "module" | "lesson",
+  scope: Scope,
   id: string,
 ): Promise<UploadErgebnis> {
   await requireRole(["admin", "superadmin"]);
   const admin = createAdminClient();
-  const tabelle = scope === "module" ? "modules" : "lessons";
+  const tabelle = tabelleFuer(scope);
   const { error } = await admin
     .from(tabelle)
     .update({ hero_image_path: null })
@@ -102,7 +116,7 @@ export async function bildEntfernen(
   if (error) {
     return { ok: false, message: error.message };
   }
-  revalidatePath(`/admin/${scope === "module" ? "module" : "lektionen"}/${id}`);
+  revalidatePath(revalidatePfadFuer(scope, id));
   return { ok: true, pfad: "" };
 }
 

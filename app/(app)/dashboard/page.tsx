@@ -308,6 +308,7 @@ export default async function DashboardPage() {
                 abgeschlossen={pfad.abgeschlossen}
                 gesamt={pfad.gesamt}
                 prozent={pfad.prozent}
+                heroImagePath={pfad.hero_image_path}
               />
             ))}
           </div>

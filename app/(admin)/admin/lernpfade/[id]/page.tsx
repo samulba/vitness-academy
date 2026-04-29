@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { ReihenfolgeButtons } from "@/components/admin/ReihenfolgeButtons";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { SpeichernButton } from "@/components/admin/SpeichernButton";
+import { BildUpload } from "@/components/admin/BildUpload";
 import { createClient } from "@/lib/supabase/server";
 import {
   lernpfadAktualisieren,
@@ -42,6 +43,7 @@ type Pfad = {
   title: string;
   description: string | null;
   status: string;
+  hero_image_path: string | null;
   modules: Modul[];
 };
 
@@ -50,7 +52,7 @@ async function ladePfad(id: string): Promise<Pfad | null> {
   const { data } = await supabase
     .from("learning_paths")
     .select(
-      `id, title, description, status,
+      `id, title, description, status, hero_image_path,
        modules (
          id, title, description, sort_order,
          lessons ( id, title, sort_order )
@@ -86,6 +88,7 @@ async function ladePfad(id: string): Promise<Pfad | null> {
     title: data.title as string,
     description: data.description as string | null,
     status: data.status as string,
+    hero_image_path: (data as { hero_image_path: string | null }).hero_image_path ?? null,
     modules: moduleListe,
   };
 }
@@ -129,6 +132,22 @@ export default async function LernpfadBearbeitenPage({
           </Link>
         </Button>
       </header>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Hero-Bild</CardTitle>
+          <CardDescription>
+            Erscheint auf der Lernpfad-Übersicht und im Pfad-Header.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BildUpload
+            scope="path"
+            id={pfad.id}
+            aktuellerPfad={pfad.hero_image_path}
+          />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

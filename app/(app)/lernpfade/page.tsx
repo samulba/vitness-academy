@@ -36,6 +36,7 @@ export default async function LernpfadeUebersichtPage() {
               abgeschlossen={pfad.abgeschlossen}
               gesamt={pfad.gesamt}
               prozent={pfad.prozent}
+              heroImagePath={pfad.hero_image_path}
             />
           ))}
         </div>

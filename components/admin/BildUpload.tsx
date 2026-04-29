@@ -8,18 +8,24 @@ import { bildHochladen, bildEntfernen } from "@/lib/admin/upload";
 import { bildUrlFuerPfad } from "@/lib/storage";
 
 type Props = {
-  scope: "module" | "lesson";
+  scope: "module" | "lesson" | "path";
   id: string;
   aktuellerPfad: string | null;
-  /** Anzeigename ("Modul" oder "Lektion") fuer Texte */
+  /** Anzeigename ("Modul"/"Lektion"/"Lernpfad") fuer Texte */
   label?: string;
 };
+
+function defaultLabel(scope: Props["scope"]): string {
+  if (scope === "module") return "Modul";
+  if (scope === "lesson") return "Lektion";
+  return "Lernpfad";
+}
 
 export function BildUpload({
   scope,
   id,
   aktuellerPfad,
-  label = scope === "module" ? "Modul" : "Lektion",
+  label = defaultLabel(scope),
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();

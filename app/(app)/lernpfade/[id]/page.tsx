@@ -8,6 +8,7 @@ import { requireProfile } from "@/lib/auth";
 import { ladeLernpfadFuerUser } from "@/lib/lernpfade";
 import { ladeZertifikat, zertifikatErzeugenWennFertig } from "@/lib/zertifikat";
 import { formatProzent } from "@/lib/format";
+import { bildUrlFuerPfad } from "@/lib/storage";
 
 export default async function LernpfadDetailPage({
   params,
@@ -37,6 +38,20 @@ export default async function LernpfadDetailPage({
         <ArrowLeft className="h-4 w-4" />
         Zurück zu meinen Lernpfaden
       </Link>
+
+      {(() => {
+        const heroUrl = bildUrlFuerPfad(pfad.hero_image_path);
+        return heroUrl ? (
+          <div className="overflow-hidden rounded-2xl border border-border bg-muted">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={heroUrl}
+              alt=""
+              className="aspect-[16/9] w-full object-cover"
+            />
+          </div>
+        ) : null;
+      })()}
 
       <header className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight">{pfad.title}</h1>

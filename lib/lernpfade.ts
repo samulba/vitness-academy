@@ -23,6 +23,7 @@ export type Lernpfad = {
   description: string | null;
   status: string;
   sort_order: number;
+  hero_image_path: string | null;
   modules: Modul[];
 };
 
@@ -66,7 +67,7 @@ export async function ladeMeineLernpfade(
   const { data: paths } = await supabase
     .from("learning_paths")
     .select(
-      `id, title, description, status, sort_order,
+      `id, title, description, status, sort_order, hero_image_path,
        modules:modules (
          id, learning_path_id, title, description, sort_order,
          lessons:lessons ( id, module_id, title, summary, sort_order )
@@ -99,7 +100,7 @@ export async function ladeLernpfadFuerUser(
   const { data: pfad } = await supabase
     .from("learning_paths")
     .select(
-      `id, title, description, status, sort_order,
+      `id, title, description, status, sort_order, hero_image_path,
        modules:modules (
          id, learning_path_id, title, description, sort_order,
          lessons:lessons ( id, module_id, title, summary, sort_order )
@@ -175,6 +176,7 @@ function mitFortschritt(
     description: pfad.description,
     status: pfad.status,
     sort_order: pfad.sort_order,
+    hero_image_path: pfad.hero_image_path,
     modules: moduleMitFortschritt,
     abgeschlossen,
     gesamt,

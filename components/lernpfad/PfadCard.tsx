@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, BookOpen, CheckCircle2 } from "lucide-react";
 import { formatProzent } from "@/lib/format";
+import { bildUrlFuerPfad } from "@/lib/storage";
 
 type Props = {
   id: string;
@@ -11,6 +12,7 @@ type Props = {
   abgeschlossen: number;
   gesamt: number;
   prozent: number;
+  heroImagePath?: string | null;
 };
 
 function bildSlugFuerTitel(title: string): {
@@ -38,10 +40,12 @@ export function PfadCard({
   abgeschlossen,
   gesamt,
   prozent,
+  heroImagePath,
 }: Props) {
   const fertig = gesamt > 0 && abgeschlossen === gesamt;
   const { slug, kategorie } = bildSlugFuerTitel(title);
   const sicherProzent = Math.max(0, Math.min(100, prozent));
+  const adminBildUrl = bildUrlFuerPfad(heroImagePath ?? null);
 
   return (
     <Link
@@ -67,13 +71,22 @@ export function PfadCard({
         {/* Hero-Bild via next/image -- auto WebP/AVIF, responsive sizes, lazy
             transform-gpu erzwingt GPU-Compositing -> Image rendert konsistent
             innerhalb der rounded-Maske, kein Flimmern beim Scale-Hover. */}
-        <Image
-          src={`/lernpfade/${slug}.jpg`}
-          alt=""
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="transform-gpu object-cover transition-transform duration-700 group-hover:scale-[1.05]"
-        />
+        {adminBildUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={adminBildUrl}
+            alt=""
+            className="absolute inset-0 h-full w-full transform-gpu object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+          />
+        ) : (
+          <Image
+            src={`/lernpfade/${slug}.jpg`}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="transform-gpu object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+          />
+        )}
 
         {/* Top-Verlauf — nur leicht, fuer Pill-Lesbarkeit */}
         <div
