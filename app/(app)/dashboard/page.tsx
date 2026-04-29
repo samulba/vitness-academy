@@ -13,6 +13,7 @@ import { PfadCard } from "@/components/lernpfad/PfadCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { requireProfile } from "@/lib/auth";
 import { ladeMeineLernpfade, offeneLektionen } from "@/lib/lernpfade";
+import { aktivitaetsStats } from "@/lib/lektion";
 import { formatProzent, tageszeitGruss } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -28,9 +29,10 @@ async function ladeOffenePraxis(userId: string): Promise<number> {
 
 export default async function DashboardPage() {
   const profile = await requireProfile();
-  const [pfade, anzOffenePraxis] = await Promise.all([
+  const [pfade, anzOffenePraxis, aktivitaet] = await Promise.all([
     ladeMeineLernpfade(profile.id),
     ladeOffenePraxis(profile.id),
+    aktivitaetsStats(profile.id),
   ]);
 
   const gesamt = pfade.reduce((s, p) => s + p.gesamt, 0);
@@ -121,6 +123,13 @@ export default async function DashboardPage() {
                   href="/praxisfreigaben"
                   akzent={anzOffenePraxis > 0 ? "primary" : undefined}
                 />
+                {aktivitaet.tageLetzte30 > 0 && (
+                  <StatPill
+                    icon={<Sparkles className="h-3.5 w-3.5" />}
+                    label="Tage aktiv (30T)"
+                    wert={aktivitaet.tageLetzte30}
+                  />
+                )}
               </div>
             </div>
           )}

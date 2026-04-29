@@ -16,7 +16,7 @@ import {
 import { QuizCard } from "@/components/lektion/QuizCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { requireProfile } from "@/lib/auth";
-import { ladeLektionFuerUser } from "@/lib/lektion";
+import { ladeLektionFuerUser, lektionAlsGesehenMarkieren } from "@/lib/lektion";
 import { ladeLetztenVersuch, ladeQuizFuerLektion } from "@/lib/quiz";
 import {
   lektionAbschliessen,
@@ -32,6 +32,10 @@ export default async function LektionPage({
   const profile = await requireProfile();
   const lektion = await ladeLektionFuerUser(profile.id, id);
   if (!lektion) notFound();
+
+  // Lernzeit-Tracking: started_at + last_seen_at pflegen.
+  // Fire-and-forget, blockt das Rendern nicht.
+  await lektionAlsGesehenMarkieren(profile.id, id);
 
   const bereitsFertig = lektion.status === "abgeschlossen";
 

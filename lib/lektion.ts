@@ -1,6 +1,79 @@
 import { createClient } from "@/lib/supabase/server";
 import type { LektionStatus } from "@/lib/lernpfade";
 
+/**
+ * Markiert eine Lektion als "gesehen" -- setzt started_at beim
+ * ersten Mal, last_seen_at jedes Mal. Wird aus der Server-Component
+ * der Lektions-Seite direkt aufgerufen (idempotent, keine
+ * revalidate-Kette).
+ */
+export async function lektionAlsGesehenMarkieren(
+  userId: string,
+  lessonId: string,
+): Promise<void> {
+  const supabase = await createClient();
+  const jetzt = new Date().toISOString();
+
+  const { data: existing } = await supabase
+    .from("user_lesson_progress")
+    .select("id, status, started_at")
+    .eq("user_id", userId)
+    .eq("lesson_id", lessonId)
+    .maybeSingle();
+
+  if (!existing) {
+    await supabase.from("user_lesson_progress").insert({
+      user_id: userId,
+      lesson_id: lessonId,
+      status: "in_bearbeitung",
+      started_at: jetzt,
+      last_seen_at: jetzt,
+    });
+  } else {
+    await supabase
+      .from("user_lesson_progress")
+      .update({
+        started_at: existing.started_at ?? jetzt,
+        last_seen_at: jetzt,
+        status:
+          existing.status === "abgeschlossen"
+            ? existing.status
+            : "in_bearbeitung",
+      })
+      .eq("id", existing.id);
+  }
+}
+
+/**
+ * Aktivitaets-Stats fuer das Mitarbeiter-Dashboard.
+ * Zaehlt die Anzahl distinkter Tage in den letzten 30 Tagen,
+ * an denen mindestens eine Lektion gesehen oder abgeschlossen
+ * wurde.
+ */
+export async function aktivitaetsStats(userId: string): Promise<{
+  tageLetzte30: number;
+  letzteAktivitaet: string | null;
+}> {
+  const supabase = await createClient();
+  const vor30Tagen = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const { data } = await supabase
+    .from("user_lesson_progress")
+    .select("last_seen_at")
+    .eq("user_id", userId)
+    .gte("last_seen_at", vor30Tagen.toISOString())
+    .order("last_seen_at", { ascending: false });
+
+  const rows = (data ?? []) as { last_seen_at: string | null }[];
+  const tage = new Set<string>();
+  for (const r of rows) {
+    if (r.last_seen_at) tage.add(r.last_seen_at.slice(0, 10));
+  }
+  return {
+    tageLetzte30: tage.size,
+    letzteAktivitaet: rows[0]?.last_seen_at ?? null,
+  };
+}
+
 export type ContentBlockTyp =
   | "text"
   | "checkliste"
