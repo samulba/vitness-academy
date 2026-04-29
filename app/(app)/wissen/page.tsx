@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   ArrowRight,
   BookOpenText,
+  Bookmark,
   Coffee,
   Cpu,
   HeartPulse,
@@ -12,7 +13,15 @@ import {
   Wrench,
   X,
 } from "lucide-react";
-import { ladeArtikel, ladeKategorien } from "@/lib/wissen";
+import {
+  ladeArtikel,
+  ladeBookmarkIds,
+  ladeBookmarks,
+  ladeKategorien,
+} from "@/lib/wissen";
+import { requireProfile } from "@/lib/auth";
+import { BookmarkButton } from "@/components/wissen/BookmarkButton";
+import { cn } from "@/lib/utils";
 
 const HAEUFIG_GESUCHT = [
   "Karte",
@@ -43,12 +52,15 @@ export default async function HandbuchPage({
   const query = sp.q?.trim() ?? "";
   const kategorieSlug = sp.kategorie?.trim() ?? "";
 
-  const [kategorien, artikel] = await Promise.all([
+  const profile = await requireProfile();
+  const [kategorien, artikel, bookmarkIds, bookmarks] = await Promise.all([
     ladeKategorien(),
     ladeArtikel({
       query: query || undefined,
       kategorieSlug: kategorieSlug || undefined,
     }),
+    ladeBookmarkIds(profile.id),
+    ladeBookmarks(profile.id),
   ]);
 
   const istGefiltert = query.length > 0 || kategorieSlug.length > 0;
@@ -172,6 +184,42 @@ export default async function HandbuchPage({
         </form>
       </section>
 
+      {/* === Meine Favoriten (nur wenn nicht gefiltert + Bookmarks vorhanden) === */}
+      {!istGefiltert && bookmarks.length > 0 && (
+        <section className="space-y-5">
+          <div className="flex items-baseline justify-between">
+            <h2 className="inline-flex items-center gap-2 text-2xl font-semibold tracking-tight">
+              <Bookmark className="h-5 w-5 fill-[hsl(var(--primary))] text-[hsl(var(--primary))]" />
+              Meine Favoriten
+            </h2>
+            <span className="text-xs text-muted-foreground">
+              {bookmarks.length} gespeichert
+            </span>
+          </div>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {bookmarks.map((b) => (
+              <li key={b.id}>
+                <Link
+                  href={`/wissen/${b.slug}`}
+                  className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary))] hover:shadow-[0_12px_30px_-15px_hsl(var(--primary)/0.3)]"
+                >
+                  <Bookmark className="mt-0.5 h-4 w-4 shrink-0 fill-[hsl(var(--primary))] text-[hsl(var(--primary))]" />
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+                      {b.category_name ?? "Ohne Kategorie"}
+                    </span>
+                    <p className="mt-0.5 truncate text-sm font-semibold leading-tight">
+                      {b.title}
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-[hsl(var(--primary))]" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* === Kategorien (nur wenn nicht gefiltert) === */}
       {!istGefiltert && kategorien.length > 0 && (
         <section className="space-y-5">
@@ -262,35 +310,50 @@ export default async function HandbuchPage({
         ) : (
           <ul className="overflow-hidden rounded-2xl border border-border bg-card">
             {artikel.map((a, i) => (
-              <li key={a.id} className={i > 0 ? "border-t border-border" : ""}>
+              <li
+                key={a.id}
+                className={cn(
+                  "group relative flex items-center gap-5 px-6 py-5 transition-colors hover:bg-[hsl(var(--primary)/0.04)]",
+                  i > 0 && "border-t border-border",
+                )}
+              >
+                {/* Magenta-Linie links bei Hover */}
+                <span
+                  aria-hidden
+                  className="absolute inset-y-3 left-0 w-[3px] origin-top scale-y-0 rounded-r-full bg-[hsl(var(--primary))] transition-transform duration-200 group-hover:scale-y-100"
+                />
+                <span className="hidden font-mono text-xs tabular-nums text-muted-foreground sm:block">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+
                 <Link
                   href={`/wissen/${a.slug}`}
-                  className="group relative flex items-center gap-5 px-6 py-5 transition-colors hover:bg-[hsl(var(--primary)/0.04)]"
+                  className="min-w-0 flex-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.4)] rounded-md"
                 >
-                  {/* Magenta-Linie links bei Hover */}
-                  <span
-                    aria-hidden
-                    className="absolute inset-y-3 left-0 w-[3px] origin-top scale-y-0 rounded-r-full bg-[hsl(var(--primary))] transition-transform duration-200 group-hover:scale-y-100"
-                  />
-                  <span className="hidden font-mono text-xs tabular-nums text-muted-foreground sm:block">
-                    {String(i + 1).padStart(2, "0")}
+                  <span className="rounded-full bg-[hsl(var(--brand-pink)/0.12)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+                    {a.category_name ?? "Ohne Kategorie"}
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <span className="rounded-full bg-[hsl(var(--brand-pink)/0.12)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
-                      {a.category_name ?? "Ohne Kategorie"}
-                    </span>
-                    <h3 className="mt-1.5 text-base font-semibold leading-tight tracking-tight sm:text-lg">
-                      {a.title}
-                    </h3>
-                    {a.summary && (
-                      <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground sm:line-clamp-2">
-                        {a.summary}
-                      </p>
-                    )}
-                  </div>
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-all group-hover:border-[hsl(var(--primary))] group-hover:bg-[hsl(var(--primary))] group-hover:text-[hsl(var(--primary-foreground))]">
-                    <ArrowRight className="h-4 w-4" />
-                  </span>
+                  <h3 className="mt-1.5 text-base font-semibold leading-tight tracking-tight sm:text-lg">
+                    {a.title}
+                  </h3>
+                  {a.summary && (
+                    <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground sm:line-clamp-2">
+                      {a.summary}
+                    </p>
+                  )}
+                </Link>
+
+                <BookmarkButton
+                  articleId={a.id}
+                  istGespeichert={bookmarkIds.has(a.id)}
+                />
+
+                <Link
+                  href={`/wissen/${a.slug}`}
+                  aria-label={`${a.title} öffnen`}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-all group-hover:border-[hsl(var(--primary))] group-hover:bg-[hsl(var(--primary))] group-hover:text-[hsl(var(--primary-foreground))]"
+                >
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </li>
             ))}

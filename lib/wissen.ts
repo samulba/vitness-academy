@@ -112,6 +112,64 @@ export async function ladeArtikel(opts: {
   return zeilen;
 }
 
+/**
+ * IDs aller Artikel, die der angegebene User als Favorit markiert hat.
+ * Nutzt RLS — daher reicht die uebergebene userId fuer die Filterung.
+ */
+export async function ladeBookmarkIds(userId: string): Promise<Set<string>> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("user_article_bookmarks")
+    .select("article_id")
+    .eq("user_id", userId);
+  return new Set(((data ?? []) as { article_id: string }[]).map((r) => r.article_id));
+}
+
+/**
+ * Vollstaendige Bookmarks-Liste mit Artikel-Daten -- fuer die
+ * "Meine Favoriten"-Section oben im Handbuch.
+ */
+export async function ladeBookmarks(userId: string): Promise<ArtikelKurz[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("user_article_bookmarks")
+    .select(
+      `created_at,
+       knowledge_articles!inner (
+         id, title, slug, summary, category_id, updated_at, status,
+         knowledge_categories:category_id ( name, slug )
+       )`,
+    )
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  type Roh = {
+    knowledge_articles: {
+      id: string;
+      title: string;
+      slug: string;
+      summary: string | null;
+      category_id: string | null;
+      updated_at: string;
+      status: string;
+      knowledge_categories: { name: string; slug: string } | null;
+    };
+  };
+
+  return ((data ?? []) as unknown as Roh[])
+    .filter((r) => r.knowledge_articles.status === "aktiv")
+    .map((r) => ({
+      id: r.knowledge_articles.id,
+      title: r.knowledge_articles.title,
+      slug: r.knowledge_articles.slug,
+      summary: r.knowledge_articles.summary,
+      category_id: r.knowledge_articles.category_id,
+      category_name: r.knowledge_articles.knowledge_categories?.name ?? null,
+      category_slug: r.knowledge_articles.knowledge_categories?.slug ?? null,
+      updated_at: r.knowledge_articles.updated_at,
+    }));
+}
+
 export async function ladeArtikelDetail(slug: string): Promise<Artikel | null> {
   const supabase = await createClient();
   const { data } = await supabase
