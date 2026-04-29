@@ -3,6 +3,9 @@ export type Rolle = "mitarbeiter" | "fuehrungskraft" | "admin" | "superadmin";
 export type Profil = {
   id: string;
   full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
   role: Rolle;
   location_id: string | null;
 };

@@ -5,12 +5,17 @@ import { Check, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  profilAktualisieren,
-  type AktionsErgebnis,
-} from "./actions";
+import { profilAktualisieren, type AktionsErgebnis } from "./actions";
 
-export function ProfilForm({ initialName }: { initialName: string }) {
+export function ProfilForm({
+  initialFirstName,
+  initialLastName,
+  initialPhone,
+}: {
+  initialFirstName: string;
+  initialLastName: string;
+  initialPhone: string;
+}) {
   const [state, action, pending] = useActionState<
     AktionsErgebnis | null,
     FormData
@@ -18,17 +23,48 @@ export function ProfilForm({ initialName }: { initialName: string }) {
 
   return (
     <form action={action} className="space-y-5">
-      <div className="space-y-2">
-        <Label htmlFor="full_name">Vollständiger Name</Label>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="first_name">Vorname</Label>
+          <Input
+            id="first_name"
+            name="first_name"
+            defaultValue={initialFirstName}
+            maxLength={60}
+            autoComplete="given-name"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="last_name">Nachname</Label>
+          <Input
+            id="last_name"
+            name="last_name"
+            defaultValue={initialLastName}
+            maxLength={60}
+            autoComplete="family-name"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2 max-w-md">
+        <Label htmlFor="phone">
+          Telefon{" "}
+          <span className="text-xs font-normal text-muted-foreground">
+            (optional)
+          </span>
+        </Label>
         <Input
-          id="full_name"
-          name="full_name"
-          defaultValue={initialName}
-          required
-          minLength={2}
-          maxLength={80}
-          className="max-w-md"
+          id="phone"
+          name="phone"
+          type="tel"
+          defaultValue={initialPhone}
+          maxLength={40}
+          autoComplete="tel"
+          placeholder="+49 …"
         />
+        <p className="text-xs text-muted-foreground">
+          Damit dich die Studioleitung im Notfall erreichen kann.
+        </p>
       </div>
 
       {state?.message && (
@@ -53,7 +89,7 @@ export function ProfilForm({ initialName }: { initialName: string }) {
         disabled={pending}
         className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/0.9)]"
       >
-        {pending ? "Speichern…" : "Name speichern"}
+        {pending ? "Speichern…" : "Speichern"}
       </Button>
     </form>
   );
