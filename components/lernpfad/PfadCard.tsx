@@ -74,17 +74,14 @@ export function PfadCard({
             backgroundSize: "40px 40px",
           }}
         />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={`/lernpfade/${slug}.jpg`}
-          alt=""
-          loading="lazy"
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-          onError={(e) => {
-            // Bild fehlt -> verstecken, Gradient drunter scheint durch
-            (e.currentTarget as HTMLImageElement).style.display = "none";
-          }}
+        {/* Hero-Bild als background-image:
+            Wenn die Datei fehlt, laedt der Browser nichts -- der
+            Markenverlauf darunter scheint durch. Kein Broken-Image-
+            Icon, kein onError-Handler noetig (dadurch bleibt die
+            Card eine Server-Component). */}
+        <div
+          className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.04]"
+          style={{ backgroundImage: `url(/lernpfade/${slug}.jpg)` }}
         />
 
         {/* Dunkler Verlauf unten fuer Lesbarkeit */}
