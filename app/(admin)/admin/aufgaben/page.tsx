@@ -6,23 +6,25 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { AdminButton } from "@/components/admin/AdminButton";
-import { AdminCard, AdminCardHeader } from "@/components/admin/AdminCard";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
+import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
-import { StatsStrip } from "@/components/admin/StatsStrip";
-import { EmptyState } from "@/components/admin/EmptyState";
-import {
-  AdminActionCell,
-  AdminTable,
-  AdminTableHead,
-  AdminTd,
-  AdminTh,
-  AdminTitleCell,
-  AdminTr,
-} from "@/components/admin/AdminTable";
 import { requireRole } from "@/lib/auth";
-import { ladeAlleAufgabenAdmin } from "@/lib/aufgaben";
+import { ladeAlleAufgabenAdmin, type Aufgabe } from "@/lib/aufgaben";
+import { formatDatum } from "@/lib/format";
+
+function StatusBadge({ task }: { task: Aufgabe }) {
+  if (task.completed_at)
+    return (
+      <StatusPill ton="success" dot>
+        <CheckCircle2 className="h-3 w-3" />
+        Erledigt
+      </StatusPill>
+    );
+  return <StatusPill ton="warn">Offen</StatusPill>;
+}
 
 export default async function AufgabenAdminPage() {
   await requireRole(["admin", "superadmin"]);
@@ -33,163 +35,183 @@ export default async function AufgabenAdminPage() {
   const erledigt = instances.filter((i) => i.completed_at).length;
   const aktiveTemplates = templates.filter((t) => t.active).length;
 
+  const templateColumns: Column<Aufgabe>[] = [
+    {
+      key: "title",
+      label: "Titel",
+      sortable: true,
+      render: (a) => (
+        <div className="flex items-center gap-3">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]">
+            <RotateCw className="h-3.5 w-3.5" />
+          </span>
+          <span className="font-medium text-foreground">{a.title}</span>
+        </div>
+      ),
+    },
+    {
+      key: "recurrence",
+      label: "Rhythmus",
+      sortable: true,
+      render: (a) => (
+        <span className="text-xs text-muted-foreground">
+          {a.recurrence === "daily" ? "Täglich" : "Wöchentlich"}
+        </span>
+      ),
+    },
+    {
+      key: "assigned_to_name",
+      label: "Empfänger",
+      render: (a) => (
+        <span className="text-xs text-muted-foreground">
+          {a.assigned_to_name ?? "Team"}
+        </span>
+      ),
+    },
+    {
+      key: "active",
+      label: "Status",
+      sortable: true,
+      render: (a) =>
+        a.active ? (
+          <StatusPill ton="success" dot>
+            Aktiv
+          </StatusPill>
+        ) : (
+          <StatusPill ton="neutral">Inaktiv</StatusPill>
+        ),
+    },
+  ];
+
+  const instanceColumns: Column<Aufgabe>[] = [
+    {
+      key: "title",
+      label: "Titel",
+      sortable: true,
+      render: (a) => (
+        <span className="font-medium text-foreground">{a.title}</span>
+      ),
+    },
+    {
+      key: "assigned_to_name",
+      label: "Empfänger",
+      render: (a) => (
+        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+          {!a.assigned_to && <Users className="h-3 w-3" />}
+          {a.assigned_to_name ?? "Team"}
+        </span>
+      ),
+    },
+    {
+      key: "due_date",
+      label: "Fällig",
+      sortable: true,
+      render: (a) => (
+        <span className="text-xs text-muted-foreground">
+          {a.due_date ? formatDatum(a.due_date) : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "completed_at",
+      label: "Status",
+      sortable: true,
+      render: (a) => <StatusBadge task={a} />,
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <AdminPageHeader
+      <PageHeader
+        eyebrow="Studio-Daten"
         title="Aufgaben"
         description="Tägliche ToDo's, einmalige Aufgaben und wiederkehrende Templates."
-        badge={
-          offen > 0 ? (
-            <StatusPill ton="primary" dot pulse>
-              {offen} offen
-            </StatusPill>
-          ) : null
-        }
-        actions={
-          <AdminButton href="/admin/aufgaben/neu">
-            <Plus className="h-3.5 w-3.5" />
-            Neue Aufgabe
-          </AdminButton>
-        }
+        primaryAction={{
+          label: "Neue Aufgabe",
+          icon: <Plus />,
+          href: "/admin/aufgaben/neu",
+        }}
       />
 
-      <StatsStrip
-        items={[
-          {
-            icon: <ListTodo className="h-4 w-4" />,
-            label: "Aktuell offen",
-            wert: offen,
-            akzent: offen > 0,
-            hint: "noch nicht erledigt",
-          },
-          {
-            icon: <CheckCircle2 className="h-4 w-4" />,
-            label: "Erledigt",
-            wert: erledigt,
-          },
-          {
-            icon: <RotateCw className="h-4 w-4" />,
-            label: "Templates aktiv",
-            wert: `${aktiveTemplates}/${templates.length}`,
-            hint:
-              templates.length === 0
-                ? "noch keine Wiederholungen"
-                : undefined,
-          },
-          {
-            icon: <Sparkles className="h-4 w-4" />,
-            label: "Aufgaben gesamt",
-            wert: alle.length,
-          },
-        ]}
-      />
+      <StatGrid cols={4}>
+        <StatCard label="Aktuell offen" value={offen} icon={<ListTodo />} />
+        <StatCard label="Erledigt" value={erledigt} icon={<CheckCircle2 />} />
+        <StatCard
+          label="Templates aktiv"
+          value={`${aktiveTemplates}/${templates.length}`}
+          icon={<RotateCw />}
+        />
+        <StatCard
+          label="Aufgaben gesamt"
+          value={alle.length}
+          icon={<Sparkles />}
+        />
+      </StatGrid>
 
       {templates.length > 0 && (
-        <AdminCard>
-          <AdminCardHeader
-            title="Wiederholende Templates"
-            description="Generieren beim ersten Login des Tages bzw. der Woche eine neue Instance."
+        <section className="space-y-2">
+          <header>
+            <h2 className="text-[14px] font-semibold tracking-tight">
+              Wiederholende Templates
+            </h2>
+            <p className="text-[12px] text-muted-foreground">
+              Generieren beim ersten Login des Tages bzw. der Woche eine neue
+              Instance.
+            </p>
+          </header>
+          <DataTable<Aufgabe>
+            data={templates}
+            columns={templateColumns}
+            rowHref={(a) => `/admin/aufgaben/${a.id}`}
+            defaultSort={{ key: "title", direction: "asc" }}
           />
-          <AdminTable>
-            <AdminTableHead>
-              <AdminTh>Titel</AdminTh>
-              <AdminTh>Rhythmus</AdminTh>
-              <AdminTh>Empfänger</AdminTh>
-              <AdminTh>Status</AdminTh>
-              <AdminTh align="right" />
-            </AdminTableHead>
-            <tbody>
-              {templates.map((a) => (
-                <AdminTr key={a.id}>
-                  <AdminTd>
-                    <a
-                      href={`/admin/aufgaben/${a.id}`}
-                      className="flex items-center gap-2.5"
-                    >
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]">
-                        <RotateCw className="h-3.5 w-3.5" />
-                      </span>
-                      <span className="font-medium hover:underline">
-                        {a.title}
-                      </span>
-                    </a>
-                  </AdminTd>
-                  <AdminTd className="text-xs text-muted-foreground">
-                    {a.recurrence === "daily" ? "Täglich" : "Wöchentlich"}
-                  </AdminTd>
-                  <AdminTd className="text-xs text-muted-foreground">
-                    {a.assigned_to_name ?? "Team"}
-                  </AdminTd>
-                  <AdminTd>
-                    {a.active ? (
-                      <StatusPill ton="success">Aktiv</StatusPill>
-                    ) : (
-                      <StatusPill ton="neutral">Inaktiv</StatusPill>
-                    )}
-                  </AdminTd>
-                  <AdminActionCell href={`/admin/aufgaben/${a.id}`} />
-                </AdminTr>
-              ))}
-            </tbody>
-          </AdminTable>
-        </AdminCard>
+        </section>
       )}
 
-      <AdminCard>
-        <AdminCardHeader
-          title={`Einzelne Aufgaben (${instances.length})`}
-          description="Einmalige Tasks und automatisch generierte Instances."
-        />
+      <section className="space-y-2">
+        <header>
+          <h2 className="text-[14px] font-semibold tracking-tight">
+            Einzelne Aufgaben
+          </h2>
+          <p className="text-[12px] text-muted-foreground">
+            Einmalige Tasks und automatisch generierte Instances.
+          </p>
+        </header>
         {instances.length === 0 ? (
-          <EmptyState
-            icon={<ListTodo className="h-6 w-6" />}
-            title="Noch keine Aufgaben"
-            description="Lege eine einzelne Aufgabe an oder erstelle ein Template das sich täglich/wöchentlich wiederholt."
-            ctaLabel="Aufgabe anlegen"
-            ctaHref="/admin/aufgaben/neu"
-          />
+          <div className="rounded-xl border border-border bg-card">
+            <EmptyState
+              illustration={<EmptyStateTablePreview />}
+              title="Noch keine Aufgaben"
+              description="Lege eine einzelne Aufgabe an oder erstelle ein Template das sich täglich/wöchentlich wiederholt."
+              actions={[
+                {
+                  icon: <Plus />,
+                  title: "Aufgabe anlegen",
+                  description: "Einmaliger Task",
+                  href: "/admin/aufgaben/neu",
+                },
+                {
+                  icon: <RotateCw />,
+                  title: "Template anlegen",
+                  description: "Täglich/wöchentlich",
+                  href: "/admin/aufgaben/neu",
+                },
+              ]}
+            />
+          </div>
         ) : (
-          <AdminTable>
-            <AdminTableHead>
-              <AdminTh>Titel</AdminTh>
-              <AdminTh>Empfänger</AdminTh>
-              <AdminTh>Fällig</AdminTh>
-              <AdminTh>Status</AdminTh>
-              <AdminTh align="right" />
-            </AdminTableHead>
-            <tbody>
-              {instances.map((a) => (
-                <AdminTr key={a.id}>
-                  <AdminTitleCell
-                    href={`/admin/aufgaben/${a.id}`}
-                    title={a.title}
-                  />
-                  <AdminTd className="text-xs text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      {!a.assigned_to && <Users className="h-3 w-3" />}
-                      {a.assigned_to_name ?? "Team"}
-                    </span>
-                  </AdminTd>
-                  <AdminTd className="text-xs text-muted-foreground">
-                    {a.due_date ?? "—"}
-                  </AdminTd>
-                  <AdminTd>
-                    {a.completed_at ? (
-                      <StatusPill ton="success">
-                        <CheckCircle2 className="h-3 w-3" />
-                        Erledigt
-                      </StatusPill>
-                    ) : (
-                      <StatusPill ton="warn">Offen</StatusPill>
-                    )}
-                  </AdminTd>
-                  <AdminActionCell href={`/admin/aufgaben/${a.id}`} />
-                </AdminTr>
-              ))}
-            </tbody>
-          </AdminTable>
+          <DataTable<Aufgabe>
+            data={instances}
+            columns={instanceColumns}
+            searchable={{
+              placeholder: "Aufgabe suchen…",
+              keys: ["title"],
+            }}
+            rowHref={(a) => `/admin/aufgaben/${a.id}`}
+            defaultSort={{ key: "due_date", direction: "asc" }}
+          />
         )}
-      </AdminCard>
+      </section>
     </div>
   );
 }
