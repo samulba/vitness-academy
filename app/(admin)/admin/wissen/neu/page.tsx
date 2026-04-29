@@ -23,7 +23,7 @@ export default async function NeuerArtikelPage() {
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
-        Zurück zur Wissensdatenbank
+        Zurück zur Handbuch
       </Link>
 
       <header>

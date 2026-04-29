@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BookOpen } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ladeArtikelDetail } from "@/lib/wissen";
 import { formatDatum } from "@/lib/format";
 
@@ -18,45 +16,50 @@ export default async function ArtikelPage({
   if (!artikel) notFound();
 
   return (
-    <div className="space-y-6">
+    <article className="mx-auto max-w-3xl space-y-12">
       <Link
         href={
           artikel.category_slug
             ? `/wissen?kategorie=${artikel.category_slug}`
             : "/wissen"
         }
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
-        Zurück zur Wissensdatenbank
+        Zurück zum Handbuch
       </Link>
 
-      <header className="space-y-3">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Badge variant="outline" className="gap-1">
-            <BookOpen className="h-3 w-3" />
+      <header className="space-y-6 border-b border-border pb-12">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span className="rounded-full bg-[hsl(var(--brand-pink)/0.12)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
             {artikel.category_name ?? "Ohne Kategorie"}
-          </Badge>
-          <span>·</span>
-          <span>Aktualisiert am {formatDatum(artikel.updated_at)}</span>
+          </span>
+          <span className="text-xs text-muted-foreground">
+            Aktualisiert am {formatDatum(artikel.updated_at)}
+          </span>
         </div>
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="text-balance font-semibold leading-[1.05] tracking-[-0.025em] text-[clamp(2rem,4vw,3.5rem)]">
           {artikel.title}
         </h1>
-        {artikel.summary ? (
-          <p className="max-w-2xl text-muted-foreground">{artikel.summary}</p>
-        ) : null}
+        {artikel.summary && (
+          <p className="max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground">
+            {artikel.summary}
+          </p>
+        )}
       </header>
 
-      <Card>
-        <CardContent className="py-6">
-          <div className="prose-vitness max-w-3xl">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {artikel.body}
-            </ReactMarkdown>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+      <div className="prose-vitness max-w-none text-base leading-relaxed">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {artikel.body}
+        </ReactMarkdown>
+      </div>
+
+      <footer className="border-t border-border pt-8">
+        <p className="text-sm text-muted-foreground">
+          Etwas unklar oder fehlt? Sag deiner Studioleitung Bescheid — wir
+          halten das Handbuch aktuell.
+        </p>
+      </footer>
+    </article>
   );
 }

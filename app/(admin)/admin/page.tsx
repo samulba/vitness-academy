@@ -66,7 +66,7 @@ export default async function AdminDashboardPage() {
         <CardHeader>
           <CardTitle>Was kommt als Nächstes?</CardTitle>
           <CardDescription>
-            Iterationen 2 und 3 bringen Quizze, Praxisfreigaben, Wissensdatenbank
+            Iterationen 2 und 3 bringen Quizze, Praxisfreigaben, Handbuch
             und vollen CRUD im Admin.
           </CardDescription>
         </CardHeader>
@@ -77,7 +77,7 @@ export default async function AdminDashboardPage() {
           </p>
           <p>
             <strong className="text-foreground">Iteration 3:</strong>{" "}
-            Wissensdatenbank, Admin-CRUD für Lernpfade, Lektionen, Quizze,
+            Handbuch, Admin-CRUD für Lernpfade, Lektionen, Quizze,
             Praxisaufgaben und Benutzerverwaltung sowie eine
             Fortschrittsübersicht je Mitarbeiter.
           </p>

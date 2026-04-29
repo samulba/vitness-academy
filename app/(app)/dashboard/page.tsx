@@ -208,13 +208,13 @@ export default async function DashboardPage() {
         )}
       </section>
 
-      {/* Wissensdatenbank-Promo */}
+      {/* Handbuch-Promo */}
       <section className="overflow-hidden rounded-2xl border border-border bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
         <div className="grid gap-6 p-6 sm:p-10 lg:grid-cols-12 lg:items-center lg:gap-10">
           <div className="lg:col-span-8">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.5)]">
               <HelpCircle className="mr-1 inline h-3 w-3" />
-              Wissensdatenbank
+              Handbuch
             </p>
             <h3 className="mt-3 text-balance text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
               Schnelle Antworten für den Studio-Alltag.
@@ -229,7 +229,7 @@ export default async function DashboardPage() {
               href="/wissen"
               className="group inline-flex items-center gap-2 rounded-full bg-[hsl(var(--brand-lime))] px-5 py-3 text-sm font-semibold text-[hsl(var(--brand-ink))] transition-transform hover:scale-[1.02]"
             >
-              Wissensdatenbank öffnen
+              Handbuch öffnen
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>

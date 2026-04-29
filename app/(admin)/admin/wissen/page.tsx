@@ -110,7 +110,7 @@ export default async function AdminWissenPage() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">
-            Wissensdatenbank
+            Handbuch
           </h1>
           <p className="mt-1 text-muted-foreground">
             Kategorien und Artikel verwalten.
@@ -128,7 +128,7 @@ export default async function AdminWissenPage() {
         <CardHeader>
           <CardTitle>Kategorien ({kategorien.length})</CardTitle>
           <CardDescription>
-            Strukturieren die Wissensdatenbank. Slug landet in der URL.
+            Strukturieren die Handbuch. Slug landet in der URL.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

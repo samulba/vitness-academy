@@ -27,7 +27,7 @@ const MITARBEITER_NAV: NavEintrag[] = [
   { href: "/dashboard", label: "Mein Dashboard", icon: Home },
   { href: "/lernpfade", label: "Meine Lernpfade", icon: GraduationCap },
   { href: "/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare },
-  { href: "/wissen", label: "Wissensdatenbank", icon: BookOpen },
+  { href: "/wissen", label: "Handbuch", icon: BookOpen },
 ];
 
 const ADMIN_NAV: NavEintrag[] = [
@@ -37,7 +37,7 @@ const ADMIN_NAV: NavEintrag[] = [
   { href: "/admin/quizze", label: "Quizze", icon: HelpCircle },
   { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare },
   { href: "/admin/praxisfreigaben", label: "Anfragen", icon: CheckSquare },
-  { href: "/admin/wissen", label: "Wissensdatenbank", icon: BookOpen },
+  { href: "/admin/wissen", label: "Handbuch", icon: BookOpen },
   { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity },
 ];
 

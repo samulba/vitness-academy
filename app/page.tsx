@@ -104,7 +104,7 @@ function Bausteine() {
           <Reveal delay={270} className="lg:col-span-3 lg:row-span-1">
             <BentoCard
               kicker="04"
-              titel="Wissensdatenbank"
+              titel="Handbuch"
               text="Wenn du im Alltag eine Frage hast — kurz suchen, Antwort lesen, weiter geht's."
               icon={BookOpen}
               featured
