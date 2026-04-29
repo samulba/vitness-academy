@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   AlertTriangle,
+  FileText,
   BookOpen,
   CheckSquare,
   Contact,
@@ -42,6 +43,7 @@ const STUDIO_NAV: NavEintrag[] = [
   { href: "/kontakte", label: "Kontakte", icon: Contact },
   { href: "/infos", label: "Wichtige Infos", icon: Megaphone },
   { href: "/maengel", label: "Mängel melden", icon: AlertTriangle },
+  { href: "/formulare", label: "Formulare", icon: FileText },
 ];
 
 const ADMIN_NAV: NavEintrag[] = [
@@ -56,6 +58,7 @@ const ADMIN_NAV: NavEintrag[] = [
   { href: "/admin/infos", label: "Infos", icon: Megaphone },
   { href: "/admin/aufgaben", label: "Aufgaben", icon: ListTodo },
   { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle },
+  { href: "/admin/formulare", label: "Formulare", icon: FileText },
   { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity },
 ];
 
