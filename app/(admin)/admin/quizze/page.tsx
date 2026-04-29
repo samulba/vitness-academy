@@ -1,22 +1,19 @@
 import Link from "next/link";
-import { ExternalLink, Pencil, Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ExternalLink, Plus } from "lucide-react";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminButton } from "@/components/admin/AdminButton";
+import { AdminCard } from "@/components/admin/AdminCard";
+import { StatusPill } from "@/components/admin/StatusPill";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  AdminActionCell,
+  AdminTable,
+  AdminTableEmpty,
+  AdminTableHead,
+  AdminTd,
+  AdminTh,
+  AdminTitleCell,
+  AdminTr,
+} from "@/components/admin/AdminTable";
 import { createClient } from "@/lib/supabase/server";
 import { formatDatum } from "@/lib/format";
 
@@ -82,133 +79,99 @@ async function ladeQuizze(): Promise<Zeile[]> {
   });
 }
 
+function StatusBadge({ status }: { status: string }) {
+  if (status === "aktiv") return <StatusPill ton="success">Aktiv</StatusPill>;
+  if (status === "entwurf") return <StatusPill ton="warn">Entwurf</StatusPill>;
+  return <StatusPill ton="neutral">Archiviert</StatusPill>;
+}
+
 export default async function AdminQuizzePage() {
   const quizze = await ladeQuizze();
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Quizze</h1>
-          <p className="mt-1 text-muted-foreground">
-            Quizze inkl. Fragen und Antworten verwalten.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/admin/quizze/neu">
-            <Plus className="h-4 w-4" />
+      <AdminPageHeader
+        title="Quizze"
+        description="Quizze inkl. Fragen und Antworten verwalten. Sortiert nach Reihenfolge."
+        actions={
+          <AdminButton href="/admin/quizze/neu">
+            <Plus className="h-3.5 w-3.5" />
             Neues Quiz
-          </Link>
-        </Button>
-      </header>
+          </AdminButton>
+        }
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Quizze ({quizze.length})</CardTitle>
-          <CardDescription>
-            Sortiert nach Reihenfolge. Quiz-Vorschau über den Link in der Spalte
-            „Titel“.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Titel</TableHead>
-                <TableHead>Bindung</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Fragen</TableHead>
-                <TableHead className="text-right">Pass</TableHead>
-                <TableHead className="text-right">Versuche</TableHead>
-                <TableHead className="text-right">Bestanden</TableHead>
-                <TableHead>Aktualisiert</TableHead>
-                <TableHead className="text-right">Aktionen</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {quizze.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="py-10 text-center text-muted-foreground"
+      <AdminCard>
+        <AdminTable>
+          <AdminTableHead>
+            <AdminTh>Titel</AdminTh>
+            <AdminTh>Bindung</AdminTh>
+            <AdminTh>Status</AdminTh>
+            <AdminTh align="right">Fragen</AdminTh>
+            <AdminTh align="right">Pass</AdminTh>
+            <AdminTh align="right">Versuche</AdminTh>
+            <AdminTh align="right">Bestanden</AdminTh>
+            <AdminTh>Aktualisiert</AdminTh>
+            <AdminTh align="right">Vorschau</AdminTh>
+            <AdminTh align="right" />
+          </AdminTableHead>
+          <tbody>
+            {quizze.length === 0 ? (
+              <AdminTableEmpty colSpan={10}>
+                Noch keine Quizze angelegt.
+              </AdminTableEmpty>
+            ) : (
+              quizze.map((q) => (
+                <AdminTr key={q.id}>
+                  <AdminTitleCell
+                    href={`/admin/quizze/${q.id}`}
+                    title={q.title}
+                    subtitle={
+                      q.bindung
+                        ? `${q.bindung.typ}: ${q.bindung.titel}`
+                        : undefined
+                    }
+                  />
+                  <AdminTd className="text-xs text-muted-foreground">
+                    {q.bindung ? q.bindung.typ : "—"}
+                  </AdminTd>
+                  <AdminTd>
+                    <StatusBadge status={q.status} />
+                  </AdminTd>
+                  <AdminTd align="right" className="tabular-nums">
+                    {q.fragen_anzahl}
+                  </AdminTd>
+                  <AdminTd
+                    align="right"
+                    className="tabular-nums text-xs text-muted-foreground"
                   >
-                    Noch keine Quizze angelegt.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                quizze.map((q) => (
-                  <TableRow key={q.id}>
-                    <TableCell>
-                      <Link
-                        href={`/admin/quizze/${q.id}`}
-                        className="font-medium hover:text-primary"
-                      >
-                        {q.title}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {q.bindung ? (
-                        <span>
-                          <span className="text-xs uppercase tracking-wider">
-                            {q.bindung.typ}
-                          </span>
-                          : {q.bindung.titel}
-                        </span>
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          q.status === "aktiv"
-                            ? "success"
-                            : q.status === "entwurf"
-                              ? "outline"
-                              : "secondary"
-                        }
-                      >
-                        {q.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {q.fragen_anzahl}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {q.passing_score}%
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {q.versuche_anzahl}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {q.bestanden_anzahl}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDatum(q.updated_at)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/quiz/${q.id}`}>
-                            <ExternalLink className="h-3.5 w-3.5" />
-                            Vorschau
-                          </Link>
-                        </Button>
-                        <Button asChild size="sm">
-                          <Link href={`/admin/quizze/${q.id}`}>
-                            <Pencil className="h-3.5 w-3.5" />
-                            Bearbeiten
-                          </Link>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                    {q.passing_score}%
+                  </AdminTd>
+                  <AdminTd align="right" className="tabular-nums">
+                    {q.versuche_anzahl}
+                  </AdminTd>
+                  <AdminTd align="right" className="tabular-nums">
+                    {q.bestanden_anzahl}
+                  </AdminTd>
+                  <AdminTd className="text-xs text-muted-foreground">
+                    {formatDatum(q.updated_at)}
+                  </AdminTd>
+                  <AdminTd align="right">
+                    <Link
+                      href={`/quiz/${q.id}`}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground"
+                      title="Vorschau"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Link>
+                  </AdminTd>
+                  <AdminActionCell href={`/admin/quizze/${q.id}`} />
+                </AdminTr>
+              ))
+            )}
+          </tbody>
+        </AdminTable>
+      </AdminCard>
     </div>
   );
 }
