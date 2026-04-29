@@ -15,6 +15,11 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
 import { formatDatum } from "@/lib/format";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
+import { StatusPill } from "@/components/admin/StatusPill";
 import { MangelStatusBadge } from "@/components/maengel/StatusBadge";
 
 function startOfTodayIso(): string {
@@ -26,7 +31,7 @@ function startOfTodayIso(): string {
 function startOfWeekIso(): string {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
-  const day = (d.getDay() + 6) % 7; // Mo=0
+  const day = (d.getDay() + 6) % 7;
   d.setDate(d.getDate() - day);
   return d.toISOString();
 }
@@ -178,9 +183,7 @@ async function ladeAktiveMitarbeiter(): Promise<AktiverMitarbeiter[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("user_lesson_progress")
-    .select(
-      "user_id, last_seen_at, profile:user_id ( full_name )",
-    )
+    .select("user_id, last_seen_at, profile:user_id ( full_name )")
     .not("last_seen_at", "is", null)
     .order("last_seen_at", { ascending: false })
     .limit(20);
@@ -211,14 +214,6 @@ const SUBMISSION_LABEL: Record<string, string> = {
   abgelehnt: "Abgelehnt",
 };
 
-const SUBMISSION_PILL_CLASS: Record<string, string> = {
-  eingereicht:
-    "bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]",
-  in_bearbeitung: "bg-amber-100 text-amber-700",
-  erledigt: "bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]",
-  abgelehnt: "bg-muted text-muted-foreground",
-};
-
 function relativeZeit(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
   const min = Math.floor(diffMs / 60_000);
@@ -240,159 +235,108 @@ export default async function AdminDashboardPage() {
     ladeAktiveMitarbeiter(),
   ]);
 
-  const jetzt = new Date();
-  const wochentag = jetzt.toLocaleDateString("de-DE", { weekday: "long" });
-  const datumLang = jetzt.toLocaleDateString("de-DE", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
   const todoSumme =
     puls.maengelOffen + puls.submissionsOffen + puls.aufgabenOffen;
 
   return (
-    <div className="space-y-8">
-      {/* Hero-Header mit Magenta-Gradient + Live-Indicator */}
-      <section className="relative overflow-hidden rounded-2xl border border-[hsl(var(--brand-pink)/0.3)] bg-card">
-        {/* Aurora-Hintergrund */}
-        <div
-          aria-hidden
-          className="absolute inset-0 -z-0 opacity-90"
-          style={{
-            background:
-              "radial-gradient(80% 60% at 0% 0%, hsl(var(--brand-pink)/0.18) 0%, transparent 60%), radial-gradient(60% 80% at 100% 100%, hsl(var(--primary)/0.18) 0%, transparent 60%)",
-          }}
-        />
-        <div className="relative px-6 py-7 sm:px-8 sm:py-9">
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <div className="min-w-0">
-              <p className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-                <span className="relative flex h-1.5 w-1.5 items-center justify-center">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--brand-pink))] opacity-70" />
-                  <span className="relative inline-block h-1.5 w-1.5 rounded-full bg-[hsl(var(--brand-pink))]" />
-                </span>
-                Live · {wochentag}, {datumLang}
-              </p>
-              <h1 className="mt-3 text-balance text-[clamp(2rem,3.6vw,3rem)] font-semibold leading-[1.05] tracking-[-0.025em]">
-                Studio-Puls
-              </h1>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                Was ist heute im Studio los — Mängel, Einreichungen,
-                Aktivität, Aufgaben. Alles in einer Sicht.
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Offene ToDos
-              </p>
-              <p
-                className={`text-4xl font-semibold tabular-nums tracking-tight ${
-                  todoSumme === 0
-                    ? "text-[hsl(var(--success))]"
-                    : "text-[hsl(var(--brand-pink))]"
-                }`}
-              >
-                {todoSumme}
-              </p>
-              <p className="text-[11px] text-muted-foreground">
-                Mängel + Einreichungen + Aufgaben
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Verwaltung"
+        title="Studio-Puls"
+        description="Was ist heute im Studio los — Mängel, Einreichungen, Aktivität, Aufgaben. Alles in einer Sicht."
+      />
 
-      {/* Heute-Leiste */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <PulsKachel
-          icon={<AlertTriangle className="h-4 w-4" />}
+      <StatGrid cols={4}>
+        <StatCard
           label="Mängel offen"
-          wert={puls.maengelOffen}
-          delta={puls.maengelHeute > 0 ? `+${puls.maengelHeute} heute` : null}
-          accent={puls.maengelOffen > 0 ? "warn" : "default"}
+          value={puls.maengelOffen}
+          icon={<AlertTriangle />}
+          trend={
+            puls.maengelHeute > 0
+              ? {
+                  value: puls.maengelHeute,
+                  direction: "up",
+                  hint: "heute neu gemeldet",
+                }
+              : undefined
+          }
           href="/admin/maengel"
         />
-        <PulsKachel
-          icon={<Inbox className="h-4 w-4" />}
+        <StatCard
           label="Einreichungen offen"
-          wert={puls.submissionsOffen}
-          delta={
+          value={puls.submissionsOffen}
+          icon={<Inbox />}
+          trend={
             puls.submissionsHeute > 0
-              ? `+${puls.submissionsHeute} heute`
-              : null
+              ? {
+                  value: puls.submissionsHeute,
+                  direction: "up",
+                  hint: "heute eingegangen",
+                }
+              : undefined
           }
-          accent={puls.submissionsOffen > 0 ? "pink" : "default"}
           href="/admin/formulare/eingaenge"
         />
-        <PulsKachel
-          icon={<ListTodo className="h-4 w-4" />}
+        <StatCard
           label="Aufgaben offen"
-          wert={puls.aufgabenOffen}
-          accent="default"
+          value={puls.aufgabenOffen}
+          icon={<ListTodo />}
           href="/admin/aufgaben"
         />
-        <PulsKachel
-          icon={<Sparkles className="h-4 w-4" />}
+        <StatCard
           label="Aktiv diese Woche"
-          wert={puls.aktiveDieseWoche}
-          delta={
+          value={puls.aktiveDieseWoche}
+          icon={<Sparkles />}
+          trend={
             puls.lektionenHeute > 0
-              ? `${puls.lektionenHeute} Lektion${puls.lektionenHeute === 1 ? "" : "en"} heute`
-              : null
+              ? {
+                  value: puls.lektionenHeute,
+                  direction: "up",
+                  hint: "Lektionen heute",
+                }
+              : undefined
           }
-          accent="success"
           href="/admin/fortschritt"
         />
-      </section>
+      </StatGrid>
 
       {/* Zwei-Spalten: Mängel + Einreichungen */}
-      <section className="grid gap-8 lg:grid-cols-2">
-        {/* Aktive Mängel */}
-        <div>
-          <div className="flex items-end justify-between">
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight">
-                Aktive Mängel
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Was gerade nicht funktioniert.
-              </p>
-            </div>
-            <Link
-              href="/admin/maengel"
-              className="inline-flex items-center gap-1 text-sm font-medium text-[hsl(var(--brand-pink))] hover:underline"
-            >
-              Alle <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          {maengel.length > 0 ? (
-            <ul className="mt-4 overflow-hidden rounded-2xl border border-border bg-card">
-              {maengel.map((m, i) => (
-                <li
-                  key={m.id}
-                  className={i > 0 ? "border-t border-border" : ""}
-                >
+      <section className="grid gap-4 lg:grid-cols-2">
+        <ListCard
+          title="Aktive Mängel"
+          subtitle="Was gerade nicht funktioniert."
+          allHref="/admin/maengel"
+        >
+          {maengel.length === 0 ? (
+            <EmptyState
+              title="Keine offenen Mängel"
+              description="Alles im grünen Bereich."
+            />
+          ) : (
+            <ul className="divide-y divide-border">
+              {maengel.map((m) => (
+                <li key={m.id}>
                   <Link
                     href={`/admin/maengel/${m.id}`}
-                    className="flex items-start gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
+                    className="group flex items-start gap-3 px-5 py-4 transition-colors hover:bg-[hsl(var(--brand-pink)/0.04)]"
                   >
                     <span
                       className={
                         m.severity === "kritisch"
-                          ? "mt-1 h-2 w-2 shrink-0 rounded-full bg-red-500"
+                          ? "mt-1.5 h-2 w-2 shrink-0 rounded-full bg-destructive"
                           : m.severity === "normal"
-                          ? "mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-500"
-                          : "mt-1 h-2 w-2 shrink-0 rounded-full bg-muted-foreground/40"
+                            ? "mt-1.5 h-2 w-2 shrink-0 rounded-full bg-amber-500"
+                            : "mt-1.5 h-2 w-2 shrink-0 rounded-full bg-muted-foreground/40"
                       }
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                        <p className="font-semibold leading-tight">
+                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                        <p className="text-[13px] font-medium leading-tight">
                           {m.title}
                         </p>
                         <MangelStatusBadge status={m.status} />
                       </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
+                      <p className="mt-1 text-[11px] text-muted-foreground">
                         {relativeZeit(m.created_at)}
                         {m.reporter && <> · {m.reporter}</>}
                       </p>
@@ -401,60 +345,38 @@ export default async function AdminDashboardPage() {
                 </li>
               ))}
             </ul>
-          ) : (
-            <div className="mt-4 rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
-              Aktuell keine offenen Mängel.
-            </div>
           )}
-        </div>
+        </ListCard>
 
-        {/* Letzte Einreichungen */}
-        <div>
-          <div className="flex items-end justify-between">
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight">
-                Letzte Einreichungen
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Krankmeldung, Urlaub, Schadensmeldungen.
-              </p>
-            </div>
-            <Link
-              href="/admin/formulare/eingaenge"
-              className="inline-flex items-center gap-1 text-sm font-medium text-[hsl(var(--brand-pink))] hover:underline"
-            >
-              Alle <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          {submissions.length > 0 ? (
-            <ul className="mt-4 overflow-hidden rounded-2xl border border-border bg-card">
-              {submissions.map((s, i) => (
-                <li
-                  key={s.id}
-                  className={i > 0 ? "border-t border-border" : ""}
-                >
+        <ListCard
+          title="Letzte Einreichungen"
+          subtitle="Krankmeldung, Urlaub, Schadensmeldungen."
+          allHref="/admin/formulare/eingaenge"
+        >
+          {submissions.length === 0 ? (
+            <EmptyState
+              title="Noch keine Einreichungen"
+              description="Sobald jemand ein Formular abschickt, taucht es hier auf."
+            />
+          ) : (
+            <ul className="divide-y divide-border">
+              {submissions.map((s) => (
+                <li key={s.id}>
                   <Link
                     href={`/admin/formulare/eingaenge/${s.id}`}
-                    className="flex items-start gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
+                    className="group flex items-start gap-3 px-5 py-4 transition-colors hover:bg-[hsl(var(--brand-pink)/0.04)]"
                   >
-                    <span className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
                       <FileText className="h-3.5 w-3.5" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                        <p className="font-semibold leading-tight">
+                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                        <p className="text-[13px] font-medium leading-tight">
                           {s.template_title ?? "Formular"}
                         </p>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                            SUBMISSION_PILL_CLASS[s.status] ??
-                            "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {SUBMISSION_LABEL[s.status] ?? s.status}
-                        </span>
+                        <SubmissionPill status={s.status} />
                       </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
+                      <p className="mt-1 text-[11px] text-muted-foreground">
                         {relativeZeit(s.submitted_at)}
                         {s.submitter && <> · {s.submitter}</>}
                       </p>
@@ -463,97 +385,77 @@ export default async function AdminDashboardPage() {
                 </li>
               ))}
             </ul>
-          ) : (
-            <div className="mt-4 rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
-              Noch keine Einreichungen.
-            </div>
           )}
-        </div>
+        </ListCard>
       </section>
 
       {/* Zwei-Spalten: Aktivität + Stammdaten */}
-      <section className="grid gap-8 lg:grid-cols-2">
-        {/* Zuletzt aktiv */}
-        <div>
-          <div className="flex items-end justify-between">
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight">
-                Zuletzt aktiv
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Wer hat zuletzt eine Lektion geöffnet.
-              </p>
-            </div>
-            <Link
-              href="/admin/fortschritt"
-              className="inline-flex items-center gap-1 text-sm font-medium text-[hsl(var(--brand-pink))] hover:underline"
-            >
-              Fortschritt <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          {mitarbeiter.length > 0 ? (
-            <ul className="mt-4 overflow-hidden rounded-2xl border border-border bg-card">
-              {mitarbeiter.map((m, i) => (
-                <li
-                  key={m.user_id}
-                  className={i > 0 ? "border-t border-border" : ""}
-                >
-                  <div className="flex items-start gap-3 px-5 py-4">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--brand-pink)/0.12)] text-xs font-semibold text-[hsl(var(--brand-pink))]">
-                      {(m.full_name ?? "?")
-                        .split(/\s+/)
-                        .filter(Boolean)
-                        .slice(0, 2)
-                        .map((p) => p[0]?.toUpperCase())
-                        .join("") || "?"}
-                    </span>
+      <section className="grid gap-4 lg:grid-cols-2">
+        <ListCard
+          title="Zuletzt aktiv"
+          subtitle="Wer hat zuletzt eine Lektion geöffnet."
+          allHref="/admin/fortschritt"
+        >
+          {mitarbeiter.length === 0 ? (
+            <EmptyState
+              title="Noch keine Aktivität"
+              description="Sobald ein Mitarbeiter eine Lektion öffnet, taucht er hier auf."
+            />
+          ) : (
+            <ul className="divide-y divide-border">
+              {mitarbeiter.map((m) => (
+                <li key={m.user_id}>
+                  <Link
+                    href={`/admin/benutzer/${m.user_id}`}
+                    className="group flex items-center gap-3 px-5 py-3 transition-colors hover:bg-[hsl(var(--brand-pink)/0.04)]"
+                  >
+                    <ColoredAvatar name={m.full_name} size="sm" />
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium leading-tight">
+                      <p className="text-[13px] font-medium leading-tight">
                         {m.full_name ?? "—"}
                       </p>
-                      <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                      <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                         <Clock className="h-3 w-3" />
                         {relativeZeit(m.last_seen_at)}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 </li>
               ))}
             </ul>
-          ) : (
-            <div className="mt-4 rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
-              Noch keine Aktivität.
-            </div>
           )}
-        </div>
+        </ListCard>
 
-        {/* Stammdaten */}
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Stammdaten</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Inhalte und Mitarbeiter im System.
-          </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <StammdatenKachel
-              icon={<Users className="h-4 w-4" />}
+        <div className="rounded-xl border border-border bg-card p-5">
+          <header>
+            <h2 className="text-[14px] font-semibold tracking-tight">
+              Stammdaten
+            </h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Inhalte und Mitarbeiter im System.
+            </p>
+          </header>
+          <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+            <Stamm
+              icon={<Users className="h-3.5 w-3.5" />}
               label="Mitarbeiter"
               wert={puls.mitarbeiter}
               href="/admin/benutzer"
             />
-            <StammdatenKachel
-              icon={<GraduationCap className="h-4 w-4" />}
+            <Stamm
+              icon={<GraduationCap className="h-3.5 w-3.5" />}
               label="Aktive Lernpfade"
               wert={puls.lernpfade}
               href="/admin/lernpfade"
             />
-            <StammdatenKachel
-              icon={<CheckCircle2 className="h-4 w-4" />}
+            <Stamm
+              icon={<CheckCircle2 className="h-3.5 w-3.5" />}
               label="Lektionen heute"
               wert={puls.lektionenHeute}
               href="/admin/fortschritt"
             />
-            <StammdatenKachel
-              icon={<Activity className="h-4 w-4" />}
+            <Stamm
+              icon={<Activity className="h-3.5 w-3.5" />}
               label="Aktive Mitarbeiter"
               wert={puls.aktiveDieseWoche}
               href="/admin/fortschritt"
@@ -561,59 +463,54 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
       </section>
+
+      <p className="text-[11px] text-muted-foreground">
+        Offene ToDos gesamt:{" "}
+        <span
+          className={
+            todoSumme === 0
+              ? "font-semibold text-[hsl(var(--success))]"
+              : "font-semibold text-[hsl(var(--brand-pink))]"
+          }
+        >
+          {todoSumme}
+        </span>
+      </p>
     </div>
   );
 }
 
-function PulsKachel({
-  icon,
-  label,
-  wert,
-  delta,
-  accent,
-  href,
+function ListCard({
+  title,
+  subtitle,
+  allHref,
+  children,
 }: {
-  icon: React.ReactNode;
-  label: string;
-  wert: number;
-  delta?: string | null;
-  accent: "default" | "warn" | "pink" | "success";
-  href: string;
+  title: string;
+  subtitle: string;
+  allHref: string;
+  children: React.ReactNode;
 }) {
-  const accentClass =
-    accent === "warn"
-      ? "bg-amber-100 text-amber-700"
-      : accent === "pink"
-      ? "bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]"
-      : accent === "success"
-      ? "bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]"
-      : "bg-muted text-muted-foreground";
-
   return (
-    <Link
-      href={href}
-      className="group flex flex-col rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--brand-pink)/0.4)] hover:shadow-sm"
-    >
-      <div className="flex items-center justify-between">
-        <span
-          className={`flex h-8 w-8 items-center justify-center rounded-lg ${accentClass}`}
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
+      <div className="flex items-end justify-between gap-3 border-b border-border px-5 py-4">
+        <div>
+          <h2 className="text-[14px] font-semibold tracking-tight">{title}</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
+        </div>
+        <Link
+          href={allHref}
+          className="inline-flex items-center gap-1 text-[12px] font-medium text-[hsl(var(--brand-pink))] hover:underline"
         >
-          {icon}
-        </span>
-        <ArrowRight className="h-4 w-4 text-muted-foreground/40 transition-transform group-hover:translate-x-0.5 group-hover:text-[hsl(var(--brand-pink))]" />
+          Alle <ArrowRight className="h-3 w-3" />
+        </Link>
       </div>
-      <p className="mt-4 text-3xl font-semibold tracking-tight">{wert}</p>
-      <p className="mt-1 text-sm text-muted-foreground">{label}</p>
-      {delta && (
-        <p className="mt-2 text-xs font-medium text-[hsl(var(--brand-pink))]">
-          {delta}
-        </p>
-      )}
-    </Link>
+      {children}
+    </div>
   );
 }
 
-function StammdatenKachel({
+function Stamm({
   icon,
   label,
   wert,
@@ -627,17 +524,34 @@ function StammdatenKachel({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-[hsl(var(--brand-pink)/0.4)]"
+      className="group flex items-center gap-3 rounded-lg border border-border bg-secondary/40 p-3 transition-colors hover:border-[hsl(var(--brand-pink)/0.4)] hover:bg-secondary"
     >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:bg-[hsl(var(--brand-pink)/0.12)] group-hover:text-[hsl(var(--brand-pink))]">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-background text-muted-foreground transition-colors group-hover:text-[hsl(var(--brand-pink))]">
         {icon}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-2xl font-semibold leading-none tracking-tight">
+        <p className="text-[18px] font-semibold leading-none tracking-tight tabular-nums">
           {wert}
         </p>
-        <p className="mt-1 truncate text-sm text-muted-foreground">{label}</p>
+        <p className="mt-1 truncate text-[11px] text-muted-foreground">
+          {label}
+        </p>
       </div>
     </Link>
   );
 }
+
+function SubmissionPill({ status }: { status: string }) {
+  if (status === "eingereicht")
+    return (
+      <StatusPill ton="primary" dot>
+        {SUBMISSION_LABEL[status]}
+      </StatusPill>
+    );
+  if (status === "in_bearbeitung")
+    return <StatusPill ton="warn">{SUBMISSION_LABEL[status]}</StatusPill>;
+  if (status === "erledigt")
+    return <StatusPill ton="success">{SUBMISSION_LABEL[status]}</StatusPill>;
+  return <StatusPill ton="neutral">{SUBMISSION_LABEL[status]}</StatusPill>;
+}
+

@@ -1,8 +1,9 @@
-import { Activity, Pencil, Plus, Trash2 } from "lucide-react";
+import { Activity, History, Pencil, Plus, Trash2 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { FilterPills } from "@/components/admin/FilterPills";
-import { EmptyState } from "@/components/admin/EmptyState";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import {
   actionLabel,
@@ -158,13 +159,37 @@ export default async function AuditLogPage({
 
   const eintraege = await ladeAuditLog({ tableName, action, limit: 200 });
   const tage = gruppeNachTag(eintraege);
+  const inserts = eintraege.filter((e) => e.action === "insert").length;
+  const updates = eintraege.filter((e) => e.action === "update").length;
+  const deletes = eintraege.filter((e) => e.action === "delete").length;
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
+      <PageHeader
+        eyebrow="Auswertung"
         title="Audit-Log"
         description="Wer hat wann was geändert. Letzte 200 Ereignisse als Timeline."
       />
+
+      <StatGrid cols={4}>
+        <StatCard
+          label="Ereignisse"
+          value={eintraege.length}
+          icon={<History />}
+        />
+        <StatCard label="Anlegen" value={inserts} icon={<Plus />} />
+        <StatCard label="Ändern" value={updates} icon={<Pencil />} />
+        <StatCard
+          label="Löschen"
+          value={deletes}
+          icon={<Trash2 />}
+          trend={
+            deletes > 0
+              ? { value: deletes, direction: "down", hint: "im Zeitraum" }
+              : undefined
+          }
+        />
+      </StatGrid>
 
       <div className="space-y-2">
         <FilterPills
@@ -196,11 +221,18 @@ export default async function AuditLogPage({
       </div>
 
       {eintraege.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card">
+        <div className="rounded-xl border border-border bg-card">
           <EmptyState
-            icon={<Activity className="h-6 w-6" />}
             title="Keine Audit-Einträge"
             description="Mit diesem Filter ist nichts passiert. Probier einen anderen Zeitraum oder eine andere Tabelle."
+            actions={[
+              {
+                icon: <Activity />,
+                title: "Alle anzeigen",
+                description: "Filter zurücksetzen",
+                href: "/admin/audit-log",
+              },
+            ]}
           />
         </div>
       ) : (
