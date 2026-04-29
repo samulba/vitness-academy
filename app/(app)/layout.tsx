@@ -2,6 +2,7 @@ import { requireProfile } from "@/lib/auth";
 import { Topbar } from "@/components/layout/Topbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
 
 export default async function AppLayout({
   children,
@@ -20,6 +21,9 @@ export default async function AppLayout({
         </main>
       </div>
       <MobileNav rolle={profile.role} />
+      {!profile.onboarding_done && (
+        <OnboardingDialog vorname={profile.first_name ?? profile.full_name} />
+      )}
     </div>
   );
 }

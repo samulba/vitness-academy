@@ -8,6 +8,7 @@ export type Profil = {
   phone: string | null;
   role: Rolle;
   location_id: string | null;
+  onboarding_done: boolean;
 };
 
 export function istAdmin(role: Rolle | undefined | null): boolean {
