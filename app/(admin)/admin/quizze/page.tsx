@@ -1,13 +1,21 @@
 import Link from "next/link";
-import { ExternalLink, Plus } from "lucide-react";
+import {
+  Award,
+  ExternalLink,
+  HelpCircle,
+  Plus,
+  Sparkles,
+  Target,
+} from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminButton } from "@/components/admin/AdminButton";
 import { AdminCard } from "@/components/admin/AdminCard";
 import { StatusPill } from "@/components/admin/StatusPill";
+import { StatsStrip } from "@/components/admin/StatsStrip";
+import { EmptyState } from "@/components/admin/EmptyState";
 import {
   AdminActionCell,
   AdminTable,
-  AdminTableEmpty,
   AdminTableHead,
   AdminTd,
   AdminTh,
@@ -87,12 +95,27 @@ function StatusBadge({ status }: { status: string }) {
 
 export default async function AdminQuizzePage() {
   const quizze = await ladeQuizze();
+  const aktiv = quizze.filter((q) => q.status === "aktiv").length;
+  const fragenSumme = quizze.reduce((s, q) => s + q.fragen_anzahl, 0);
+  const versucheSumme = quizze.reduce((s, q) => s + q.versuche_anzahl, 0);
+  const bestandenSumme = quizze.reduce((s, q) => s + q.bestanden_anzahl, 0);
+  const passQuote =
+    versucheSumme === 0
+      ? null
+      : Math.round((bestandenSumme / versucheSumme) * 100);
 
   return (
     <div className="space-y-6">
       <AdminPageHeader
         title="Quizze"
         description="Quizze inkl. Fragen und Antworten verwalten. Sortiert nach Reihenfolge."
+        badge={
+          aktiv > 0 ? (
+            <StatusPill ton="success" dot>
+              {aktiv} aktiv
+            </StatusPill>
+          ) : null
+        }
         actions={
           <AdminButton href="/admin/quizze/neu">
             <Plus className="h-3.5 w-3.5" />
@@ -101,8 +124,49 @@ export default async function AdminQuizzePage() {
         }
       />
 
+      <StatsStrip
+        items={[
+          {
+            icon: <HelpCircle className="h-4 w-4" />,
+            label: "Quizze gesamt",
+            wert: quizze.length,
+            akzent: true,
+            hint: aktiv === quizze.length ? "alle aktiv" : `${aktiv} aktiv`,
+          },
+          {
+            icon: <Sparkles className="h-4 w-4" />,
+            label: "Fragen gesamt",
+            wert: fragenSumme,
+          },
+          {
+            icon: <Target className="h-4 w-4" />,
+            label: "Versuche",
+            wert: versucheSumme,
+            hint: "über alle Mitarbeiter",
+          },
+          {
+            icon: <Award className="h-4 w-4" />,
+            label: "Bestehensquote",
+            wert: passQuote === null ? "—" : `${passQuote}%`,
+            delta:
+              passQuote !== null && passQuote >= 80
+                ? `${bestandenSumme}/${versucheSumme}`
+                : undefined,
+          },
+        ]}
+      />
+
       <AdminCard>
-        <AdminTable>
+        {quizze.length === 0 ? (
+          <EmptyState
+            icon={<HelpCircle className="h-6 w-6" />}
+            title="Noch keine Quizze"
+            description="Lege ein Quiz an und verknüpfe es mit einer Lektion oder einem Modul."
+            ctaLabel="Quiz anlegen"
+            ctaHref="/admin/quizze/neu"
+          />
+        ) : (
+          <AdminTable>
           <AdminTableHead>
             <AdminTh>Titel</AdminTh>
             <AdminTh>Bindung</AdminTh>
@@ -116,12 +180,7 @@ export default async function AdminQuizzePage() {
             <AdminTh align="right" />
           </AdminTableHead>
           <tbody>
-            {quizze.length === 0 ? (
-              <AdminTableEmpty colSpan={10}>
-                Noch keine Quizze angelegt.
-              </AdminTableEmpty>
-            ) : (
-              quizze.map((q) => (
+            {quizze.map((q) => (
                 <AdminTr key={q.id}>
                   <AdminTitleCell
                     href={`/admin/quizze/${q.id}`}
@@ -167,10 +226,10 @@ export default async function AdminQuizzePage() {
                   </AdminTd>
                   <AdminActionCell href={`/admin/quizze/${q.id}`} />
                 </AdminTr>
-              ))
-            )}
+              ))}
           </tbody>
         </AdminTable>
+        )}
       </AdminCard>
     </div>
   );

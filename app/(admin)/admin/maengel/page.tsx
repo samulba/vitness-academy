@@ -1,7 +1,15 @@
-import { ImageIcon } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ImageIcon,
+  Wrench,
+  Zap,
+} from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminCard, AdminCardHeader } from "@/components/admin/AdminCard";
 import { StatusPill } from "@/components/admin/StatusPill";
+import { StatsStrip } from "@/components/admin/StatsStrip";
+import { EmptyState } from "@/components/admin/EmptyState";
 import {
   AdminActionCell,
   AdminTable,
@@ -38,20 +46,66 @@ export default async function MaengelAdminPage() {
   await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const offen = await ladeMaengel({ status: ["offen", "in_bearbeitung"] });
   const erledigt = await ladeMaengel({ status: ["behoben", "verworfen"] });
+  const inBearbeitung = offen.filter((m) => m.status === "in_bearbeitung").length;
+  const kritisch = offen.filter((m) => m.severity === "kritisch").length;
+  const behoben = erledigt.filter((m) => m.status === "behoben").length;
 
   return (
     <div className="space-y-6">
       <AdminPageHeader
         title="Mängel im Studio"
         description="Inbox aller gemeldeten Probleme. Klick öffnet die Details mit Status-Setzung."
+        badge={
+          kritisch > 0 ? (
+            <StatusPill ton="danger" dot pulse>
+              {kritisch} kritisch
+            </StatusPill>
+          ) : offen.length === 0 ? (
+            <StatusPill ton="success" dot>
+              Alles ruhig
+            </StatusPill>
+          ) : null
+        }
+      />
+
+      <StatsStrip
+        items={[
+          {
+            icon: <AlertTriangle className="h-4 w-4" />,
+            label: "Aktuell offen",
+            wert: offen.length,
+            akzent: offen.length > 0,
+            hint:
+              kritisch > 0
+                ? `${kritisch} kritisch`
+                : "warten auf Bearbeitung",
+          },
+          {
+            icon: <Wrench className="h-4 w-4" />,
+            label: "In Bearbeitung",
+            wert: inBearbeitung,
+          },
+          {
+            icon: <CheckCircle2 className="h-4 w-4" />,
+            label: "Behoben (gesamt)",
+            wert: behoben,
+          },
+          {
+            icon: <Zap className="h-4 w-4" />,
+            label: "Gesamt erfasst",
+            wert: offen.length + erledigt.length,
+          },
+        ]}
       />
 
       <AdminCard>
         <AdminCardHeader title={`Aktuell offen (${offen.length})`} />
         {offen.length === 0 ? (
-          <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-            Keine offenen Mängel — top!
-          </div>
+          <EmptyState
+            icon={<CheckCircle2 className="h-6 w-6" />}
+            title="Keine offenen Mängel"
+            description="Alle gemeldeten Probleme sind bearbeitet. Top Studio-Team!"
+          />
         ) : (
           <AdminTable>
             <AdminTableHead>

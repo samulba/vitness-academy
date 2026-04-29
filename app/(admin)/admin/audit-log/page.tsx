@@ -1,18 +1,16 @@
-import {
-  Activity,
-  Pencil,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { Activity, Pencil, Plus, Trash2 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { FilterPills } from "@/components/admin/FilterPills";
+import { EmptyState } from "@/components/admin/EmptyState";
+import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import {
   actionLabel,
   geaenderteFelder,
   ladeAuditLog,
   tabellenLabel,
   type AuditAction,
+  type AuditEntry,
 } from "@/lib/audit";
 
 const ACTION_FILTER: AuditAction[] = ["insert", "update", "delete"];
@@ -41,50 +39,106 @@ const TABELLEN: string[] = [
 function actionStyle(a: AuditAction): {
   label: string;
   icon: React.ReactNode;
-  pill: string;
+  dotClass: string;
+  pillClass: string;
 } {
   switch (a) {
     case "insert":
       return {
         label: actionLabel(a),
-        icon: <Plus className="h-3.5 w-3.5" />,
-        pill: "bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]",
+        icon: <Plus className="h-3 w-3" />,
+        dotClass: "bg-[hsl(var(--success))]",
+        pillClass:
+          "bg-[hsl(var(--success)/0.14)] text-[hsl(var(--success))]",
       };
     case "update":
       return {
         label: actionLabel(a),
-        icon: <Pencil className="h-3.5 w-3.5" />,
-        pill: "bg-amber-100 text-amber-700",
+        icon: <Pencil className="h-3 w-3" />,
+        dotClass: "bg-amber-500",
+        pillClass: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
       };
     case "delete":
       return {
         label: actionLabel(a),
-        icon: <Trash2 className="h-3.5 w-3.5" />,
-        pill: "bg-destructive/10 text-destructive",
+        icon: <Trash2 className="h-3 w-3" />,
+        dotClass: "bg-destructive",
+        pillClass: "bg-destructive/10 text-destructive",
       };
   }
 }
 
-function fmtDateTime(iso: string): string {
+function fmtZeit(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
+  return d.toLocaleTimeString("de-DE", {
     hour: "2-digit",
     minute: "2-digit",
   });
 }
 
+function tagLabel(iso: string): string {
+  const d = new Date(iso);
+  const heute = new Date();
+  heute.setHours(0, 0, 0, 0);
+  const dTag = new Date(iso);
+  dTag.setHours(0, 0, 0, 0);
+  const diffTage = Math.round(
+    (heute.getTime() - dTag.getTime()) / (24 * 60 * 60 * 1000),
+  );
+  if (diffTage === 0) return "Heute";
+  if (diffTage === 1) return "Gestern";
+  return d.toLocaleDateString("de-DE", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: heute.getFullYear() === d.getFullYear() ? undefined : "numeric",
+  });
+}
+
+function tagKey(iso: string): string {
+  return iso.slice(0, 10);
+}
+
 function shortValue(v: unknown): string {
   if (v === null || v === undefined) return "—";
   if (typeof v === "string") {
-    return v.length > 80 ? `${v.slice(0, 77)}…` : v;
+    return v.length > 60 ? `${v.slice(0, 57)}…` : v;
   }
   if (typeof v === "boolean") return v ? "ja" : "nein";
   if (typeof v === "number") return String(v);
   const s = JSON.stringify(v);
-  return s.length > 80 ? `${s.slice(0, 77)}…` : s;
+  return s.length > 60 ? `${s.slice(0, 57)}…` : s;
+}
+
+function entityName(e: AuditEntry): string | null {
+  const data = e.action === "delete" ? e.before : e.after;
+  if (!data) return null;
+  const t =
+    (data as Record<string, unknown>).title ??
+    (data as Record<string, unknown>).name ??
+    (data as Record<string, unknown>).full_name;
+  return typeof t === "string" ? t : null;
+}
+
+function gruppeNachTag(eintraege: AuditEntry[]): {
+  key: string;
+  label: string;
+  items: AuditEntry[];
+}[] {
+  const map = new Map<string, AuditEntry[]>();
+  for (const e of eintraege) {
+    const k = tagKey(e.at);
+    const arr = map.get(k) ?? [];
+    arr.push(e);
+    map.set(k, arr);
+  }
+  return Array.from(map.entries())
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([key, items]) => ({
+      key,
+      label: tagLabel(items[0].at),
+      items,
+    }));
 }
 
 export default async function AuditLogPage({
@@ -103,12 +157,13 @@ export default async function AuditLogPage({
       : undefined;
 
   const eintraege = await ladeAuditLog({ tableName, action, limit: 200 });
+  const tage = gruppeNachTag(eintraege);
 
   return (
     <div className="space-y-6">
       <AdminPageHeader
         title="Audit-Log"
-        description="Wer hat wann was geändert. Letzte 200 Ereignisse."
+        description="Wer hat wann was geändert. Letzte 200 Ereignisse als Timeline."
       />
 
       <div className="space-y-2">
@@ -141,109 +196,119 @@ export default async function AuditLogPage({
       </div>
 
       {eintraege.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
-          <Activity className="mx-auto h-8 w-8 text-muted-foreground/40" />
-          <p className="mt-3 text-sm text-muted-foreground">
-            Keine Audit-Einträge mit diesem Filter.
-          </p>
+        <div className="rounded-2xl border border-border bg-card">
+          <EmptyState
+            icon={<Activity className="h-6 w-6" />}
+            title="Keine Audit-Einträge"
+            description="Mit diesem Filter ist nichts passiert. Probier einen anderen Zeitraum oder eine andere Tabelle."
+          />
         </div>
       ) : (
-        <ul className="space-y-3">
-          {eintraege.map((e) => {
-            const style = actionStyle(e.action);
-            const diffs =
-              e.action === "update" ? geaenderteFelder(e.before, e.after) : [];
-            return (
-              <li
-                key={e.id}
-                className="rounded-2xl border border-border bg-card p-5"
-              >
-                <div className="flex flex-wrap items-baseline justify-between gap-3">
-                  <div className="flex flex-wrap items-baseline gap-2">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${style.pill}`}
-                    >
-                      {style.icon}
-                      {style.label}
-                    </span>
-                    <span className="text-sm font-semibold">
-                      {tabellenLabel(e.table_name)}
-                    </span>
-                    {e.row_id && (
-                      <span className="font-mono text-[11px] text-muted-foreground/80">
-                        {e.row_id.length > 8
-                          ? `…${e.row_id.slice(-8)}`
-                          : e.row_id}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {fmtDateTime(e.at)}
-                    {e.actor_name && <> · {e.actor_name}</>}
-                  </div>
-                </div>
-
-                {e.action === "update" && diffs.length > 0 && (
-                  <div className="mt-3 overflow-hidden rounded-lg border border-border">
-                    <table className="w-full text-sm">
-                      <thead className="bg-muted/40 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        <tr>
-                          <th className="px-3 py-2 text-left">Feld</th>
-                          <th className="px-3 py-2 text-left">Vorher</th>
-                          <th className="px-3 py-2 text-left">Nachher</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {diffs.slice(0, 6).map((d) => (
-                          <tr key={d.key} className="border-t border-border">
-                            <td className="px-3 py-2 font-medium">{d.key}</td>
-                            <td className="px-3 py-2 text-muted-foreground">
-                              {shortValue(d.alt)}
-                            </td>
-                            <td className="px-3 py-2">{shortValue(d.neu)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {diffs.length > 6 && (
-                      <p className="border-t border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                        +{diffs.length - 6} weitere Felder geändert
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {e.action === "insert" && e.after && (
-                  <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
-                    {(() => {
-                      const t =
-                        (e.after as Record<string, unknown>).title ??
-                        (e.after as Record<string, unknown>).name ??
-                        (e.after as Record<string, unknown>).full_name;
-                      if (typeof t === "string") return t;
-                      return null;
-                    })()}
-                  </p>
-                )}
-
-                {e.action === "delete" && e.before && (
-                  <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
-                    {(() => {
-                      const t =
-                        (e.before as Record<string, unknown>).title ??
-                        (e.before as Record<string, unknown>).name ??
-                        (e.before as Record<string, unknown>).full_name;
-                      if (typeof t === "string") return t;
-                      return null;
-                    })()}
-                  </p>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+        <div className="space-y-8">
+          {tage.map((tag) => (
+            <section key={tag.key}>
+              <div className="sticky top-0 z-10 -mx-1 mb-3 flex items-baseline gap-3 bg-background/85 px-1 py-2 backdrop-blur">
+                <h2 className="text-[15px] font-semibold tracking-tight">
+                  {tag.label}
+                </h2>
+                <span className="text-xs text-muted-foreground">
+                  {tag.items.length}{" "}
+                  {tag.items.length === 1 ? "Ereignis" : "Ereignisse"}
+                </span>
+              </div>
+              <ol className="relative space-y-3 pl-6">
+                {/* Vertikale Timeline-Linie */}
+                <span
+                  aria-hidden
+                  className="absolute left-[7px] top-2 bottom-2 w-px bg-border"
+                />
+                {tag.items.map((e) => (
+                  <TimelineEintrag key={e.id} e={e} />
+                ))}
+              </ol>
+            </section>
+          ))}
+        </div>
       )}
     </div>
   );
 }
 
+function TimelineEintrag({ e }: { e: AuditEntry }) {
+  const style = actionStyle(e.action);
+  const diffs = e.action === "update" ? geaenderteFelder(e.before, e.after) : [];
+  const name = entityName(e);
+
+  return (
+    <li className="relative">
+      {/* Dot auf der Timeline */}
+      <span
+        aria-hidden
+        className={`absolute -left-[22px] top-3 flex h-3.5 w-3.5 items-center justify-center rounded-full ring-2 ring-background ${style.dotClass}`}
+      />
+      <div className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-[hsl(var(--brand-pink)/0.3)]">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${style.pillClass}`}
+            >
+              {style.icon}
+              {style.label}
+            </span>
+            <span className="text-[13px] font-medium">
+              {tabellenLabel(e.table_name)}
+            </span>
+            {name && (
+              <span className="text-[13px] text-muted-foreground">
+                · {name}
+              </span>
+            )}
+            {e.row_id && !name && (
+              <span className="font-mono text-[11px] text-muted-foreground/70">
+                {e.row_id.length > 8 ? `…${e.row_id.slice(-8)}` : e.row_id}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {e.actor_name && (
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <ColoredAvatar name={e.actor_name} size="sm" />
+                <span>{e.actor_name}</span>
+              </span>
+            )}
+            <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] tabular-nums text-muted-foreground">
+              {fmtZeit(e.at)}
+            </span>
+          </div>
+        </div>
+
+        {e.action === "update" && diffs.length > 0 && (
+          <div className="mt-3 space-y-1.5">
+            {diffs.slice(0, 4).map((d) => (
+              <div
+                key={d.key}
+                className="flex flex-wrap items-baseline gap-2 text-xs"
+              >
+                <span className="font-medium tabular-nums text-foreground">
+                  {d.key}
+                </span>
+                <span className="text-muted-foreground line-through">
+                  {shortValue(d.alt)}
+                </span>
+                <span className="text-muted-foreground">→</span>
+                <span className="font-medium text-[hsl(var(--brand-pink))]">
+                  {shortValue(d.neu)}
+                </span>
+              </div>
+            ))}
+            {diffs.length > 4 && (
+              <p className="text-[11px] text-muted-foreground/70">
+                +{diffs.length - 4} weitere Felder geändert
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </li>
+  );
+}

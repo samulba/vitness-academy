@@ -1,12 +1,13 @@
-import { Inbox, Plus } from "lucide-react";
+import { FileText, Inbox, Plus, Sparkles } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminButton } from "@/components/admin/AdminButton";
 import { AdminCard } from "@/components/admin/AdminCard";
 import { StatusPill } from "@/components/admin/StatusPill";
+import { StatsStrip } from "@/components/admin/StatsStrip";
+import { EmptyState } from "@/components/admin/EmptyState";
 import {
   AdminActionCell,
   AdminTable,
-  AdminTableEmpty,
   AdminTableHead,
   AdminTd,
   AdminTh,
@@ -18,16 +19,25 @@ import { ladeSubmissions, ladeTemplates } from "@/lib/formulare";
 
 export default async function FormulareAdminPage() {
   await requireRole(["admin", "superadmin"]);
-  const [templates, offen] = await Promise.all([
+  const [templates, offen, alle] = await Promise.all([
     ladeTemplates(),
     ladeSubmissions({ status: ["eingereicht", "in_bearbeitung"] }),
+    ladeSubmissions(),
   ]);
+  const aktiv = templates.filter((t) => t.status === "aktiv").length;
 
   return (
     <div className="space-y-6">
       <AdminPageHeader
         title="Formulare"
         description="Vorlagen pflegen, Einreichungen bearbeiten."
+        badge={
+          offen.length > 0 ? (
+            <StatusPill ton="primary" dot pulse>
+              {offen.length} im Eingang
+            </StatusPill>
+          ) : null
+        }
         actions={
           <>
             <AdminButton variant="secondary" href="/admin/formulare/eingaenge">
@@ -47,8 +57,45 @@ export default async function FormulareAdminPage() {
         }
       />
 
+      <StatsStrip
+        items={[
+          {
+            icon: <FileText className="h-4 w-4" />,
+            label: "Formulare",
+            wert: templates.length,
+            akzent: true,
+            hint: aktiv === templates.length ? "alle aktiv" : `${aktiv} aktiv`,
+          },
+          {
+            icon: <Inbox className="h-4 w-4" />,
+            label: "Im Eingang",
+            wert: offen.length,
+            hint: "warten auf Bearbeitung",
+          },
+          {
+            icon: <Sparkles className="h-4 w-4" />,
+            label: "Einreichungen gesamt",
+            wert: alle.length,
+          },
+          {
+            icon: <FileText className="h-4 w-4" />,
+            label: "Felder gesamt",
+            wert: templates.reduce((s, t) => s + t.fields.length, 0),
+          },
+        ]}
+      />
+
       <AdminCard>
-        <AdminTable>
+        {templates.length === 0 ? (
+          <EmptyState
+            icon={<FileText className="h-6 w-6" />}
+            title="Noch keine Formulare"
+            description="Bau dein erstes Formular per Drag & Drop. Krankmeldung, Urlaubsantrag, Schadensmeldung — was du brauchst."
+            ctaLabel="Formular bauen"
+            ctaHref="/admin/formulare/neu"
+          />
+        ) : (
+          <AdminTable>
           <AdminTableHead>
             <AdminTh>Titel</AdminTh>
             <AdminTh>Slug</AdminTh>
@@ -57,12 +104,7 @@ export default async function FormulareAdminPage() {
             <AdminTh align="right" />
           </AdminTableHead>
           <tbody>
-            {templates.length === 0 ? (
-              <AdminTableEmpty colSpan={5}>
-                Noch keine Formulare angelegt.
-              </AdminTableEmpty>
-            ) : (
-              templates.map((t) => (
+            {templates.map((t) => (
                 <AdminTr key={t.id}>
                   <AdminTitleCell
                     href={`/admin/formulare/${t.id}`}
@@ -85,10 +127,10 @@ export default async function FormulareAdminPage() {
                   </AdminTd>
                   <AdminActionCell href={`/admin/formulare/${t.id}`} />
                 </AdminTr>
-              ))
-            )}
+              ))}
           </tbody>
         </AdminTable>
+        )}
       </AdminCard>
     </div>
   );
