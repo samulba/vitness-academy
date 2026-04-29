@@ -240,20 +240,67 @@ export default async function AdminDashboardPage() {
     ladeAktiveMitarbeiter(),
   ]);
 
+  const jetzt = new Date();
+  const wochentag = jetzt.toLocaleDateString("de-DE", { weekday: "long" });
+  const datumLang = jetzt.toLocaleDateString("de-DE", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const todoSumme =
+    puls.maengelOffen + puls.submissionsOffen + puls.aufgabenOffen;
+
   return (
-    <div className="space-y-12">
-      <header>
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
-          Verwaltung
-        </p>
-        <h1 className="mt-3 text-balance font-semibold leading-[1.1] tracking-[-0.025em] text-[clamp(1.875rem,3vw,2.75rem)]">
-          Studio-Puls
-        </h1>
-        <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground">
-          Was ist heute im Studio los — Mängel, Einreichungen, Aktivität,
-          Aufgaben. Alles in einer Sicht.
-        </p>
-      </header>
+    <div className="space-y-8">
+      {/* Hero-Header mit Magenta-Gradient + Live-Indicator */}
+      <section className="relative overflow-hidden rounded-2xl border border-[hsl(var(--brand-pink)/0.3)] bg-card">
+        {/* Aurora-Hintergrund */}
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-0 opacity-90"
+          style={{
+            background:
+              "radial-gradient(80% 60% at 0% 0%, hsl(var(--brand-pink)/0.18) 0%, transparent 60%), radial-gradient(60% 80% at 100% 100%, hsl(var(--primary)/0.18) 0%, transparent 60%)",
+          }}
+        />
+        <div className="relative px-6 py-7 sm:px-8 sm:py-9">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <div className="min-w-0">
+              <p className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+                <span className="relative flex h-1.5 w-1.5 items-center justify-center">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--brand-pink))] opacity-70" />
+                  <span className="relative inline-block h-1.5 w-1.5 rounded-full bg-[hsl(var(--brand-pink))]" />
+                </span>
+                Live · {wochentag}, {datumLang}
+              </p>
+              <h1 className="mt-3 text-balance text-[clamp(2rem,3.6vw,3rem)] font-semibold leading-[1.05] tracking-[-0.025em]">
+                Studio-Puls
+              </h1>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                Was ist heute im Studio los — Mängel, Einreichungen,
+                Aktivität, Aufgaben. Alles in einer Sicht.
+              </p>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Offene ToDos
+              </p>
+              <p
+                className={`text-4xl font-semibold tabular-nums tracking-tight ${
+                  todoSumme === 0
+                    ? "text-[hsl(var(--success))]"
+                    : "text-[hsl(var(--brand-pink))]"
+                }`}
+              >
+                {todoSumme}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Mängel + Einreichungen + Aufgaben
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Heute-Leiste */}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
