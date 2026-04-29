@@ -64,12 +64,20 @@ export default async function AdminBenutzerListe() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Benutzer</h1>
-        <p className="mt-1 text-muted-foreground">
-          Übersicht aller Profile. Rollen, Standorte und Lernpfad-Zuweisungen
-          pflegst du über die Detailseite.
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Benutzer</h1>
+          <p className="mt-1 text-muted-foreground">
+            Übersicht aller Profile. Rollen, Standorte und Lernpfad-Zuweisungen
+            pflegst du über die Detailseite.
+          </p>
+        </div>
+        <Link
+          href="/admin/benutzer/neu"
+          className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--primary))] px-5 py-2.5 text-sm font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.02]"
+        >
+          + Neue:r Mitarbeiter:in
+        </Link>
       </header>
 
       <Card>
