@@ -23,10 +23,13 @@ type NavEintrag = {
   bald?: boolean;
 };
 
-const MITARBEITER_NAV: NavEintrag[] = [
+const LERNEN_NAV: NavEintrag[] = [
   { href: "/dashboard", label: "Mein Dashboard", icon: Home },
   { href: "/lernpfade", label: "Meine Lernpfade", icon: GraduationCap },
   { href: "/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare },
+];
+
+const STUDIO_NAV: NavEintrag[] = [
   { href: "/wissen", label: "Handbuch", icon: BookOpen },
 ];
 
@@ -51,7 +54,14 @@ export function Sidebar({ rolle }: { rolle: Rolle }) {
         <div className="px-3 pb-2 pt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           Lernen
         </div>
-        {MITARBEITER_NAV.map((eintrag) => (
+        {LERNEN_NAV.map((eintrag) => (
+          <NavLink key={eintrag.href} eintrag={eintrag} pathname={pathname} />
+        ))}
+
+        <div className="mt-6 px-3 pb-2 pt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Studio
+        </div>
+        {STUDIO_NAV.map((eintrag) => (
           <NavLink key={eintrag.href} eintrag={eintrag} pathname={pathname} />
         ))}
 
