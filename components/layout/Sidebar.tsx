@@ -6,6 +6,7 @@ import {
   Activity,
   BookOpen,
   CheckSquare,
+  Contact,
   GraduationCap,
   HelpCircle,
   Home,
@@ -34,6 +35,7 @@ const LERNEN_NAV: NavEintrag[] = [
 
 const STUDIO_NAV: NavEintrag[] = [
   { href: "/wissen", label: "Handbuch", icon: BookOpen },
+  { href: "/kontakte", label: "Kontakte", icon: Contact },
 ];
 
 const ADMIN_NAV: NavEintrag[] = [
@@ -44,6 +46,7 @@ const ADMIN_NAV: NavEintrag[] = [
   { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare },
   { href: "/admin/praxisfreigaben", label: "Anfragen", icon: CheckSquare },
   { href: "/admin/wissen", label: "Handbuch", icon: BookOpen },
+  { href: "/admin/kontakte", label: "Kontakte", icon: Contact },
   { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity },
 ];
 
