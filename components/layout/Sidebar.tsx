@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { istAdmin, istFuehrungskraftOderHoeher, type Rolle } from "@/lib/rollen";
 import { rolleLabel } from "@/lib/format";
+import { SearchTrigger } from "@/components/search/SearchTrigger";
 
 type NavEintrag = {
   href: string;
@@ -77,6 +78,11 @@ export function Sidebar({
           <span className="text-[15px] font-semibold tracking-tight">
             Vitness Academy
           </span>
+        </div>
+
+        {/* Search-Trigger */}
+        <div className="px-3 pt-4">
+          <SearchTrigger />
         </div>
 
         {/* Nav-Gruppen scrollbar */}

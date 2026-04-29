@@ -3,6 +3,7 @@ import { Topbar } from "@/components/layout/Topbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
+import { CmdK } from "@/components/search/CmdK";
 
 export default async function AppLayout({
   children,
@@ -24,6 +25,7 @@ export default async function AppLayout({
       {!profile.onboarding_done && (
         <OnboardingDialog vorname={profile.first_name ?? profile.full_name} />
       )}
+      <CmdK />
     </div>
   );
 }
