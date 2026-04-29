@@ -277,6 +277,265 @@ FRAGEN: dict[str, dict] = {
             {"text": "Den gibt es nur muendlich", "korrekt": False},
         ],
     },
+
+    # --- Erweiterte Fragen-Sammlung -----------------------------------
+    # Magicline weitere Module
+    "01-Magicline/02-Navigation/01-Dashboard": {
+        "typ": "single",
+        "frage": "Wofuer dient das Dashboard in Magicline?",
+        "optionen": [
+            {"text": "Schneller Ueberblick ueber Kennzahlen, anstehende Termine und Aktivitaeten", "korrekt": True},
+            {"text": "Zum Erstellen von Trainingsplaenen", "korrekt": False},
+            {"text": "Zum Drucken von Vertraegen", "korrekt": False},
+        ],
+    },
+    "01-Magicline/02-Navigation/04-Termine": {
+        "typ": "multiple",
+        "frage": "Was kannst du im Termine-Bereich machen?",
+        "optionen": [
+            {"text": "Termine pro Mitarbeiter und Tag einsehen", "korrekt": True},
+            {"text": "Neue Termine eintragen und absagen", "korrekt": True},
+            {"text": "Standort wechseln, um Termine an anderen Standorten zu sehen", "korrekt": True},
+            {"text": "Mitgliedsbeitraege ueberweisen", "korrekt": False},
+        ],
+    },
+    "01-Magicline/02-Navigation/05-Kurse": {
+        "typ": "single",
+        "frage": "Wo siehst du, welche Kurse heute im Studio stattfinden?",
+        "optionen": [
+            {"text": "Im Bereich Kurse in Magicline", "korrekt": True},
+            {"text": "Nur im Mitglieder-Profil", "korrekt": False},
+            {"text": "Im Verkaufs-Bereich", "korrekt": False},
+        ],
+    },
+    "01-Magicline/02-Navigation/06-Analytics": {
+        "typ": "single",
+        "frage": "Welche Information liefert dir der Analytics-Bereich primaer?",
+        "optionen": [
+            {"text": "Kennzahlen zu Auslastung, Mitgliederbewegung und Umsatz", "korrekt": True},
+            {"text": "Den Putzplan", "korrekt": False},
+            {"text": "Die Reinigungsprotokolle", "korrekt": False},
+        ],
+    },
+    "01-Magicline/02-Navigation/08-Hilfe-und-Support": {
+        "typ": "single",
+        "frage": "Wo schaust du zuerst, wenn du nicht weiterkommst?",
+        "optionen": [
+            {"text": "Im Hilfe- und Support-Bereich von Magicline", "korrekt": True},
+            {"text": "Mitgliedern direkt von der Frage erzaehlen", "korrekt": False},
+            {"text": "Den Termin einfach absagen", "korrekt": False},
+        ],
+    },
+    "01-Magicline/03-Wellpass-Urbansports-Wellhub/02-Wellpass-Mitglieder": {
+        "typ": "multiple",
+        "frage": "Was gilt beim Check-in eines Wellpass-Mitglieds?",
+        "optionen": [
+            {"text": "Das Mitglied checkt sich mit QR-Code in der App ein", "korrekt": True},
+            {"text": "Es bekommt ein Tagesgastband, ggf. gegen Pfand", "korrekt": True},
+            {"text": "Wir buchen den Besuch im Magicline ueber Aggregator-Mitglied hinzufuegen", "korrekt": True},
+            {"text": "Es zahlt jedes Mal in bar", "korrekt": False},
+        ],
+    },
+    "01-Magicline/03-Wellpass-Urbansports-Wellhub/03-Urban-Sports-Mitglieder": {
+        "typ": "single",
+        "frage": "Wie wird ein Urban-Sports-Check-in korrekt erfasst?",
+        "optionen": [
+            {"text": "Ueber den Check-in-Code aus der Urban-Sports-App im Aggregator-Bereich", "korrekt": True},
+            {"text": "Manuell als Vitness-Mitglied", "korrekt": False},
+            {"text": "Ueber einen normalen Tagesgast-Eintrag", "korrekt": False},
+        ],
+    },
+    # Theke / Service Erweiterung
+    "02-Theke-Service/01-Grundlagen/02-Ziele-und-Standards": {
+        "typ": "multiple",
+        "frage": "Welche Ziele verfolgt der Service-Bereich?",
+        "optionen": [
+            {"text": "Hohe Mitgliederzufriedenheit", "korrekt": True},
+            {"text": "Sauberer und ordentlicher Empfangsbereich", "korrekt": True},
+            {"text": "Konsistente Servicequalitaet ueber alle Schichten", "korrekt": True},
+            {"text": "Moeglichst wenig Kontakt mit Mitgliedern", "korrekt": False},
+        ],
+    },
+    "02-Theke-Service/02-Taegliche-Arbeitsablaeufe/03-Telefon-und-E-Mails": {
+        "typ": "single",
+        "frage": "Wie meldest du dich am Telefon korrekt?",
+        "optionen": [
+            {"text": "Mit Studio-Name + eigenem Namen + freundlicher Begruessung", "korrekt": True},
+            {"text": "Nur mit 'Hallo'", "korrekt": False},
+            {"text": "Mit Vornamen, ohne Studio-Bezug", "korrekt": False},
+        ],
+    },
+    "02-Theke-Service/02-Taegliche-Arbeitsablaeufe/09-Walk-In": {
+        "typ": "multiple",
+        "frage": "Was ist beim Walk-In wichtig?",
+        "optionen": [
+            {"text": "Innerhalb der ersten 60 Sekunden ein guter Eindruck", "korrekt": True},
+            {"text": "Beduerfnisse erfragen, dann individuell fuehren", "korrekt": True},
+            {"text": "Idealerweise direkt einen Termin oder Probetraining vereinbaren", "korrekt": True},
+            {"text": "Sofort den teuersten Vertrag verkaufen", "korrekt": False},
+        ],
+    },
+    "02-Theke-Service/02-Taegliche-Arbeitsablaeufe/10-Interessenten-Anrufen": {
+        "typ": "single",
+        "frage": "Was ist das Ziel beim Anrufen von Interessenten?",
+        "optionen": [
+            {"text": "Beziehung aufbauen, Beduerfnis klaeren und einen Folgetermin vereinbaren", "korrekt": True},
+            {"text": "Dem Interessenten den Tarif diktieren", "korrekt": False},
+            {"text": "So schnell wie moeglich aufzulegen", "korrekt": False},
+        ],
+    },
+    "02-Theke-Service/02-Taegliche-Arbeitsablaeufe/12-Baender-zuweisen": {
+        "typ": "single",
+        "frage": "Was muss beim Zuweisen eines V-itness-Bands stimmen?",
+        "optionen": [
+            {"text": "Das Band ist eindeutig dem korrekten Mitglieds-Profil zugeordnet", "korrekt": True},
+            {"text": "Es ist egal, welches Band das Mitglied bekommt", "korrekt": False},
+            {"text": "Mehrere Mitglieder duerfen sich ein Band teilen", "korrekt": False},
+        ],
+    },
+    "02-Theke-Service/02-Taegliche-Arbeitsablaeufe/14-Reinigungsprotokoll": {
+        "typ": "single",
+        "frage": "Wozu dient das Reinigungsprotokoll?",
+        "optionen": [
+            {"text": "Nachweis und Konsistenz darueber, was wann gereinigt wurde", "korrekt": True},
+            {"text": "Es ist nur eine optionale Notiz", "korrekt": False},
+            {"text": "Wir benutzen es nur bei Beschwerden", "korrekt": False},
+        ],
+    },
+    "02-Theke-Service/02-Taegliche-Arbeitsablaeufe/16-Putzplan": {
+        "typ": "single",
+        "frage": "Wer ist verantwortlich, dass die Aufgaben im Putzplan erledigt werden?",
+        "optionen": [
+            {"text": "Alle Service-Mitarbeiter waehrend der Schicht", "korrekt": True},
+            {"text": "Nur die Studioleitung", "korrekt": False},
+            {"text": "Externe Reinigung allein", "korrekt": False},
+        ],
+    },
+    "02-Theke-Service/03-Kundenservice/02-Kommunikation": {
+        "typ": "multiple",
+        "frage": "Was ist gute Kommunikation mit Kunden?",
+        "optionen": [
+            {"text": "Persoenliche, freundliche Begruessung mit Namen wenn moeglich", "korrekt": True},
+            {"text": "Aktives Zuhoeren und Paraphrasieren", "korrekt": True},
+            {"text": "Loesungsorientierte Sprache statt 'das geht nicht'", "korrekt": True},
+            {"text": "Waehrend des Gespraechs aufs Handy schauen", "korrekt": False},
+        ],
+    },
+    "02-Theke-Service/03-Kundenservice/04-Kundenbindung": {
+        "typ": "single",
+        "frage": "Was wirkt am staerksten auf Kundenbindung?",
+        "optionen": [
+            {"text": "Echtes Interesse, persoenlicher Bezug und konstante Servicequalitaet", "korrekt": True},
+            {"text": "Hauptsache niedrigster Preis", "korrekt": False},
+            {"text": "Kunden ignorieren, sobald sie unterschrieben haben", "korrekt": False},
+        ],
+    },
+    "02-Theke-Service/04-Rechtliche-Aspekte/01-Rechtliche-Grundlagen": {
+        "typ": "multiple",
+        "frage": "Was musst du rechtlich beachten?",
+        "optionen": [
+            {"text": "Datenschutz (DSGVO) bei Mitgliedsdaten", "korrekt": True},
+            {"text": "Kein Weitergeben persoenlicher Daten an Dritte", "korrekt": True},
+            {"text": "Vertragsformalitaeten korrekt einhalten", "korrekt": True},
+            {"text": "Mitgliedsdaten gerne in WhatsApp-Gruppen teilen", "korrekt": False},
+        ],
+    },
+    # Reha Erweiterung
+    "03-Reha/01-Grundlagen/03-Rechtliche-Grundlagen": {
+        "typ": "single",
+        "frage": "Was ist die rechtliche Grundlage des Reha-Sports?",
+        "optionen": [
+            {"text": "Rahmenvereinbarung Rehabilitationssport (BAR) und SGB IX", "korrekt": True},
+            {"text": "DSGVO", "korrekt": False},
+            {"text": "Steuerrecht", "korrekt": False},
+        ],
+    },
+    "03-Reha/02-Ablauf/02-VO-abgelaufen": {
+        "typ": "multiple",
+        "frage": "Was gilt, wenn die Reha-Verordnung abgelaufen ist?",
+        "optionen": [
+            {"text": "Fuer eine erneute Teilnahme braucht es eine neue Verordnung", "korrekt": True},
+            {"text": "Privat Versicherte muessen die Kosten erneut tragen", "korrekt": True},
+            {"text": "Bei nicht ausgeschoepften Stunden kann eine Verlaengerung beantragt werden", "korrekt": True},
+            {"text": "Der Teilnehmer kann unbegrenzt einfach weitermachen", "korrekt": False},
+        ],
+    },
+    "03-Reha/03-Verordnungen/01-Krankenkasse": {
+        "typ": "single",
+        "frage": "Was machst du mit einer Reha-Verordnung der gesetzlichen Krankenkasse?",
+        "optionen": [
+            {"text": "Vollstaendigkeit pruefen, im System erfassen, dem Reha-Programm zuordnen", "korrekt": True},
+            {"text": "Direkt an Mitglied zurueckgeben ohne Pruefung", "korrekt": False},
+            {"text": "An eine andere Krankenkasse weiterleiten", "korrekt": False},
+        ],
+    },
+    "03-Reha/04-Reha-Fit-Programm/01-Tagesliste-Teilnehmer": {
+        "typ": "single",
+        "frage": "Wozu dient die Tagesliste der Reha-Teilnehmer?",
+        "optionen": [
+            {"text": "Anwesenheit dokumentieren und der Kurs-Abrechnung zuordnen", "korrekt": True},
+            {"text": "Mitgliederwerbung", "korrekt": False},
+            {"text": "Marketing-Kampagne", "korrekt": False},
+        ],
+    },
+    "03-Reha/04-Reha-Fit-Programm/05-Reha-Kurs-absagen": {
+        "typ": "single",
+        "frage": "Ein Reha-Kurs muss kurzfristig abgesagt werden. Was tust du?",
+        "optionen": [
+            {"text": "Teilnehmer rechtzeitig informieren, im System dokumentieren, Ersatztermin anbieten", "korrekt": True},
+            {"text": "Niemandem Bescheid geben", "korrekt": False},
+            {"text": "Den Kurs einfach so weiterlaufen lassen", "korrekt": False},
+        ],
+    },
+    # Praevention Erweiterung
+    "04-Praeventionskurse/02-FeelFit-Grundlagen": {
+        "typ": "single",
+        "frage": "Was ist FeelFit?",
+        "optionen": [
+            {"text": "Ein Praeventionskurs nach Paragraph 20 SGB V mit Fokus auf Bewegung", "korrekt": True},
+            {"text": "Ein Personal-Trainer-Tarif", "korrekt": False},
+            {"text": "Ein Reha-Geraet", "korrekt": False},
+        ],
+    },
+    "04-Praeventionskurse/03-Yummy-Grundlagen": {
+        "typ": "single",
+        "frage": "Welchen Schwerpunkt hat der Yummy-Kurs?",
+        "optionen": [
+            {"text": "Ernaehrung und gesunde Lebensweise als Praeventionskurs", "korrekt": True},
+            {"text": "Reines Krafttraining", "korrekt": False},
+            {"text": "Wellpass-Vermarktung", "korrekt": False},
+        ],
+    },
+    # Trainer Erweiterung
+    "05-Trainer/01-Umsatz-Unternehmensziele": {
+        "typ": "single",
+        "frage": "Welche Rolle spielt der Trainer fuer die Unternehmensziele?",
+        "optionen": [
+            {"text": "Trainerleistungen sind direkt mit Mitgliederzufriedenheit, Bindung und Umsatz verknuepft", "korrekt": True},
+            {"text": "Trainer haben mit Umsatz nichts zu tun", "korrekt": False},
+            {"text": "Trainer sind nur fuer die Reinigung zustaendig", "korrekt": False},
+        ],
+    },
+    "05-Trainer/04-Trainer-Staerken-Verantwortlichkeiten": {
+        "typ": "multiple",
+        "frage": "Was gehoert zu deinen Verantwortlichkeiten als Trainer?",
+        "optionen": [
+            {"text": "Sicheres und korrektes Training anleiten", "korrekt": True},
+            {"text": "Auf individuelle Bedarfe und Einschraenkungen eingehen", "korrekt": True},
+            {"text": "Fortschritt dokumentieren und kommunizieren", "korrekt": True},
+            {"text": "Trainingsdaten von Mitgliedern oeffentlich teilen", "korrekt": False},
+        ],
+    },
+    "05-Trainer/06-Starttermin": {
+        "typ": "multiple",
+        "frage": "Was MUSS beim Starttermin passieren?",
+        "optionen": [
+            {"text": "Vollstaendige Anamnese", "korrekt": True},
+            {"text": "Inbody-Messung als Ausgangsbasis", "korrekt": True},
+            {"text": "Erste Egym-Einstellung", "korrekt": True},
+            {"text": "Sofort Vertragserweiterung verkaufen", "korrekt": False},
+        ],
+    },
 }
 
 
