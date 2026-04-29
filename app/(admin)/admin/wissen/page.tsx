@@ -1,28 +1,17 @@
-import Link from "next/link";
-import { ExternalLink, Plus } from "lucide-react";
+import { ExternalLink, Folder, BookOpen, Pencil, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ReihenfolgeButtons } from "@/components/admin/ReihenfolgeButtons";
+import { Button } from "@/components/ui/button";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { SpeichernButton } from "@/components/admin/SpeichernButton";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { AdminButton } from "@/components/admin/AdminButton";
-import { AdminCard, AdminCardHeader } from "@/components/admin/AdminCard";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
+import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
-import {
-  AdminActionCell,
-  AdminTable,
-  AdminTableEmpty,
-  AdminTableHead,
-  AdminTd,
-  AdminTh,
-  AdminTitleCell,
-  AdminTr,
-} from "@/components/admin/AdminTable";
 import { createClient } from "@/lib/supabase/server";
 import { formatDatum } from "@/lib/format";
 import {
-  artikelReihenfolge,
   kategorieAktualisieren,
   kategorieAnlegen,
   kategorieLoeschen,
@@ -97,7 +86,12 @@ async function ladeKategorien(): Promise<Kategorie[]> {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  if (status === "aktiv") return <StatusPill ton="success">Aktiv</StatusPill>;
+  if (status === "aktiv")
+    return (
+      <StatusPill ton="success" dot>
+        Aktiv
+      </StatusPill>
+    );
   if (status === "entwurf") return <StatusPill ton="warn">Entwurf</StatusPill>;
   return <StatusPill ton="neutral">Archiviert</StatusPill>;
 }
@@ -107,30 +101,99 @@ export default async function AdminWissenPage() {
     ladeArtikel(),
     ladeKategorien(),
   ]);
+  const aktiv = artikel.filter((a) => a.status === "aktiv").length;
+  const ohneKategorie = artikel.filter((a) => !a.category_name).length;
+
+  const columns: Column<Artikel>[] = [
+    {
+      key: "title",
+      label: "Titel",
+      sortable: true,
+      render: (a) => (
+        <span className="font-medium text-foreground">{a.title}</span>
+      ),
+    },
+    {
+      key: "category_name",
+      label: "Kategorie",
+      sortable: true,
+      render: (a) =>
+        a.category_name ? (
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Folder className="h-3 w-3" />
+            {a.category_name}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground/50">—</span>
+        ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      render: (a) => <StatusBadge status={a.status} />,
+    },
+    {
+      key: "updated_at",
+      label: "Aktualisiert",
+      sortable: true,
+      render: (a) => (
+        <span className="text-xs text-muted-foreground">
+          {formatDatum(a.updated_at)}
+        </span>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
+      <PageHeader
+        eyebrow="Inhalte"
         title="Handbuch"
         description="Kategorien strukturieren das Handbuch, Artikel sind die einzelnen Inhalte."
-        actions={
-          <AdminButton href="/admin/wissen/neu">
-            <Plus className="h-3.5 w-3.5" />
-            Neuer Artikel
-          </AdminButton>
-        }
+        primaryAction={{
+          label: "Neuer Artikel",
+          icon: <Plus />,
+          href: "/admin/wissen/neu",
+        }}
       />
 
-      <AdminCard>
-        <AdminCardHeader
-          title={`Kategorien (${kategorien.length})`}
-          description="Slug landet in der URL. Klick auf eine Kategorie zum Bearbeiten."
+      <StatGrid cols={3}>
+        <StatCard
+          label="Artikel gesamt"
+          value={artikel.length}
+          icon={<BookOpen />}
         />
+        <StatCard
+          label="Kategorien"
+          value={kategorien.length}
+          icon={<Folder />}
+        />
+        <StatCard
+          label="Ohne Kategorie"
+          value={ohneKategorie}
+          icon={<Pencil />}
+        />
+      </StatGrid>
+
+      {/* Kategorien als ausklappbare Liste */}
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-5 py-4">
+          <div>
+            <h2 className="text-[15px] font-semibold tracking-tight">
+              Kategorien ({kategorien.length})
+            </h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Slug landet in der URL. Klick auf eine Kategorie zum Bearbeiten.
+            </p>
+          </div>
+        </div>
         <div className="divide-y divide-border">
           {kategorien.map((k) => (
             <details key={k.id} className="group">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 hover:bg-muted/40">
                 <div className="flex min-w-0 items-center gap-3">
+                  <Folder className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-[14px] font-medium">{k.name}</span>
                   <StatusPill ton="neutral">
                     {k.artikel_anzahl} Artikel
@@ -214,79 +277,85 @@ export default async function AdminWissenPage() {
                   <Input id="kat-desc" name="description" />
                 </div>
                 <div className="flex justify-end">
-                  <AdminButton type="submit">
-                    <Plus className="h-3.5 w-3.5" />
+                  <Button type="submit" variant="primary">
+                    <Plus />
                     Kategorie anlegen
-                  </AdminButton>
+                  </Button>
                 </div>
               </form>
             </div>
           </details>
         </div>
-      </AdminCard>
+      </div>
 
-      <AdminCard>
-        <AdminCardHeader
-          title={`Artikel (${artikel.length})`}
-          description="Klicke einen Artikel an, um ihn zu bearbeiten."
+      {/* Artikel-Tabelle */}
+      {artikel.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card">
+          <EmptyState
+            illustration={<EmptyStateTablePreview />}
+            title="Noch keine Artikel"
+            description="Lege deinen ersten Wissensartikel an. Markdown-Body mit Headlines, Listen und Links."
+            actions={[
+              {
+                icon: <Plus />,
+                title: "Artikel anlegen",
+                description: "Markdown-Editor",
+                href: "/admin/wissen/neu",
+              },
+              {
+                icon: <Folder />,
+                title: "Kategorie zuerst",
+                description: "Struktur planen",
+                onClick: () => {},
+              },
+            ]}
+          />
+        </div>
+      ) : (
+        <DataTable<Artikel>
+          data={artikel}
+          columns={columns}
+          searchable={{ placeholder: "Artikel suchen…", keys: ["title"] }}
+          filters={[
+            {
+              key: "status",
+              label: "Status",
+              options: [
+                { value: "aktiv", label: "Aktiv" },
+                { value: "entwurf", label: "Entwurf" },
+                { value: "archiviert", label: "Archiviert" },
+              ],
+              multi: true,
+            },
+            {
+              key: "category_name",
+              label: "Kategorie",
+              options: kategorien.map((k) => ({
+                value: k.name,
+                label: k.name,
+              })),
+            },
+          ]}
+          rowHref={(a) => `/admin/wissen/${a.id}`}
+          rowActions={[
+            {
+              icon: <ExternalLink />,
+              label: "Vorschau",
+              href: (a) => `/wissen/${a.slug}`,
+            },
+            {
+              icon: <Pencil />,
+              label: "Bearbeiten",
+              href: (a) => `/admin/wissen/${a.id}`,
+            },
+          ]}
+          defaultSort={{ key: "title", direction: "asc" }}
         />
-        <AdminTable>
-          <AdminTableHead>
-            <AdminTh>Titel</AdminTh>
-            <AdminTh>Kategorie</AdminTh>
-            <AdminTh>Status</AdminTh>
-            <AdminTh>Aktualisiert</AdminTh>
-            <AdminTh align="right">Reihenfolge</AdminTh>
-            <AdminTh align="right">Vorschau</AdminTh>
-            <AdminTh align="right" />
-          </AdminTableHead>
-          <tbody>
-            {artikel.length === 0 ? (
-              <AdminTableEmpty colSpan={7}>
-                Noch keine Artikel angelegt.
-              </AdminTableEmpty>
-            ) : (
-              artikel.map((a, idx) => (
-                <AdminTr key={a.id}>
-                  <AdminTitleCell
-                    href={`/admin/wissen/${a.id}`}
-                    title={a.title}
-                  />
-                  <AdminTd className="text-xs text-muted-foreground">
-                    {a.category_name ?? "—"}
-                  </AdminTd>
-                  <AdminTd>
-                    <StatusBadge status={a.status} />
-                  </AdminTd>
-                  <AdminTd className="text-xs text-muted-foreground">
-                    {formatDatum(a.updated_at)}
-                  </AdminTd>
-                  <AdminTd align="right">
-                    <div className="flex justify-end">
-                      <ReihenfolgeButtons
-                        hoch={artikelReihenfolge.bind(null, a.id, "hoch")}
-                        runter={artikelReihenfolge.bind(null, a.id, "runter")}
-                        hochDeaktiviert={idx === 0}
-                        runterDeaktiviert={idx === artikel.length - 1}
-                      />
-                    </div>
-                  </AdminTd>
-                  <AdminTd align="right">
-                    <Link
-                      href={`/wissen/${a.slug}`}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground"
-                      title="Vorschau"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </Link>
-                  </AdminTd>
-                  <AdminActionCell href={`/admin/wissen/${a.id}`} />
-                </AdminTr>
-              ))
-            )}
-          </tbody>
-        </AdminTable>
-      </AdminCard>
+      )}
+
+      <p className="text-[11px] text-muted-foreground">
+        {aktiv} von {artikel.length} Artikel aktiv.
+      </p>
     </div>
   );
 }

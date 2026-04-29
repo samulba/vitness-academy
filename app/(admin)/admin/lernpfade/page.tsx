@@ -1,32 +1,22 @@
-import Link from "next/link";
 import {
-  BookOpen,
   ExternalLink,
   GraduationCap,
   Layers,
+  Pencil,
   Plus,
   Users,
 } from "lucide-react";
-import { ReihenfolgeButtons } from "@/components/admin/ReihenfolgeButtons";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { AdminButton } from "@/components/admin/AdminButton";
-import { AdminCard } from "@/components/admin/AdminCard";
-import { StatusPill } from "@/components/admin/StatusPill";
-import { StatsStrip } from "@/components/admin/StatsStrip";
-import { EmptyState } from "@/components/admin/EmptyState";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import {
-  AdminActionCell,
-  AdminTable,
-  AdminTableHead,
-  AdminTd,
-  AdminTh,
-  AdminTitleCell,
-  AdminTr,
-} from "@/components/admin/AdminTable";
+  EmptyState,
+  EmptyStateTablePreview,
+} from "@/components/ui/empty-state";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
 import { bildUrlFuerPfad } from "@/lib/storage";
 import { formatDatum } from "@/lib/format";
-import { lernpfadReihenfolge } from "./actions";
 
 type Zeile = {
   id: string;
@@ -86,25 +76,19 @@ function StatusBadge({ status }: { status: string }) {
   return <StatusPill ton="neutral">Archiviert</StatusPill>;
 }
 
-/** Mini-Hero-Thumbnail fuer die Tabellen-Zeile */
-function PfadThumb({
-  pfad,
-}: {
-  pfad: { hero_image_path: string | null; title: string };
-}) {
+function PfadThumb({ pfad }: { pfad: Zeile }) {
   const url = bildUrlFuerPfad(pfad.hero_image_path);
   if (url) {
     return (
-      <span className="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-md ring-1 ring-border">
+      <span className="relative flex h-9 w-9 shrink-0 overflow-hidden rounded-md ring-1 ring-border">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={url} alt="" className="h-full w-full object-cover" />
       </span>
     );
   }
-  // Fallback-Tile mit Magenta-Verlauf
   return (
     <span
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-white shadow-[inset_0_-1px_0_rgba(0,0,0,0.2)]"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-white shadow-[inset_0_-1px_0_rgba(0,0,0,0.18)]"
       style={{
         background:
           "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--brand-pink)) 100%)",
@@ -119,139 +103,166 @@ export default async function AdminLernpfadeListe() {
   const pfade = await ladeLernpfade();
   const aktiv = pfade.filter((p) => p.status === "aktiv").length;
   const lektionenSumme = pfade.reduce((s, p) => s + p.lektion_anzahl, 0);
+  const moduleSumme = pfade.reduce((s, p) => s + p.module_anzahl, 0);
   const zuweisungenSumme = pfade.reduce((s, p) => s + p.zugewiesen, 0);
-  const avgLektionen =
-    pfade.length === 0 ? 0 : Math.round(lektionenSumme / pfade.length);
+
+  const columns: Column<Zeile>[] = [
+    {
+      key: "title",
+      label: "Titel",
+      sortable: true,
+      render: (p) => (
+        <div className="flex items-center gap-3">
+          <PfadThumb pfad={p} />
+          <span className="font-medium text-foreground">{p.title}</span>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      render: (p) => <StatusBadge status={p.status} />,
+    },
+    {
+      key: "module_anzahl",
+      label: "Module",
+      sortable: true,
+      align: "right",
+      render: (p) => <span className="tabular-nums">{p.module_anzahl}</span>,
+    },
+    {
+      key: "lektion_anzahl",
+      label: "Lektionen",
+      sortable: true,
+      align: "right",
+      render: (p) => <span className="tabular-nums">{p.lektion_anzahl}</span>,
+    },
+    {
+      key: "zugewiesen",
+      label: "Zuweisungen",
+      sortable: true,
+      align: "right",
+      render: (p) =>
+        p.zugewiesen > 0 ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--brand-pink)/0.08)] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[hsl(var(--brand-pink))]">
+            {p.zugewiesen}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground/50">0</span>
+        ),
+    },
+    {
+      key: "updated_at",
+      label: "Aktualisiert",
+      sortable: true,
+      render: (p) => (
+        <span className="text-xs text-muted-foreground">
+          {formatDatum(p.updated_at)}
+        </span>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
+      <PageHeader
+        eyebrow="Inhalte"
         title="Lernpfade"
         description="Reihenfolge bestimmt die Anzeige im Mitarbeiter-Bereich."
-        badge={
-          aktiv > 0 ? (
-            <StatusPill ton="success" dot>
-              {aktiv} aktiv
-            </StatusPill>
-          ) : null
-        }
-        actions={
-          <AdminButton href="/admin/lernpfade/neu">
-            <Plus className="h-3.5 w-3.5" />
-            Neuer Lernpfad
-          </AdminButton>
-        }
+        primaryAction={{
+          label: "Neuer Lernpfad",
+          icon: <Plus />,
+          href: "/admin/lernpfade/neu",
+        }}
       />
 
-      <StatsStrip
-        items={[
-          {
-            icon: <GraduationCap className="h-4 w-4" />,
-            label: "Lernpfade",
-            wert: pfade.length,
-            akzent: true,
-            hint: aktiv === pfade.length ? "alle aktiv" : `${aktiv} aktiv`,
-          },
-          {
-            icon: <Layers className="h-4 w-4" />,
-            label: "Lektionen gesamt",
-            wert: lektionenSumme,
-            hint:
-              avgLektionen > 0
-                ? `Ø ${avgLektionen} pro Pfad`
-                : undefined,
-          },
-          {
-            icon: <BookOpen className="h-4 w-4" />,
-            label: "Module gesamt",
-            wert: pfade.reduce((s, p) => s + p.module_anzahl, 0),
-          },
-          {
-            icon: <Users className="h-4 w-4" />,
-            label: "Zuweisungen",
-            wert: zuweisungenSumme,
-            hint: "über alle Mitarbeiter",
-          },
-        ]}
-      />
+      <StatGrid cols={4}>
+        <StatCard
+          label="Lernpfade"
+          value={pfade.length}
+          icon={<GraduationCap />}
+        />
+        <StatCard label="Module gesamt" value={moduleSumme} icon={<Layers />} />
+        <StatCard
+          label="Lektionen gesamt"
+          value={lektionenSumme}
+          icon={<Pencil />}
+        />
+        <StatCard
+          label="Zuweisungen"
+          value={zuweisungenSumme}
+          icon={<Users />}
+        />
+      </StatGrid>
 
-      <AdminCard>
-        {pfade.length === 0 ? (
+      {pfade.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card">
           <EmptyState
-            icon={<GraduationCap className="h-6 w-6" />}
+            illustration={<EmptyStateTablePreview />}
             title="Noch keine Lernpfade"
             description="Lege deinen ersten Lernpfad an. Module und Lektionen baust du dann auf der Detailseite."
-            ctaLabel="Lernpfad anlegen"
-            ctaHref="/admin/lernpfade/neu"
+            actions={[
+              {
+                icon: <Plus />,
+                title: "Lernpfad anlegen",
+                description: "Mit Modulen und Lektionen",
+                href: "/admin/lernpfade/neu",
+              },
+              {
+                icon: <Layers />,
+                title: "Inhalte aus Notion",
+                description: "Markdown-Import via CLI",
+                href: "/admin/wissen",
+              },
+              {
+                icon: <Users />,
+                title: "Mitarbeiter zuweisen",
+                description: "Lernpfade zu Personen",
+                href: "/admin/benutzer",
+              },
+            ]}
           />
-        ) : (
-          <AdminTable>
-            <AdminTableHead>
-              <AdminTh>Titel</AdminTh>
-              <AdminTh>Status</AdminTh>
-              <AdminTh align="right">Module</AdminTh>
-              <AdminTh align="right">Lektionen</AdminTh>
-              <AdminTh align="right">Zuweisungen</AdminTh>
-              <AdminTh>Aktualisiert</AdminTh>
-              <AdminTh align="right">Reihenfolge</AdminTh>
-              <AdminTh align="right">Vorschau</AdminTh>
-              <AdminTh align="right" />
-            </AdminTableHead>
-            <tbody>
-              {pfade.map((p, idx) => (
-                <AdminTr key={p.id}>
-                  <AdminTitleCell
-                    href={`/admin/lernpfade/${p.id}`}
-                    title={p.title}
-                    leading={<PfadThumb pfad={p} />}
-                  />
-                  <AdminTd>
-                    <StatusBadge status={p.status} />
-                  </AdminTd>
-                  <AdminTd align="right" className="tabular-nums">
-                    {p.module_anzahl}
-                  </AdminTd>
-                  <AdminTd align="right" className="tabular-nums">
-                    {p.lektion_anzahl}
-                  </AdminTd>
-                  <AdminTd align="right">
-                    {p.zugewiesen > 0 ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--brand-pink)/0.08)] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[hsl(var(--brand-pink))]">
-                        {p.zugewiesen}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground/50">0</span>
-                    )}
-                  </AdminTd>
-                  <AdminTd className="text-xs text-muted-foreground">
-                    {formatDatum(p.updated_at)}
-                  </AdminTd>
-                  <AdminTd align="right">
-                    <div className="flex justify-end">
-                      <ReihenfolgeButtons
-                        hoch={lernpfadReihenfolge.bind(null, p.id, "hoch")}
-                        runter={lernpfadReihenfolge.bind(null, p.id, "runter")}
-                        hochDeaktiviert={idx === 0}
-                        runterDeaktiviert={idx === pfade.length - 1}
-                      />
-                    </div>
-                  </AdminTd>
-                  <AdminTd align="right">
-                    <Link
-                      href={`/lernpfade/${p.id}`}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground"
-                      title="Vorschau"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </Link>
-                  </AdminTd>
-                  <AdminActionCell href={`/admin/lernpfade/${p.id}`} />
-                </AdminTr>
-              ))}
-            </tbody>
-          </AdminTable>
-        )}
-      </AdminCard>
+        </div>
+      ) : (
+        <DataTable<Zeile>
+          data={pfade}
+          columns={columns}
+          searchable={{ placeholder: "Lernpfad suchen…", keys: ["title"] }}
+          filters={[
+            {
+              key: "status",
+              label: "Status",
+              options: [
+                { value: "aktiv", label: "Aktiv" },
+                { value: "entwurf", label: "Entwurf" },
+                { value: "archiviert", label: "Archiviert" },
+              ],
+              multi: true,
+            },
+          ]}
+          rowHref={(p) => `/admin/lernpfade/${p.id}`}
+          rowActions={[
+            {
+              icon: <ExternalLink />,
+              label: "Vorschau",
+              href: (p) => `/lernpfade/${p.id}`,
+            },
+            {
+              icon: <Pencil />,
+              label: "Bearbeiten",
+              href: (p) => `/admin/lernpfade/${p.id}`,
+            },
+          ]}
+          defaultSort={{ key: "title", direction: "asc" }}
+        />
+      )}
+
+      <p className="text-[11px] text-muted-foreground">
+        {aktiv === pfade.length
+          ? "Alle Lernpfade sind aktiv und werden Mitarbeitern angezeigt."
+          : `${aktiv} von ${pfade.length} aktiv.`}
+      </p>
     </div>
   );
 }

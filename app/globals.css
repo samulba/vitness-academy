@@ -4,8 +4,10 @@
 
 @layer base {
   :root {
-    /* Helle Basis */
-    --background: 40 30% 98%;
+    /* Page-Background: neutrales Off-White (#FAFAF9 -> hsl(60 9% 98%)).
+       Cards bleiben reines Weiss -- der Layer-Kontrast erzeugt die Tiefe
+       die ein modernes SaaS-Dashboard braucht (Linear/Vercel/Stripe). */
+    --background: 60 9% 98%;
     --foreground: 222 30% 10%;
 
     --card: 0 0% 100%;

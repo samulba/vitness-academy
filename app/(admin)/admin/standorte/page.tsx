@@ -1,77 +1,100 @@
 import { MapPin, Plus, Users } from "lucide-react";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { AdminButton } from "@/components/admin/AdminButton";
-import { AdminCard } from "@/components/admin/AdminCard";
-import {
-  AdminActionCell,
-  AdminTable,
-  AdminTableEmpty,
-  AdminTableHead,
-  AdminTd,
-  AdminTh,
-  AdminTr,
-} from "@/components/admin/AdminTable";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
+import { DataTable, type Column } from "@/components/ui/data-table";
 import { requireRole } from "@/lib/auth";
-import { ladeStandorte } from "@/lib/standorte";
+import { ladeStandorte, type Standort } from "@/lib/standorte";
 
 export default async function StandorteAdminPage() {
   await requireRole(["admin", "superadmin"]);
   const standorte = await ladeStandorte();
+  const mitarbeiterSumme = standorte.reduce(
+    (s, x) => s + x.mitarbeiter_count,
+    0,
+  );
+  const leerStehend = standorte.filter((s) => s.mitarbeiter_count === 0).length;
+
+  const columns: Column<Standort>[] = [
+    {
+      key: "name",
+      label: "Name",
+      sortable: true,
+      render: (s) => (
+        <div className="flex items-center gap-3">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]">
+            <MapPin className="h-3.5 w-3.5" />
+          </span>
+          <span className="font-medium text-foreground">{s.name}</span>
+        </div>
+      ),
+    },
+    {
+      key: "mitarbeiter_count",
+      label: "Mitarbeiter",
+      sortable: true,
+      align: "right",
+      render: (s) => (
+        <span className="inline-flex items-center gap-1 text-xs tabular-nums text-muted-foreground">
+          <Users className="h-3 w-3" />
+          {s.mitarbeiter_count}
+        </span>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
+      <PageHeader
+        eyebrow="Mitarbeiter"
         title="Standorte"
         description="Studios, denen Mitarbeiter zugeordnet werden können."
-        actions={
-          <AdminButton href="/admin/standorte/neu">
-            <Plus className="h-3.5 w-3.5" />
-            Neuer Standort
-          </AdminButton>
-        }
+        primaryAction={{
+          label: "Neuer Standort",
+          icon: <Plus />,
+          href: "/admin/standorte/neu",
+        }}
       />
 
-      <AdminCard>
-        <AdminTable>
-          <AdminTableHead>
-            <AdminTh>Name</AdminTh>
-            <AdminTh align="right">Mitarbeiter</AdminTh>
-            <AdminTh align="right" />
-          </AdminTableHead>
-          <tbody>
-            {standorte.length === 0 ? (
-              <AdminTableEmpty colSpan={3}>
-                Noch keine Standorte angelegt.
-              </AdminTableEmpty>
-            ) : (
-              standorte.map((s) => (
-                <AdminTr key={s.id}>
-                  <AdminTd>
-                    <span className="flex items-center gap-2.5">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]">
-                        <MapPin className="h-3.5 w-3.5" />
-                      </span>
-                      <a
-                        href={`/admin/standorte/${s.id}`}
-                        className="font-medium text-foreground hover:underline"
-                      >
-                        {s.name}
-                      </a>
-                    </span>
-                  </AdminTd>
-                  <AdminTd align="right" className="tabular-nums">
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                      <Users className="h-3 w-3" />
-                      {s.mitarbeiter_count}
-                    </span>
-                  </AdminTd>
-                  <AdminActionCell href={`/admin/standorte/${s.id}`} />
-                </AdminTr>
-              ))
-            )}
-          </tbody>
-        </AdminTable>
-      </AdminCard>
+      <StatGrid cols={3}>
+        <StatCard label="Standorte" value={standorte.length} icon={<MapPin />} />
+        <StatCard
+          label="Mitarbeiter zugeordnet"
+          value={mitarbeiterSumme}
+          icon={<Users />}
+        />
+        <StatCard
+          label="Ohne Mitarbeiter"
+          value={leerStehend}
+          icon={<MapPin />}
+        />
+      </StatGrid>
+
+      {standorte.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card">
+          <EmptyState
+            illustration={<EmptyStateTablePreview />}
+            title="Noch keine Standorte"
+            description="Mehrstandort-Setup vorbereiten — auch wenn ihr (noch) nur ein Studio habt."
+            actions={[
+              {
+                icon: <Plus />,
+                title: "Ersten Standort anlegen",
+                description: "z.B. Studio Mitte",
+                href: "/admin/standorte/neu",
+              },
+            ]}
+          />
+        </div>
+      ) : (
+        <DataTable<Standort>
+          data={standorte}
+          columns={columns}
+          searchable={{ placeholder: "Standort suchen…", keys: ["name"] }}
+          rowHref={(s) => `/admin/standorte/${s.id}`}
+          defaultSort={{ key: "name", direction: "asc" }}
+        />
+      )}
     </div>
   );
 }
