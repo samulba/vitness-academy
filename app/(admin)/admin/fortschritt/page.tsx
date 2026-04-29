@@ -1,12 +1,5 @@
 import Link from "next/link";
-import { Activity, Download, ExternalLink } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Download, ExternalLink } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -16,7 +9,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminCard, AdminCardHeader } from "@/components/admin/AdminCard";
+import { AdminButton } from "@/components/admin/AdminButton";
+import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
 import { formatProzent, rolleLabel } from "@/lib/format";
 
@@ -138,36 +134,23 @@ export default async function FortschrittPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Fortschrittsübersicht
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            Mitarbeiter × Lernpfad. Klick auf einen Namen für Details.
-          </p>
-        </div>
-        <a
-          href="/api/admin/fortschritt/csv"
-          download
-          className="inline-flex items-center gap-2 rounded-full border border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.06)] px-5 py-2.5 text-sm font-semibold text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.12)]"
-        >
-          <Download className="h-4 w-4" />
-          Als CSV exportieren
-        </a>
-      </header>
+      <AdminPageHeader
+        title="Fortschritt"
+        description="Mitarbeiter × Lernpfad. Klick auf einen Namen für Details."
+        actions={
+          <AdminButton variant="secondary" href="/api/admin/fortschritt/csv">
+            <Download className="h-3.5 w-3.5" />
+            CSV exportieren
+          </AdminButton>
+        }
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
-            Mitarbeiter ({mitarbeiter.length})
-          </CardTitle>
-          <CardDescription>
-            „—“ bedeutet: Lernpfad nicht zugewiesen.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
+      <AdminCard>
+        <AdminCardHeader
+          title={`Mitarbeiter (${mitarbeiter.length})`}
+          description="„—“ bedeutet: Lernpfad nicht zugewiesen."
+        />
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -204,7 +187,9 @@ export default async function FortschrittPage() {
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{rolleLabel(m.role)}</Badge>
+                        <StatusPill ton="neutral">
+                          {rolleLabel(m.role)}
+                        </StatusPill>
                       </TableCell>
                       <TableCell className="min-w-[140px]">
                         <div className="space-y-1">
@@ -245,8 +230,8 @@ export default async function FortschrittPage() {
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </AdminCard>
     </div>
   );
 }

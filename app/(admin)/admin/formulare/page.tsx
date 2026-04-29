@@ -1,5 +1,18 @@
-import Link from "next/link";
-import { Inbox, Pencil, Plus } from "lucide-react";
+import { Inbox, Plus } from "lucide-react";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminButton } from "@/components/admin/AdminButton";
+import { AdminCard } from "@/components/admin/AdminCard";
+import { StatusPill } from "@/components/admin/StatusPill";
+import {
+  AdminActionCell,
+  AdminTable,
+  AdminTableEmpty,
+  AdminTableHead,
+  AdminTd,
+  AdminTh,
+  AdminTitleCell,
+  AdminTr,
+} from "@/components/admin/AdminTable";
 import { requireRole } from "@/lib/auth";
 import { ladeSubmissions, ladeTemplates } from "@/lib/formulare";
 
@@ -11,77 +24,72 @@ export default async function FormulareAdminPage() {
   ]);
 
   return (
-    <div className="space-y-10">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Formulare</h1>
-          <p className="mt-1 text-muted-foreground">
-            Vorlagen pflegen + Einreichungen bearbeiten.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/admin/formulare/eingaenge"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-          >
-            <Inbox className="h-4 w-4" />
-            Eingänge
-            {offen.length > 0 && (
-              <span className="rounded-full bg-[hsl(var(--primary))] px-2 py-0.5 text-[10px] font-bold text-[hsl(var(--primary-foreground))]">
-                {offen.length}
-              </span>
-            )}
-          </Link>
-          <Link
-            href="/admin/formulare/neu"
-            className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--primary))] px-5 py-2.5 text-sm font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.02]"
-          >
-            <Plus className="h-4 w-4" />
-            Neues Formular
-          </Link>
-        </div>
-      </header>
+    <div className="space-y-6">
+      <AdminPageHeader
+        title="Formulare"
+        description="Vorlagen pflegen, Einreichungen bearbeiten."
+        actions={
+          <>
+            <AdminButton variant="secondary" href="/admin/formulare/eingaenge">
+              <Inbox className="h-3.5 w-3.5" />
+              Eingänge
+              {offen.length > 0 && (
+                <span className="ml-1 rounded-full bg-[hsl(var(--primary))] px-1.5 py-0.5 text-[10px] font-bold leading-none text-[hsl(var(--primary-foreground))]">
+                  {offen.length}
+                </span>
+              )}
+            </AdminButton>
+            <AdminButton href="/admin/formulare/neu">
+              <Plus className="h-3.5 w-3.5" />
+              Neues Formular
+            </AdminButton>
+          </>
+        }
+      />
 
-      {templates.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center text-sm text-muted-foreground">
-          Noch keine Formulare angelegt. Klick oben rechts auf „Neues
-          Formular“, um eins zu bauen.
-        </div>
-      ) : (
-        <ul className="overflow-hidden rounded-2xl border border-border bg-card">
-          {templates.map((t, i) => (
-            <li key={t.id} className={i > 0 ? "border-t border-border" : ""}>
-              <Link
-                href={`/admin/formulare/${t.id}`}
-                className="group flex items-center gap-4 px-5 py-4 transition-colors hover:bg-[hsl(var(--primary)/0.04)]"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                    <p className="truncate font-semibold leading-tight">
-                      {t.title}
-                    </p>
-                    {t.status === "entwurf" && (
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Entwurf
-                      </span>
+      <AdminCard>
+        <AdminTable>
+          <AdminTableHead>
+            <AdminTh>Titel</AdminTh>
+            <AdminTh>Slug</AdminTh>
+            <AdminTh>Status</AdminTh>
+            <AdminTh align="right">Felder</AdminTh>
+            <AdminTh align="right" />
+          </AdminTableHead>
+          <tbody>
+            {templates.length === 0 ? (
+              <AdminTableEmpty colSpan={5}>
+                Noch keine Formulare angelegt.
+              </AdminTableEmpty>
+            ) : (
+              templates.map((t) => (
+                <AdminTr key={t.id}>
+                  <AdminTitleCell
+                    href={`/admin/formulare/${t.id}`}
+                    title={t.title}
+                  />
+                  <AdminTd className="font-mono text-xs text-muted-foreground">
+                    /{t.slug}
+                  </AdminTd>
+                  <AdminTd>
+                    {t.status === "aktiv" ? (
+                      <StatusPill ton="success">Aktiv</StatusPill>
+                    ) : t.status === "entwurf" ? (
+                      <StatusPill ton="warn">Entwurf</StatusPill>
+                    ) : (
+                      <StatusPill ton="neutral">Archiviert</StatusPill>
                     )}
-                    {t.status === "archiviert" && (
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Archiviert
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    /{t.slug} · {t.fields.length}{" "}
-                    {t.fields.length === 1 ? "Feld" : "Felder"}
-                  </p>
-                </div>
-                <Pencil className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-[hsl(var(--primary))]" />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+                  </AdminTd>
+                  <AdminTd align="right" className="tabular-nums">
+                    {t.fields.length}
+                  </AdminTd>
+                  <AdminActionCell href={`/admin/formulare/${t.id}`} />
+                </AdminTr>
+              ))
+            )}
+          </tbody>
+        </AdminTable>
+      </AdminCard>
     </div>
   );
 }

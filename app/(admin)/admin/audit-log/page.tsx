@@ -5,6 +5,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { FilterPills } from "@/components/admin/FilterPills";
 import {
   actionLabel,
   geaenderteFelder,
@@ -103,56 +105,40 @@ export default async function AuditLogPage({
   const eintraege = await ladeAuditLog({ tableName, action, limit: 200 });
 
   return (
-    <div className="space-y-12">
-      <header>
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
-          Verwaltung
-        </p>
-        <h1 className="mt-3 text-balance font-semibold leading-[1.1] tracking-[-0.025em] text-[clamp(1.875rem,3vw,2.75rem)]">
-          Audit-Log
-        </h1>
-        <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground">
-          Wer hat wann was geändert. Letzte 200 Ereignisse, ältester zuerst
-          rausgefiltert.
-        </p>
-      </header>
+    <div className="space-y-6">
+      <AdminPageHeader
+        title="Audit-Log"
+        description="Wer hat wann was geändert. Letzte 200 Ereignisse."
+      />
 
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <FilterPill href="/admin/audit-log" active={!tableName && !action}>
-            Alle
-          </FilterPill>
-          {ACTION_FILTER.map((a) => (
-            <FilterPill
-              key={a}
-              href={
-                tableName
-                  ? `/admin/audit-log?aktion=${a}&tabelle=${tableName}`
-                  : `/admin/audit-log?aktion=${a}`
-              }
-              active={action === a}
-            >
-              {actionLabel(a)}
-            </FilterPill>
-          ))}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {TABELLEN.map((t) => (
-            <FilterPill
-              key={t}
-              href={
-                action
-                  ? `/admin/audit-log?aktion=${action}&tabelle=${t}`
-                  : `/admin/audit-log?tabelle=${t}`
-              }
-              active={tableName === t}
-              size="sm"
-            >
-              {tabellenLabel(t)}
-            </FilterPill>
-          ))}
-        </div>
-      </section>
+      <div className="space-y-2">
+        <FilterPills
+          items={[
+            {
+              href: "/admin/audit-log",
+              label: "Alle",
+              aktiv: !tableName && !action,
+            },
+            ...ACTION_FILTER.map((a) => ({
+              href: tableName
+                ? `/admin/audit-log?aktion=${a}&tabelle=${tableName}`
+                : `/admin/audit-log?aktion=${a}`,
+              label: actionLabel(a),
+              aktiv: action === a,
+            })),
+          ]}
+        />
+        <FilterPills
+          size="sm"
+          items={TABELLEN.map((t) => ({
+            href: action
+              ? `/admin/audit-log?aktion=${action}&tabelle=${t}`
+              : `/admin/audit-log?tabelle=${t}`,
+            label: tabellenLabel(t),
+            aktiv: tableName === t,
+          }))}
+        />
+      </div>
 
       {eintraege.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
@@ -261,31 +247,3 @@ export default async function AuditLogPage({
   );
 }
 
-function FilterPill({
-  href,
-  active,
-  size = "md",
-  children,
-}: {
-  href: string;
-  active: boolean;
-  size?: "sm" | "md";
-  children: React.ReactNode;
-}) {
-  const base =
-    size === "sm"
-      ? "px-2.5 py-1 text-[11px]"
-      : "px-3 py-1.5 text-xs";
-  return (
-    <a
-      href={href}
-      className={`${base} rounded-full font-medium transition-colors ${
-        active
-          ? "bg-[hsl(var(--brand-pink))] text-white"
-          : "border border-border text-muted-foreground hover:border-[hsl(var(--brand-pink)/0.4)] hover:text-foreground"
-      }`}
-    >
-      {children}
-    </a>
-  );
-}
