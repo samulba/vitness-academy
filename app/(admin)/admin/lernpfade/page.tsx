@@ -1,23 +1,20 @@
 import Link from "next/link";
-import { ExternalLink, Pencil, Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { ExternalLink, Plus } from "lucide-react";
 import { ReihenfolgeButtons } from "@/components/admin/ReihenfolgeButtons";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminButton } from "@/components/admin/AdminButton";
+import { AdminCard } from "@/components/admin/AdminCard";
+import { StatusPill } from "@/components/admin/StatusPill";
+import {
+  AdminActionCell,
+  AdminTable,
+  AdminTableEmpty,
+  AdminTableHead,
+  AdminTd,
+  AdminTh,
+  AdminTitleCell,
+  AdminTr,
+} from "@/components/admin/AdminTable";
 import { createClient } from "@/lib/supabase/server";
 import { formatDatum } from "@/lib/format";
 import { lernpfadReihenfolge } from "./actions";
@@ -66,127 +63,95 @@ async function ladeLernpfade(): Promise<Zeile[]> {
   }));
 }
 
+function StatusBadge({ status }: { status: string }) {
+  if (status === "aktiv") return <StatusPill ton="success">Aktiv</StatusPill>;
+  if (status === "entwurf")
+    return <StatusPill ton="warn">Entwurf</StatusPill>;
+  return <StatusPill ton="neutral">Archiviert</StatusPill>;
+}
+
 export default async function AdminLernpfadeListe() {
   const pfade = await ladeLernpfade();
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Lernpfade</h1>
-          <p className="mt-1 text-muted-foreground">
-            Lernpfade verwalten – Module und Lektionen pflegst du auf der
-            Detailseite.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/admin/lernpfade/neu">
-            <Plus className="h-4 w-4" />
+      <AdminPageHeader
+        title="Lernpfade"
+        description="Reihenfolge bestimmt die Anzeige im Mitarbeiter-Bereich."
+        actions={
+          <AdminButton href="/admin/lernpfade/neu">
+            <Plus className="h-3.5 w-3.5" />
             Neuer Lernpfad
-          </Link>
-        </Button>
-      </header>
+          </AdminButton>
+        }
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lernpfade ({pfade.length})</CardTitle>
-          <CardDescription>
-            Reihenfolge bestimmt die Anzeige im Mitarbeiter-Bereich.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Titel</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Module</TableHead>
-                <TableHead className="text-right">Lektionen</TableHead>
-                <TableHead className="text-right">Zuweisungen</TableHead>
-                <TableHead>Aktualisiert</TableHead>
-                <TableHead className="text-right">Sortierung</TableHead>
-                <TableHead className="text-right">Aktionen</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pfade.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={8}
-                    className="py-10 text-center text-muted-foreground"
-                  >
-                    Noch keine Lernpfade angelegt.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                pfade.map((p, idx) => (
-                  <TableRow key={p.id}>
-                    <TableCell>
-                      <Link
-                        href={`/admin/lernpfade/${p.id}`}
-                        className="font-medium hover:text-primary"
-                      >
-                        {p.title}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          p.status === "aktiv"
-                            ? "success"
-                            : p.status === "entwurf"
-                              ? "outline"
-                              : "secondary"
-                        }
-                      >
-                        {p.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {p.module_anzahl}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {p.lektion_anzahl}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {p.zugewiesen}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDatum(p.updated_at)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end">
-                        <ReihenfolgeButtons
-                          hoch={lernpfadReihenfolge.bind(null, p.id, "hoch")}
-                          runter={lernpfadReihenfolge.bind(null, p.id, "runter")}
-                          hochDeaktiviert={idx === 0}
-                          runterDeaktiviert={idx === pfade.length - 1}
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/lernpfade/${p.id}`}>
-                            <ExternalLink className="h-3.5 w-3.5" />
-                            Vorschau
-                          </Link>
-                        </Button>
-                        <Button asChild size="sm">
-                          <Link href={`/admin/lernpfade/${p.id}`}>
-                            <Pencil className="h-3.5 w-3.5" />
-                            Bearbeiten
-                          </Link>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <AdminCard>
+        <AdminTable>
+          <AdminTableHead>
+            <AdminTh>Titel</AdminTh>
+            <AdminTh>Status</AdminTh>
+            <AdminTh align="right">Module</AdminTh>
+            <AdminTh align="right">Lektionen</AdminTh>
+            <AdminTh align="right">Zuweisungen</AdminTh>
+            <AdminTh>Aktualisiert</AdminTh>
+            <AdminTh align="right">Reihenfolge</AdminTh>
+            <AdminTh align="right">Vorschau</AdminTh>
+            <AdminTh align="right" />
+          </AdminTableHead>
+          <tbody>
+            {pfade.length === 0 ? (
+              <AdminTableEmpty colSpan={9}>
+                Noch keine Lernpfade angelegt.
+              </AdminTableEmpty>
+            ) : (
+              pfade.map((p, idx) => (
+                <AdminTr key={p.id}>
+                  <AdminTitleCell
+                    href={`/admin/lernpfade/${p.id}`}
+                    title={p.title}
+                  />
+                  <AdminTd>
+                    <StatusBadge status={p.status} />
+                  </AdminTd>
+                  <AdminTd align="right" className="tabular-nums">
+                    {p.module_anzahl}
+                  </AdminTd>
+                  <AdminTd align="right" className="tabular-nums">
+                    {p.lektion_anzahl}
+                  </AdminTd>
+                  <AdminTd align="right" className="tabular-nums">
+                    {p.zugewiesen}
+                  </AdminTd>
+                  <AdminTd className="text-xs text-muted-foreground">
+                    {formatDatum(p.updated_at)}
+                  </AdminTd>
+                  <AdminTd align="right">
+                    <div className="flex justify-end">
+                      <ReihenfolgeButtons
+                        hoch={lernpfadReihenfolge.bind(null, p.id, "hoch")}
+                        runter={lernpfadReihenfolge.bind(null, p.id, "runter")}
+                        hochDeaktiviert={idx === 0}
+                        runterDeaktiviert={idx === pfade.length - 1}
+                      />
+                    </div>
+                  </AdminTd>
+                  <AdminTd align="right">
+                    <Link
+                      href={`/lernpfade/${p.id}`}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground"
+                      title="Vorschau"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Link>
+                  </AdminTd>
+                  <AdminActionCell href={`/admin/lernpfade/${p.id}`} />
+                </AdminTr>
+              ))
+            )}
+          </tbody>
+        </AdminTable>
+      </AdminCard>
     </div>
   );
 }
