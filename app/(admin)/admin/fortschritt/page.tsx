@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, ExternalLink } from "lucide-react";
+import { Activity, Download, ExternalLink } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -138,13 +138,23 @@ export default async function FortschrittPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Fortschrittsübersicht
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Mitarbeiter × Lernpfad. Klick auf einen Namen für Details.
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Fortschrittsübersicht
+          </h1>
+          <p className="mt-1 text-muted-foreground">
+            Mitarbeiter × Lernpfad. Klick auf einen Namen für Details.
+          </p>
+        </div>
+        <a
+          href="/api/admin/fortschritt/csv"
+          download
+          className="inline-flex items-center gap-2 rounded-full border border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.06)] px-5 py-2.5 text-sm font-semibold text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.12)]"
+        >
+          <Download className="h-4 w-4" />
+          Als CSV exportieren
+        </a>
       </header>
 
       <Card>
