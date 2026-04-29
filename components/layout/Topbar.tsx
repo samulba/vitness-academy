@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { abmelden } from "@/app/login/actions";
 import { rolleLabel } from "@/lib/format";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type Props = {
   fullName: string | null;
@@ -47,8 +48,10 @@ export function Topbar({ fullName, role }: Props) {
         </span>
       </Link>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger className="flex items-center gap-2 rounded-full p-1 hover:bg-accent">
+      <div className="flex items-center gap-2">
+        <ThemeToggle variant="icon" />
+        <DropdownMenu>
+          <DropdownMenuTrigger className="flex items-center gap-2 rounded-full p-1 hover:bg-accent">
           <Avatar>
             <AvatarFallback>{initialen(fullName)}</AvatarFallback>
           </Avatar>
@@ -79,7 +82,8 @@ export function Topbar({ fullName, role }: Props) {
             </DropdownMenuItem>
           </form>
         </DropdownMenuContent>
-      </DropdownMenu>
+        </DropdownMenu>
+      </div>
     </header>
   );
 }

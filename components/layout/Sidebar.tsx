@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { istAdmin, istFuehrungskraftOderHoeher, type Rolle } from "@/lib/rollen";
 import { rolleLabel } from "@/lib/format";
 import { SearchTrigger } from "@/components/search/SearchTrigger";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type NavEintrag = {
   href: string;
@@ -118,6 +119,11 @@ export function Sidebar({
             />
           )}
         </nav>
+
+        {/* Theme-Toggle */}
+        <div className="border-t border-border px-3 py-2">
+          <ThemeToggle variant="row" />
+        </div>
 
         {/* Profil-Footer */}
         <Link
