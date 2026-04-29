@@ -54,8 +54,8 @@ export function PfadCard({
       href={`/lernpfade/${id}`}
       className="group relative block overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-[hsl(var(--primary))] hover:shadow-[0_24px_60px_-24px_hsl(var(--primary)/0.4)]"
     >
-      {/* Hero-Image */}
-      <div className="relative aspect-[5/3] w-full overflow-hidden bg-[hsl(var(--brand-ink))]">
+      {/* Hero-Image (16:9, schmaler als vorher) */}
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-[hsl(var(--brand-ink))]">
         {/* Fallback-Gradient -- liegt unter dem Bild, scheint durch wenn Bild fehlt */}
         <div
           aria-hidden
@@ -74,28 +74,36 @@ export function PfadCard({
             backgroundSize: "40px 40px",
           }}
         />
-        {/* Hero-Bild als background-image:
-            Wenn die Datei fehlt, laedt der Browser nichts -- der
-            Markenverlauf darunter scheint durch. Kein Broken-Image-
-            Icon, kein onError-Handler noetig (dadurch bleibt die
-            Card eine Server-Component). */}
+        {/* Hero-Bild als background-image (bleibt Server-Component, kein onError noetig) */}
         <div
           className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.04]"
           style={{ backgroundImage: `url(/lernpfade/${slug}.jpg)` }}
         />
 
-        {/* Dunkler Verlauf unten fuer Lesbarkeit */}
+        {/* Dunkler Tint ueber das ganze Bild fuer bessere Lesbarkeit */}
         <div
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[hsl(var(--brand-ink))] via-[hsl(var(--brand-ink)/0.5)] to-transparent"
+          className="absolute inset-0 bg-[hsl(var(--brand-ink)/0.35)]"
+        />
+
+        {/* Top-Verlauf fuer Pills */}
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-[hsl(var(--brand-ink)/0.75)] to-transparent"
+        />
+
+        {/* Bottom-Verlauf fuer Titel */}
+        <div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-[hsl(var(--brand-ink))] via-[hsl(var(--brand-ink)/0.65)] to-transparent"
         />
 
         {/* Kapitel-Nummer oben links */}
         <div className="absolute left-5 top-5 flex items-center gap-3">
-          <span className="rounded-full border border-white/30 bg-white/10 px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-white backdrop-blur">
+          <span className="rounded-full bg-[hsl(var(--brand-ink)/0.7)] px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm ring-1 ring-white/20">
             Kap. {nummer}
           </span>
-          <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/75">
+          <span className="rounded-full bg-[hsl(var(--brand-ink)/0.55)] px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white backdrop-blur-sm">
             {kategorie}
           </span>
         </div>
@@ -103,16 +111,16 @@ export function PfadCard({
         {/* Status-Pill oben rechts */}
         <div className="absolute right-5 top-5">
           {fertig ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--success))] px-2.5 py-1 text-[11px] font-semibold text-white">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--success))] px-2.5 py-1 text-[11px] font-semibold text-white shadow-md">
               <CheckCircle2 className="h-3 w-3" />
               Abgeschlossen
             </span>
           ) : prozent > 0 ? (
-            <span className="rounded-full bg-[hsl(var(--primary))] px-2.5 py-1 text-[11px] font-semibold text-[hsl(var(--primary-foreground))]">
+            <span className="rounded-full bg-[hsl(var(--primary))] px-2.5 py-1 text-[11px] font-semibold text-[hsl(var(--primary-foreground))] shadow-md">
               {formatProzent(prozent)}
             </span>
           ) : (
-            <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
+            <span className="rounded-full bg-[hsl(var(--brand-ink)/0.7)] px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm ring-1 ring-white/20">
               Neu
             </span>
           )}
@@ -120,10 +128,10 @@ export function PfadCard({
 
         {/* Titel + Pfeil unten im Bild */}
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5">
-          <h3 className="text-balance text-2xl font-semibold leading-tight tracking-tight text-white sm:text-3xl">
+          <h3 className="text-balance text-xl font-semibold leading-tight tracking-tight text-white sm:text-2xl">
             {title}
           </h3>
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[hsl(var(--brand-ink))] transition-transform group-hover:translate-x-1 group-hover:-translate-y-1">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[hsl(var(--brand-ink))] transition-transform group-hover:translate-x-1 group-hover:-translate-y-1">
             <ArrowUpRight className="h-4 w-4" />
           </span>
         </div>
