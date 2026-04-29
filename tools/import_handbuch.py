@@ -1,9 +1,26 @@
 #!/usr/bin/env python3
 """
+[LEGACY-TOOL] Notion-/Markdown-Bulk-Importer
+
+NEUE Lernpfade werden ab Iter 7 ausschliesslich im Admin-UI gepflegt
+(/admin/lernpfade -- vollstaendiges CRUD mit Hero-Bild, Modulen,
+Lektionen und 10 Block-Typen). Studioleitung braucht Studio-Zugang,
+keine CLI mehr.
+
+Dieses Skript bleibt fuer historische Migrationen erhalten:
+- Initial-Import des grossen Notion-Handbuchs (sechs Top-Folder
+  -> vier Lernpfade) -- bereits erfolgt.
+- Massen-Refresh bei nachtraeglichen Markdown-Korrekturen, falls
+  noch noetig.
+
+Achtung: Das Skript LOESCHT Module/Lektionen/Bloecke der vier
+gemappten Lernpfade und legt sie neu an -- alle Inhalte, die im
+Admin-UI dazwischen erfasst wurden, gehen verloren. Nicht
+versehentlich nach Admin-UI-Pflege erneut laufen lassen.
+
 Generiert supabase/seed_handbuch_inhalt.sql aus den Markdown-Files
 in handbuch/. Mappt die 6 Top-Folder auf die vier bestehenden
-Lernpfade. Existierende Module/Lektionen/Bloecke der vier Pfade
-werden geloescht und neu angelegt.
+Lernpfade.
 
 Pro Lektion:
 - 1 text-Block mit dem vollstaendigen Markdown-Body

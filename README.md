@@ -117,6 +117,18 @@ middleware.ts                # Schuetzt Routen ausserhalb /login
 
 Rollen: `mitarbeiter`, `fuehrungskraft`, `admin`, `superadmin`. Standortfelder sind bereits eingebaut, im UI aber noch nicht aktiv.
 
+## Lernpfade pflegen
+
+**Empfohlen: Admin-UI** — alle Lernpfade, Module, Lektionen, Inhaltsblöcke, Quizze und Hero-Bilder werden im Admin gepflegt. Studioleitung braucht keinen Code-Zugang. Routen:
+
+- `/admin/lernpfade` — Lernpfade anlegen, sortieren, archivieren
+- `/admin/lernpfade/[id]` — Hero-Bild, Stammdaten, Module verwalten
+- `/admin/module/[id]` — Modul-Hero, Lektionen verwalten
+- `/admin/lektionen/[id]` — Lektion-Hero, Inhaltsblöcke aller 10 Typen
+- `/admin/quizze/[id]` — Fragen + Optionen, Auswertung in `/auswertung`
+
+**Legacy: `tools/import_handbuch.py`** — Bulk-Importer aus Markdown-Dateien (`handbuch/*.md`). Wurde für den Initial-Import des Notion-Handbuchs genutzt. **Achtung**: löscht und legt die vier gemappten Lernpfade neu an, alle Inhalte aus dem Admin-UI gehen verloren. Nicht mehr regulär laufen lassen.
+
 ## Häufige Befehle
 
 ```bash
