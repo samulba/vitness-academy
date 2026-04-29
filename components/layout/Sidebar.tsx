@@ -61,6 +61,7 @@ const ADMIN_NAV: NavEintrag[] = [
   { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle },
   { href: "/admin/formulare", label: "Formulare", icon: FileText },
   { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity },
+  { href: "/admin/audit-log", label: "Audit-Log", icon: ShieldCheck },
 ];
 
 function initialen(name: string | null): string {
