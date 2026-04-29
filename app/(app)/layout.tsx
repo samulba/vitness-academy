@@ -1,4 +1,5 @@
 import { requireProfile } from "@/lib/auth";
+import { generiereWiederkehrendeAufgaben } from "@/lib/aufgaben";
 import { Topbar } from "@/components/layout/Topbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
@@ -11,6 +12,10 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const profile = await requireProfile();
+  // Idempotent: generiert fehlende Recurring-Task-Instances fuer
+  // heute / diese Woche. Hat einen unique-Constraint, doppelte
+  // Aufrufe sind sicher.
+  await generiereWiederkehrendeAufgaben();
 
   return (
     <div className="flex min-h-screen flex-col">

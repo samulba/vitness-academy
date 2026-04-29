@@ -15,6 +15,8 @@ import { requireProfile } from "@/lib/auth";
 import { ladeMeineLernpfade, offeneLektionen } from "@/lib/lernpfade";
 import { aktivitaetsStats } from "@/lib/lektion";
 import { aktiveBannerInfo } from "@/lib/infos";
+import { ladeMeineAufgaben } from "@/lib/aufgaben";
+import { AufgabenZeile } from "@/components/aufgaben/AufgabenZeile";
 import { formatProzent, tageszeitGruss } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -30,12 +32,14 @@ async function ladeOffenePraxis(userId: string): Promise<number> {
 
 export default async function DashboardPage() {
   const profile = await requireProfile();
-  const [pfade, anzOffenePraxis, aktivitaet, banner] = await Promise.all([
-    ladeMeineLernpfade(profile.id),
-    ladeOffenePraxis(profile.id),
-    aktivitaetsStats(profile.id),
-    aktiveBannerInfo(profile.id),
-  ]);
+  const [pfade, anzOffenePraxis, aktivitaet, banner, aufgaben] =
+    await Promise.all([
+      ladeMeineLernpfade(profile.id),
+      ladeOffenePraxis(profile.id),
+      aktivitaetsStats(profile.id),
+      aktiveBannerInfo(profile.id),
+      ladeMeineAufgaben(profile.id),
+    ]);
 
   const gesamt = pfade.reduce((s, p) => s + p.gesamt, 0);
   const abgeschlossen = pfade.reduce((s, p) => s + p.abgeschlossen, 0);
@@ -234,6 +238,36 @@ export default async function DashboardPage() {
               </span>
             </div>
           </Link>
+        </section>
+      )}
+
+      {/* === Aufgaben heute === */}
+      {aufgaben.heute.length > 0 && (
+        <section className="space-y-5">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+                Heute zu erledigen
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                Aufgaben
+              </h2>
+            </div>
+            <Link
+              href="/aufgaben"
+              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Alle ansehen
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <ul className="overflow-hidden rounded-2xl border border-border bg-card">
+            {aufgaben.heute.slice(0, 5).map((a, i) => (
+              <li key={a.id} className={i > 0 ? "border-t border-border" : ""}>
+                <AufgabenZeile a={a} />
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

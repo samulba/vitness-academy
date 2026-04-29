@@ -10,6 +10,7 @@ import {
   GraduationCap,
   HelpCircle,
   Home,
+  ListTodo,
   Megaphone,
   Settings,
   ShieldCheck,
@@ -35,6 +36,7 @@ const LERNEN_NAV: NavEintrag[] = [
 ];
 
 const STUDIO_NAV: NavEintrag[] = [
+  { href: "/aufgaben", label: "Aufgaben", icon: ListTodo },
   { href: "/wissen", label: "Handbuch", icon: BookOpen },
   { href: "/kontakte", label: "Kontakte", icon: Contact },
   { href: "/infos", label: "Wichtige Infos", icon: Megaphone },
@@ -50,6 +52,7 @@ const ADMIN_NAV: NavEintrag[] = [
   { href: "/admin/wissen", label: "Handbuch", icon: BookOpen },
   { href: "/admin/kontakte", label: "Kontakte", icon: Contact },
   { href: "/admin/infos", label: "Infos", icon: Megaphone },
+  { href: "/admin/aufgaben", label: "Aufgaben", icon: ListTodo },
   { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity },
 ];
 
