@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
+  BarChart3,
   CheckCircle2,
   ExternalLink,
   Plus,
@@ -139,12 +140,20 @@ export default async function QuizBearbeitenPage({
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">{quiz.title}</h1>
         </div>
-        <Button asChild variant="outline">
-          <Link href={`/quiz/${quiz.id}`}>
-            <ExternalLink className="h-4 w-4" />
-            Vorschau
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href={`/admin/quizze/${quiz.id}/auswertung`}>
+              <BarChart3 className="h-4 w-4" />
+              Auswertung
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href={`/quiz/${quiz.id}`}>
+              <ExternalLink className="h-4 w-4" />
+              Vorschau
+            </Link>
+          </Button>
+        </div>
       </header>
 
       <QuizFormular

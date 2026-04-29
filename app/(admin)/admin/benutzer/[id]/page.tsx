@@ -11,6 +11,7 @@ import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { SpeichernButton } from "@/components/admin/SpeichernButton";
 import { createClient } from "@/lib/supabase/server";
 import { ladeMeineLernpfade } from "@/lib/lernpfade";
+import { mitarbeiterQuizVerlauf } from "@/lib/quiz_stats";
 import { requireRole } from "@/lib/auth";
 import { formatDatum, formatProzent, rolleLabel } from "@/lib/format";
 import {
@@ -109,6 +110,8 @@ export default async function BenutzerBearbeitenPage({
       ladeZuweisungen(id),
       ladeMeineLernpfade(id),
     ]);
+
+  const quizVerlauf = await mitarbeiterQuizVerlauf(id, 10);
 
   if (!profil) notFound();
 
@@ -315,6 +318,47 @@ export default async function BenutzerBearbeitenPage({
           )}
         </CardContent>
       </Card>
+
+      {/* Quiz-Verlauf */}
+      {quizVerlauf.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Quiz-Verlauf</CardTitle>
+            <CardDescription>Letzte 10 abgeschlossene Versuche.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y divide-border">
+              {quizVerlauf.map((v) => (
+                <li
+                  key={v.attempt_id}
+                  className="flex items-center justify-between gap-3 py-2.5 text-sm"
+                >
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/admin/quizze/${v.quiz_id}/auswertung`}
+                      className="font-medium hover:underline"
+                    >
+                      {v.quiz_title ?? "Quiz"}
+                    </Link>
+                    <p className="text-xs text-muted-foreground">
+                      {v.completed_at && formatDatum(v.completed_at)}
+                    </p>
+                  </div>
+                  <span
+                    className={
+                      v.passed
+                        ? "rounded-full bg-[hsl(var(--success)/0.15)] px-2.5 py-0.5 text-xs font-bold text-[hsl(var(--success))]"
+                        : "rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-bold text-destructive"
+                    }
+                  >
+                    {v.score} %
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Archivieren / Reaktivieren */}
       <Card className="border-destructive/30 bg-destructive/5">
