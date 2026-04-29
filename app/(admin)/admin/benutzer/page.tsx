@@ -87,12 +87,20 @@ export default async function AdminBenutzerListe({
             pflegst du über die Detailseite.
           </p>
         </div>
-        <Link
-          href="/admin/benutzer/neu"
-          className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--primary))] px-5 py-2.5 text-sm font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.02]"
-        >
-          + Neue:r Mitarbeiter:in
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/benutzer/bulk-import"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-[hsl(var(--brand-pink)/0.4)] hover:text-foreground"
+          >
+            CSV importieren
+          </Link>
+          <Link
+            href="/admin/benutzer/neu"
+            className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--primary))] px-5 py-2.5 text-sm font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.02]"
+          >
+            + Neue:r Mitarbeiter:in
+          </Link>
+        </div>
       </header>
 
       <div className="flex flex-wrap items-center gap-2">
