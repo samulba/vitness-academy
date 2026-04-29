@@ -14,6 +14,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { requireProfile } from "@/lib/auth";
 import { ladeMeineLernpfade, offeneLektionen } from "@/lib/lernpfade";
 import { aktivitaetsStats } from "@/lib/lektion";
+import { aktiveBannerInfo } from "@/lib/infos";
 import { formatProzent, tageszeitGruss } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,10 +30,11 @@ async function ladeOffenePraxis(userId: string): Promise<number> {
 
 export default async function DashboardPage() {
   const profile = await requireProfile();
-  const [pfade, anzOffenePraxis, aktivitaet] = await Promise.all([
+  const [pfade, anzOffenePraxis, aktivitaet, banner] = await Promise.all([
     ladeMeineLernpfade(profile.id),
     ladeOffenePraxis(profile.id),
     aktivitaetsStats(profile.id),
+    aktiveBannerInfo(profile.id),
   ]);
 
   const gesamt = pfade.reduce((s, p) => s + p.gesamt, 0);
@@ -43,6 +45,43 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-14">
+      {/* === Banner: ungelesene wichtige Info === */}
+      {banner && (
+        <Link
+          href="/infos"
+          className={
+            banner.importance === "critical"
+              ? "group flex items-start gap-4 rounded-2xl border-2 border-[hsl(var(--destructive)/0.6)] bg-[hsl(var(--destructive)/0.05)] p-5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--destructive))]"
+              : "group flex items-start gap-4 rounded-2xl border-2 border-[hsl(var(--warning)/0.5)] bg-[hsl(var(--warning)/0.05)] p-5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--warning))]"
+          }
+        >
+          <span
+            className={
+              banner.importance === "critical"
+                ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--destructive))] text-white"
+                : "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--warning))] text-white"
+            }
+          >
+            <Sparkles className="h-5 w-5" />
+          </span>
+          <div className="flex-1">
+            <p
+              className={
+                banner.importance === "critical"
+                  ? "text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--destructive))]"
+                  : "text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--warning))]"
+              }
+            >
+              {banner.importance === "critical" ? "Dringend" : "Wichtig"}
+            </p>
+            <p className="mt-0.5 text-base font-semibold leading-tight">
+              {banner.title}
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 self-center text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+        </Link>
+      )}
+
       {/* === Hero === */}
       <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-10">
         {/* Subtiler Magenta-Glow rechts oben */}
