@@ -1,21 +1,26 @@
 import { FileText, Inbox, Plus, Sparkles } from "lucide-react";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { AdminButton } from "@/components/admin/AdminButton";
-import { AdminCard } from "@/components/admin/AdminCard";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
+import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
-import { StatsStrip } from "@/components/admin/StatsStrip";
-import { EmptyState } from "@/components/admin/EmptyState";
-import {
-  AdminActionCell,
-  AdminTable,
-  AdminTableHead,
-  AdminTd,
-  AdminTh,
-  AdminTitleCell,
-  AdminTr,
-} from "@/components/admin/AdminTable";
 import { requireRole } from "@/lib/auth";
-import { ladeSubmissions, ladeTemplates } from "@/lib/formulare";
+import {
+  ladeSubmissions,
+  ladeTemplates,
+  type Template,
+} from "@/lib/formulare";
+
+function StatusBadge({ status }: { status: string }) {
+  if (status === "aktiv")
+    return (
+      <StatusPill ton="success" dot>
+        Aktiv
+      </StatusPill>
+    );
+  if (status === "entwurf") return <StatusPill ton="warn">Entwurf</StatusPill>;
+  return <StatusPill ton="neutral">Archiviert</StatusPill>;
+}
 
 export default async function FormulareAdminPage() {
   await requireRole(["admin", "superadmin"]);
@@ -26,112 +31,128 @@ export default async function FormulareAdminPage() {
   ]);
   const aktiv = templates.filter((t) => t.status === "aktiv").length;
 
+  const columns: Column<Template>[] = [
+    {
+      key: "title",
+      label: "Titel",
+      sortable: true,
+      render: (t) => (
+        <span className="font-medium text-foreground">{t.title}</span>
+      ),
+    },
+    {
+      key: "slug",
+      label: "Slug",
+      sortable: true,
+      render: (t) => (
+        <span className="font-mono text-xs text-muted-foreground">
+          /{t.slug}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      render: (t) => <StatusBadge status={t.status} />,
+    },
+    {
+      key: "fields",
+      label: "Felder",
+      align: "right",
+      accessor: (t) => t.fields.length,
+      render: (t) => (
+        <span className="tabular-nums">{t.fields.length}</span>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <AdminPageHeader
+      <PageHeader
+        eyebrow="Studio-Daten"
         title="Formulare"
         description="Vorlagen pflegen, Einreichungen bearbeiten."
-        badge={
-          offen.length > 0 ? (
-            <StatusPill ton="primary" dot pulse>
-              {offen.length} im Eingang
-            </StatusPill>
-          ) : null
-        }
-        actions={
-          <>
-            <AdminButton variant="secondary" href="/admin/formulare/eingaenge">
-              <Inbox className="h-3.5 w-3.5" />
-              Eingänge
-              {offen.length > 0 && (
-                <span className="ml-1 rounded-full bg-[hsl(var(--primary))] px-1.5 py-0.5 text-[10px] font-bold leading-none text-[hsl(var(--primary-foreground))]">
-                  {offen.length}
-                </span>
-              )}
-            </AdminButton>
-            <AdminButton href="/admin/formulare/neu">
-              <Plus className="h-3.5 w-3.5" />
-              Neues Formular
-            </AdminButton>
-          </>
-        }
-      />
-
-      <StatsStrip
-        items={[
+        primaryAction={{
+          label: "Neues Formular",
+          icon: <Plus />,
+          href: "/admin/formulare/neu",
+        }}
+        secondaryActions={[
           {
-            icon: <FileText className="h-4 w-4" />,
-            label: "Formulare",
-            wert: templates.length,
-            akzent: true,
-            hint: aktiv === templates.length ? "alle aktiv" : `${aktiv} aktiv`,
-          },
-          {
-            icon: <Inbox className="h-4 w-4" />,
-            label: "Im Eingang",
-            wert: offen.length,
-            hint: "warten auf Bearbeitung",
-          },
-          {
-            icon: <Sparkles className="h-4 w-4" />,
-            label: "Einreichungen gesamt",
-            wert: alle.length,
-          },
-          {
-            icon: <FileText className="h-4 w-4" />,
-            label: "Felder gesamt",
-            wert: templates.reduce((s, t) => s + t.fields.length, 0),
+            icon: <Inbox />,
+            label: `Eingänge${offen.length > 0 ? ` (${offen.length})` : ""}`,
+            href: "/admin/formulare/eingaenge",
           },
         ]}
       />
 
-      <AdminCard>
-        {templates.length === 0 ? (
+      <StatGrid cols={4}>
+        <StatCard label="Formulare" value={templates.length} icon={<FileText />} />
+        <StatCard label="Im Eingang" value={offen.length} icon={<Inbox />} />
+        <StatCard
+          label="Einreichungen gesamt"
+          value={alle.length}
+          icon={<Sparkles />}
+        />
+        <StatCard
+          label="Felder gesamt"
+          value={templates.reduce((s, t) => s + t.fields.length, 0)}
+          icon={<FileText />}
+        />
+      </StatGrid>
+
+      {templates.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card">
           <EmptyState
-            icon={<FileText className="h-6 w-6" />}
+            illustration={<EmptyStateTablePreview />}
             title="Noch keine Formulare"
             description="Bau dein erstes Formular per Drag & Drop. Krankmeldung, Urlaubsantrag, Schadensmeldung — was du brauchst."
-            ctaLabel="Formular bauen"
-            ctaHref="/admin/formulare/neu"
+            actions={[
+              {
+                icon: <Plus />,
+                title: "Formular bauen",
+                description: "Felder per Klick",
+                href: "/admin/formulare/neu",
+              },
+              {
+                icon: <Inbox />,
+                title: "Eingänge",
+                description: "Bereits eingegangen",
+                href: "/admin/formulare/eingaenge",
+              },
+            ]}
           />
-        ) : (
-          <AdminTable>
-          <AdminTableHead>
-            <AdminTh>Titel</AdminTh>
-            <AdminTh>Slug</AdminTh>
-            <AdminTh>Status</AdminTh>
-            <AdminTh align="right">Felder</AdminTh>
-            <AdminTh align="right" />
-          </AdminTableHead>
-          <tbody>
-            {templates.map((t) => (
-                <AdminTr key={t.id}>
-                  <AdminTitleCell
-                    href={`/admin/formulare/${t.id}`}
-                    title={t.title}
-                  />
-                  <AdminTd className="font-mono text-xs text-muted-foreground">
-                    /{t.slug}
-                  </AdminTd>
-                  <AdminTd>
-                    {t.status === "aktiv" ? (
-                      <StatusPill ton="success">Aktiv</StatusPill>
-                    ) : t.status === "entwurf" ? (
-                      <StatusPill ton="warn">Entwurf</StatusPill>
-                    ) : (
-                      <StatusPill ton="neutral">Archiviert</StatusPill>
-                    )}
-                  </AdminTd>
-                  <AdminTd align="right" className="tabular-nums">
-                    {t.fields.length}
-                  </AdminTd>
-                  <AdminActionCell href={`/admin/formulare/${t.id}`} />
-                </AdminTr>
-              ))}
-          </tbody>
-        </AdminTable>
-        )}
-      </AdminCard>
+        </div>
+      ) : (
+        <DataTable<Template>
+          data={templates}
+          columns={columns}
+          searchable={{
+            placeholder: "Formular suchen…",
+            keys: ["title", "slug"],
+          }}
+          filters={[
+            {
+              key: "status",
+              label: "Status",
+              options: [
+                { value: "aktiv", label: "Aktiv" },
+                { value: "entwurf", label: "Entwurf" },
+                { value: "archiviert", label: "Archiviert" },
+              ],
+              multi: true,
+            },
+          ]}
+          rowHref={(t) => `/admin/formulare/${t.id}`}
+          defaultSort={{ key: "title", direction: "asc" }}
+        />
+      )}
+
+      <p className="text-[11px] text-muted-foreground">
+        {aktiv} von {templates.length} Formular
+        {templates.length === 1 ? "" : "en"} aktiv.
+      </p>
     </div>
   );
 }

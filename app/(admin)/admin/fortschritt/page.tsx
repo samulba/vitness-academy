@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { Download, ExternalLink } from "lucide-react";
+import {
+  Activity,
+  Download,
+  ExternalLink,
+  GraduationCap,
+  Users,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -9,9 +15,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { AdminCard, AdminCardHeader } from "@/components/admin/AdminCard";
-import { AdminButton } from "@/components/admin/AdminButton";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
 import { formatProzent, rolleLabel } from "@/lib/format";
@@ -132,24 +137,71 @@ export default async function FortschrittPage() {
     return { abgeschlossen, gesamt, prozent };
   }
 
+  // KPIs fuer StatGrid
+  const totalProzent = (() => {
+    let abge = 0;
+    let ges = 0;
+    for (const m of mitarbeiter) {
+      const g = gesamtfortschritt(m.id);
+      abge += g.abgeschlossen;
+      ges += g.gesamt;
+    }
+    return ges === 0 ? 0 : Math.round((abge / ges) * 100);
+  })();
+  const fertige = mitarbeiter.filter((m) => {
+    const g = gesamtfortschritt(m.id);
+    return g.gesamt > 0 && g.abgeschlossen === g.gesamt;
+  }).length;
+
   return (
     <div className="space-y-6">
-      <AdminPageHeader
+      <PageHeader
+        eyebrow="Auswertung"
         title="Fortschritt"
         description="Mitarbeiter × Lernpfad. Klick auf einen Namen für Details."
-        actions={
-          <AdminButton variant="secondary" href="/api/admin/fortschritt/csv">
-            <Download className="h-3.5 w-3.5" />
-            CSV exportieren
-          </AdminButton>
-        }
+        secondaryActions={[
+          {
+            icon: <Download />,
+            label: "CSV exportieren",
+            href: "/api/admin/fortschritt/csv",
+          },
+        ]}
       />
 
-      <AdminCard>
-        <AdminCardHeader
-          title={`Mitarbeiter (${mitarbeiter.length})`}
-          description="„—“ bedeutet: Lernpfad nicht zugewiesen."
+      <StatGrid cols={4}>
+        <StatCard label="Mitarbeiter" value={mitarbeiter.length} icon={<Users />} />
+        <StatCard
+          label="Lernpfade aktiv"
+          value={lernpfade.length}
+          icon={<GraduationCap />}
         />
+        <StatCard
+          label="Ø Fortschritt"
+          value={`${totalProzent}%`}
+          icon={<Activity />}
+        />
+        <StatCard
+          label="Fertig"
+          value={fertige}
+          icon={<Activity />}
+          trend={
+            mitarbeiter.length > 0
+              ? {
+                  value: Math.round((fertige / mitarbeiter.length) * 100),
+                  direction: "up",
+                  hint: "abgeschlossen",
+                }
+              : undefined
+          }
+        />
+      </StatGrid>
+
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border bg-muted/30 px-4 py-2.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Mitarbeiter ({mitarbeiter.length}) · &quot;—&quot; = Lernpfad nicht zugewiesen
+          </p>
+        </div>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -231,7 +283,7 @@ export default async function FortschrittPage() {
             </TableBody>
           </Table>
         </div>
-      </AdminCard>
+      </div>
     </div>
   );
 }

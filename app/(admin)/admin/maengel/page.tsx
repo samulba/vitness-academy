@@ -5,41 +5,47 @@ import {
   Wrench,
   Zap,
 } from "lucide-react";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { AdminCard, AdminCardHeader } from "@/components/admin/AdminCard";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
-import { StatsStrip } from "@/components/admin/StatsStrip";
-import { EmptyState } from "@/components/admin/EmptyState";
-import {
-  AdminActionCell,
-  AdminTable,
-  AdminTableEmpty,
-  AdminTableHead,
-  AdminTd,
-  AdminTh,
-  AdminTr,
-} from "@/components/admin/AdminTable";
 import { requireRole } from "@/lib/auth";
 import { fotoUrlFuerPfad, ladeMaengel, type Mangel } from "@/lib/maengel";
 import { formatDatum } from "@/lib/format";
 
 function StatusBadge({ status }: { status: string }) {
-  if (status === "offen") return <StatusPill ton="warn">Offen</StatusPill>;
+  if (status === "offen")
+    return (
+      <StatusPill ton="warn" dot>
+        Offen
+      </StatusPill>
+    );
   if (status === "in_bearbeitung")
-    return <StatusPill ton="info">In Bearbeitung</StatusPill>;
+    return (
+      <StatusPill ton="info" dot>
+        In Bearbeitung
+      </StatusPill>
+    );
   if (status === "behoben")
-    return <StatusPill ton="success">Behoben</StatusPill>;
+    return (
+      <StatusPill ton="success" dot>
+        Behoben
+      </StatusPill>
+    );
   return <StatusPill ton="neutral">Verworfen</StatusPill>;
 }
 
-function SeverityDot({ severity }: { severity: string }) {
-  const color =
-    severity === "kritisch"
-      ? "bg-destructive"
-      : severity === "normal"
-        ? "bg-amber-500"
-        : "bg-muted-foreground/40";
-  return <span className={`h-2 w-2 shrink-0 rounded-full ${color}`} />;
+function SeverityBadge({ severity }: { severity: string }) {
+  if (severity === "kritisch")
+    return (
+      <StatusPill ton="danger" dot pulse>
+        Kritisch
+      </StatusPill>
+    );
+  if (severity === "normal")
+    return <StatusPill ton="warn">Normal</StatusPill>;
+  return <StatusPill ton="neutral">Niedrig</StatusPill>;
 }
 
 export default async function MaengelAdminPage() {
@@ -50,161 +56,170 @@ export default async function MaengelAdminPage() {
   const kritisch = offen.filter((m) => m.severity === "kritisch").length;
   const behoben = erledigt.filter((m) => m.status === "behoben").length;
 
+  const columns: Column<Mangel>[] = [
+    {
+      key: "title",
+      label: "Titel",
+      sortable: true,
+      render: (m) => (
+        <div className="flex items-center gap-3">
+          <MangelThumb m={m} />
+          <div className="flex flex-col gap-0.5">
+            <span className="font-medium text-foreground">{m.title}</span>
+            {m.description && (
+              <span className="line-clamp-1 text-[11px] text-muted-foreground">
+                {m.description}
+              </span>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      render: (m) => <StatusBadge status={m.status} />,
+    },
+    {
+      key: "severity",
+      label: "Schwere",
+      sortable: true,
+      render: (m) => <SeverityBadge severity={m.severity} />,
+    },
+    {
+      key: "reported_by_name",
+      label: "Gemeldet",
+      render: (m) => (
+        <span className="text-xs text-muted-foreground">
+          {formatDatum(m.created_at)}
+          {m.reported_by_name && (
+            <span className="ml-1">· {m.reported_by_name}</span>
+          )}
+        </span>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <AdminPageHeader
-        title="Mängel im Studio"
+      <PageHeader
+        eyebrow="Studio-Daten"
+        title="Mängel"
         description="Inbox aller gemeldeten Probleme. Klick öffnet die Details mit Status-Setzung."
-        badge={
-          kritisch > 0 ? (
-            <StatusPill ton="danger" dot pulse>
-              {kritisch} kritisch
-            </StatusPill>
-          ) : offen.length === 0 ? (
-            <StatusPill ton="success" dot>
-              Alles ruhig
-            </StatusPill>
-          ) : null
-        }
       />
 
-      <StatsStrip
-        items={[
-          {
-            icon: <AlertTriangle className="h-4 w-4" />,
-            label: "Aktuell offen",
-            wert: offen.length,
-            akzent: offen.length > 0,
-            hint:
-              kritisch > 0
-                ? `${kritisch} kritisch`
-                : "warten auf Bearbeitung",
-          },
-          {
-            icon: <Wrench className="h-4 w-4" />,
-            label: "In Bearbeitung",
-            wert: inBearbeitung,
-          },
-          {
-            icon: <CheckCircle2 className="h-4 w-4" />,
-            label: "Behoben (gesamt)",
-            wert: behoben,
-          },
-          {
-            icon: <Zap className="h-4 w-4" />,
-            label: "Gesamt erfasst",
-            wert: offen.length + erledigt.length,
-          },
-        ]}
-      />
+      <StatGrid cols={4}>
+        <StatCard
+          label="Aktuell offen"
+          value={offen.length}
+          icon={<AlertTriangle />}
+        />
+        <StatCard
+          label="In Bearbeitung"
+          value={inBearbeitung}
+          icon={<Wrench />}
+        />
+        <StatCard
+          label="Behoben gesamt"
+          value={behoben}
+          icon={<CheckCircle2 />}
+        />
+        <StatCard
+          label="Gesamt erfasst"
+          value={offen.length + erledigt.length}
+          icon={<Zap />}
+          trend={
+            kritisch > 0
+              ? { value: kritisch, direction: "down", hint: "kritisch offen" }
+              : undefined
+          }
+        />
+      </StatGrid>
 
-      <AdminCard>
-        <AdminCardHeader title={`Aktuell offen (${offen.length})`} />
+      <section className="space-y-2">
+        <header>
+          <h2 className="text-[14px] font-semibold tracking-tight">
+            Aktuell offen ({offen.length})
+          </h2>
+          <p className="text-[12px] text-muted-foreground">
+            Warten auf Bearbeitung oder sind in Arbeit.
+          </p>
+        </header>
         {offen.length === 0 ? (
-          <EmptyState
-            icon={<CheckCircle2 className="h-6 w-6" />}
-            title="Keine offenen Mängel"
-            description="Alle gemeldeten Probleme sind bearbeitet. Top Studio-Team!"
-          />
+          <div className="rounded-xl border border-border bg-card">
+            <EmptyState
+              title="Keine offenen Mängel"
+              description="Alle gemeldeten Probleme sind bearbeitet. Top Studio-Team!"
+            />
+          </div>
         ) : (
-          <AdminTable>
-            <AdminTableHead>
-              <AdminTh>Titel</AdminTh>
-              <AdminTh>Foto</AdminTh>
-              <AdminTh>Status</AdminTh>
-              <AdminTh>Schwere</AdminTh>
-              <AdminTh>Gemeldet</AdminTh>
-              <AdminTh align="right" />
-            </AdminTableHead>
-            <tbody>
-              {offen.map((m) => (
-                <MangelZeile key={m.id} m={m} />
-              ))}
-            </tbody>
-          </AdminTable>
+          <DataTable<Mangel>
+            data={offen}
+            columns={columns}
+            searchable={{
+              placeholder: "Mangel suchen…",
+              keys: ["title", "description"],
+            }}
+            filters={[
+              {
+                key: "severity",
+                label: "Schwere",
+                options: [
+                  { value: "kritisch", label: "Kritisch" },
+                  { value: "normal", label: "Normal" },
+                  { value: "niedrig", label: "Niedrig" },
+                ],
+                multi: true,
+              },
+              {
+                key: "status",
+                label: "Status",
+                options: [
+                  { value: "offen", label: "Offen" },
+                  { value: "in_bearbeitung", label: "In Bearbeitung" },
+                ],
+                multi: true,
+              },
+            ]}
+            rowHref={(m) => `/admin/maengel/${m.id}`}
+            defaultSort={{ key: "reported_by_name", direction: "desc" }}
+          />
         )}
-      </AdminCard>
+      </section>
 
       {erledigt.length > 0 && (
-        <AdminCard>
-          <AdminCardHeader
-            title={`Erledigt (${Math.min(20, erledigt.length)})`}
-            description="Letzte 20 abgeschlossene Mängel."
+        <section className="space-y-2">
+          <header>
+            <h2 className="text-[14px] font-semibold tracking-tight">
+              Erledigt
+            </h2>
+            <p className="text-[12px] text-muted-foreground">
+              Letzte 20 abgeschlossene Mängel.
+            </p>
+          </header>
+          <DataTable<Mangel>
+            data={erledigt.slice(0, 20)}
+            columns={columns}
+            rowHref={(m) => `/admin/maengel/${m.id}`}
+            defaultSort={{ key: "reported_by_name", direction: "desc" }}
           />
-          <AdminTable>
-            <AdminTableHead>
-              <AdminTh>Titel</AdminTh>
-              <AdminTh>Foto</AdminTh>
-              <AdminTh>Status</AdminTh>
-              <AdminTh>Schwere</AdminTh>
-              <AdminTh>Gemeldet</AdminTh>
-              <AdminTh align="right" />
-            </AdminTableHead>
-            <tbody>
-              {erledigt.length === 0 ? (
-                <AdminTableEmpty colSpan={6}>
-                  Keine Eintraege.
-                </AdminTableEmpty>
-              ) : (
-                erledigt.slice(0, 20).map((m) => (
-                  <MangelZeile key={m.id} m={m} />
-                ))
-              )}
-            </tbody>
-          </AdminTable>
-        </AdminCard>
+        </section>
       )}
     </div>
   );
 }
 
-function MangelZeile({ m }: { m: Mangel }) {
+function MangelThumb({ m }: { m: Mangel }) {
   const url = fotoUrlFuerPfad(m.photo_path);
   return (
-    <AdminTr>
-      <AdminTd>
-        <a
-          href={`/admin/maengel/${m.id}`}
-          className="-mx-1 -my-1 inline-flex flex-col gap-0.5 px-1 py-1"
-        >
-          <span className="font-medium text-foreground hover:underline">
-            {m.title}
-          </span>
-          {m.description && (
-            <span className="line-clamp-1 text-xs text-muted-foreground">
-              {m.description}
-            </span>
-          )}
-        </a>
-      </AdminTd>
-      <AdminTd>
-        <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-md bg-muted text-muted-foreground">
-          {url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={url} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <ImageIcon className="h-3.5 w-3.5" />
-          )}
-        </span>
-      </AdminTd>
-      <AdminTd>
-        <StatusBadge status={m.status} />
-      </AdminTd>
-      <AdminTd>
-        <span className="inline-flex items-center gap-1.5">
-          <SeverityDot severity={m.severity} />
-          <span className="text-xs capitalize text-muted-foreground">
-            {m.severity}
-          </span>
-        </span>
-      </AdminTd>
-      <AdminTd className="text-xs text-muted-foreground">
-        {formatDatum(m.created_at)}
-        {m.reported_by_name && (
-          <span className="ml-1">· {m.reported_by_name}</span>
-        )}
-      </AdminTd>
-      <AdminActionCell href={`/admin/maengel/${m.id}`} />
-    </AdminTr>
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-muted-foreground">
+      {url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={url} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <ImageIcon className="h-3.5 w-3.5" />
+      )}
+    </span>
   );
 }

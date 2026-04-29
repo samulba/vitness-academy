@@ -1,22 +1,11 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
-import { ReihenfolgeButtons } from "@/components/admin/ReihenfolgeButtons";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { AdminButton } from "@/components/admin/AdminButton";
-import { AdminCard } from "@/components/admin/AdminCard";
+import { CheckSquare, Clock, Pencil, Plus, ThumbsDown, ThumbsUp } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
+import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
-import {
-  AdminActionCell,
-  AdminTable,
-  AdminTableEmpty,
-  AdminTableHead,
-  AdminTd,
-  AdminTh,
-  AdminTitleCell,
-  AdminTr,
-} from "@/components/admin/AdminTable";
 import { createClient } from "@/lib/supabase/server";
-import { aufgabeReihenfolge } from "./actions";
 
 type Zeile = {
   id: string;
@@ -69,100 +58,151 @@ async function ladeAufgaben(): Promise<Zeile[]> {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  if (status === "aktiv") return <StatusPill ton="success">Aktiv</StatusPill>;
+  if (status === "aktiv")
+    return (
+      <StatusPill ton="success" dot>
+        Aktiv
+      </StatusPill>
+    );
   if (status === "entwurf") return <StatusPill ton="warn">Entwurf</StatusPill>;
   return <StatusPill ton="neutral">Archiviert</StatusPill>;
 }
 
 export default async function AdminPraxisaufgabenPage() {
   const aufgaben = await ladeAufgaben();
+  const aktiv = aufgaben.filter((a) => a.status === "aktiv").length;
+  const wartetSumme = aufgaben.reduce((s, a) => s + a.bereit, 0);
+  const freigegebenSumme = aufgaben.reduce((s, a) => s + a.freigegeben, 0);
+  const abgelehntSumme = aufgaben.reduce((s, a) => s + a.abgelehnt, 0);
+
+  const columns: Column<Zeile>[] = [
+    {
+      key: "title",
+      label: "Titel",
+      sortable: true,
+      render: (a) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="font-medium text-foreground">{a.title}</span>
+          {(a.pfad_titel || a.lektion_titel) && (
+            <span className="text-[11px] text-muted-foreground">
+              {[a.pfad_titel, a.lektion_titel].filter(Boolean).join(" · ")}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      render: (a) => <StatusBadge status={a.status} />,
+    },
+    {
+      key: "bereit",
+      label: "Wartet",
+      sortable: true,
+      align: "right",
+      render: (a) => (
+        <span className="tabular-nums text-[hsl(var(--brand-pink))]">
+          {a.bereit}
+        </span>
+      ),
+    },
+    {
+      key: "freigegeben",
+      label: "Freigegeben",
+      sortable: true,
+      align: "right",
+      render: (a) => (
+        <span className="tabular-nums text-[hsl(var(--success))]">
+          {a.freigegeben}
+        </span>
+      ),
+    },
+    {
+      key: "abgelehnt",
+      label: "Abgelehnt",
+      sortable: true,
+      align: "right",
+      render: (a) => (
+        <span className="tabular-nums text-muted-foreground">
+          {a.abgelehnt}
+        </span>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
+      <PageHeader
+        eyebrow="Inhalte"
         title="Praxisaufgaben"
         description="Vorlagen für Praxisfreigaben. Anfragen freigeben/ablehnen findest du unter Studio-Daten · Anfragen."
-        actions={
-          <AdminButton href="/admin/praxisaufgaben/neu">
-            <Plus className="h-3.5 w-3.5" />
-            Neue Aufgabe
-          </AdminButton>
-        }
+        primaryAction={{
+          label: "Neue Aufgabe",
+          icon: <Plus />,
+          href: "/admin/praxisaufgaben/neu",
+        }}
       />
 
-      <AdminCard>
-        <AdminTable>
-          <AdminTableHead>
-            <AdminTh>Titel</AdminTh>
-            <AdminTh>Bindung</AdminTh>
-            <AdminTh>Status</AdminTh>
-            <AdminTh align="right">Wartet</AdminTh>
-            <AdminTh align="right">Freigegeben</AdminTh>
-            <AdminTh align="right">Abgelehnt</AdminTh>
-            <AdminTh align="right">Reihenfolge</AdminTh>
-            <AdminTh align="right" />
-          </AdminTableHead>
-          <tbody>
-            {aufgaben.length === 0 ? (
-              <AdminTableEmpty colSpan={8}>
-                Noch keine Praxisaufgaben angelegt.
-              </AdminTableEmpty>
-            ) : (
-              aufgaben.map((a, idx) => (
-                <AdminTr key={a.id}>
-                  <AdminTitleCell
-                    href={`/admin/praxisaufgaben/${a.id}`}
-                    title={a.title}
-                    subtitle={
-                      [a.pfad_titel, a.lektion_titel]
-                        .filter(Boolean)
-                        .join(" · ") || undefined
-                    }
-                  />
-                  <AdminTd className="text-xs text-muted-foreground">
-                    {a.pfad_titel ?? "—"}
-                  </AdminTd>
-                  <AdminTd>
-                    <StatusBadge status={a.status} />
-                  </AdminTd>
-                  <AdminTd
-                    align="right"
-                    className="tabular-nums text-[hsl(var(--brand-pink))]"
-                  >
-                    {a.bereit}
-                  </AdminTd>
-                  <AdminTd
-                    align="right"
-                    className="tabular-nums text-[hsl(var(--success))]"
-                  >
-                    {a.freigegeben}
-                  </AdminTd>
-                  <AdminTd
-                    align="right"
-                    className="tabular-nums text-muted-foreground"
-                  >
-                    {a.abgelehnt}
-                  </AdminTd>
-                  <AdminTd align="right">
-                    <div className="flex justify-end">
-                      <ReihenfolgeButtons
-                        hoch={aufgabeReihenfolge.bind(null, a.id, "hoch")}
-                        runter={aufgabeReihenfolge.bind(null, a.id, "runter")}
-                        hochDeaktiviert={idx === 0}
-                        runterDeaktiviert={idx === aufgaben.length - 1}
-                      />
-                    </div>
-                  </AdminTd>
-                  <AdminActionCell href={`/admin/praxisaufgaben/${a.id}`} />
-                </AdminTr>
-              ))
-            )}
-          </tbody>
-        </AdminTable>
-      </AdminCard>
+      <StatGrid cols={4}>
+        <StatCard
+          label="Aufgaben gesamt"
+          value={aufgaben.length}
+          icon={<CheckSquare />}
+        />
+        <StatCard label="Wartet auf Freigabe" value={wartetSumme} icon={<Clock />} />
+        <StatCard label="Freigegeben" value={freigegebenSumme} icon={<ThumbsUp />} />
+        <StatCard label="Abgelehnt" value={abgelehntSumme} icon={<ThumbsDown />} />
+      </StatGrid>
 
-      <p className="text-xs text-muted-foreground">
-        Tipp: Mitarbeiter-Anfragen findest du unter{" "}
+      {aufgaben.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card">
+          <EmptyState
+            illustration={<EmptyStateTablePreview />}
+            title="Noch keine Praxisaufgaben"
+            description="Lege eine erste Praxisaufgabe an, die Mitarbeiter aktiv abschließen müssen."
+            actions={[
+              {
+                icon: <Plus />,
+                title: "Aufgabe anlegen",
+                description: "Pfad/Lektion verknüpfen",
+                href: "/admin/praxisaufgaben/neu",
+              },
+            ]}
+          />
+        </div>
+      ) : (
+        <DataTable<Zeile>
+          data={aufgaben}
+          columns={columns}
+          searchable={{ placeholder: "Aufgabe suchen…", keys: ["title"] }}
+          filters={[
+            {
+              key: "status",
+              label: "Status",
+              options: [
+                { value: "aktiv", label: "Aktiv" },
+                { value: "entwurf", label: "Entwurf" },
+                { value: "archiviert", label: "Archiviert" },
+              ],
+              multi: true,
+            },
+          ]}
+          rowHref={(a) => `/admin/praxisaufgaben/${a.id}`}
+          rowActions={[
+            {
+              icon: <Pencil />,
+              label: "Bearbeiten",
+              href: (a) => `/admin/praxisaufgaben/${a.id}`,
+            },
+          ]}
+          defaultSort={{ key: "title", direction: "asc" }}
+        />
+      )}
+
+      <p className="text-[11px] text-muted-foreground">
+        {aktiv} aktiv. Tipp: Mitarbeiter-Anfragen findest du unter{" "}
         <Link
           href="/admin/praxisfreigaben"
           className="font-medium text-foreground hover:underline"
