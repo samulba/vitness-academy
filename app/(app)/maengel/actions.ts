@@ -1,0 +1,114 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireProfile, requireRole } from "@/lib/auth";
+
+const FOTO_MAX_BYTES = 5 * 1024 * 1024;
+const FOTO_ERLAUBT = ["image/jpeg", "image/png", "image/webp"];
+
+export type Ergebnis =
+  | { ok: true; id?: string }
+  | { ok: false; message: string };
+
+export async function mangelMelden(formData: FormData): Promise<Ergebnis> {
+  const profile = await requireProfile();
+
+  const title = String(formData.get("title") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const severity = String(formData.get("severity") ?? "normal");
+  const datei = formData.get("foto");
+
+  if (title.length < 3) {
+    return { ok: false, message: "Bitte gib einen Titel ein (mindestens 3 Zeichen)." };
+  }
+
+  // Optional Foto hochladen
+  let photoPath: string | null = null;
+  if (datei instanceof File && datei.size > 0) {
+    if (datei.size > FOTO_MAX_BYTES) {
+      return { ok: false, message: "Foto ist zu groß (max 5 MB)." };
+    }
+    if (!FOTO_ERLAUBT.includes(datei.type)) {
+      return { ok: false, message: "Nur JPG, PNG oder WebP erlaubt." };
+    }
+    const ext = datei.type.split("/")[1].replace("jpeg", "jpg");
+    photoPath = `${profile.id}/${Date.now()}.${ext}`;
+    const buffer = Buffer.from(await datei.arrayBuffer());
+    const admin = createAdminClient();
+    const { error: uploadError } = await admin.storage
+      .from("issue-photos")
+      .upload(photoPath, buffer, {
+        contentType: datei.type,
+        upsert: false,
+      });
+    if (uploadError) {
+      return {
+        ok: false,
+        message: "Foto-Upload fehlgeschlagen: " + uploadError.message,
+      };
+    }
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("studio_issues")
+    .insert({
+      title,
+      description: description.length > 0 ? description : null,
+      severity: ["niedrig", "normal", "kritisch"].includes(severity)
+        ? severity
+        : "normal",
+      photo_path: photoPath,
+      reported_by: profile.id,
+      status: "offen",
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return {
+      ok: false,
+      message: "Speichern fehlgeschlagen: " + error.message,
+    };
+  }
+
+  revalidatePath("/maengel");
+  revalidatePath("/admin/maengel");
+  return { ok: true, id: data?.id };
+}
+
+export async function mangelStatusSetzen(
+  id: string,
+  status: "offen" | "in_bearbeitung" | "behoben" | "verworfen",
+  formData: FormData,
+): Promise<void> {
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  const note = String(formData.get("resolution_note") ?? "").trim();
+  const supabase = await createClient();
+  await supabase
+    .from("studio_issues")
+    .update({
+      status,
+      resolution_note: note.length > 0 ? note : null,
+      resolved_at:
+        status === "behoben" || status === "verworfen"
+          ? new Date().toISOString()
+          : null,
+    })
+    .eq("id", id);
+  revalidatePath("/admin/maengel");
+  revalidatePath(`/admin/maengel/${id}`);
+  revalidatePath("/maengel");
+}
+
+export async function mangelLoeschen(id: string): Promise<void> {
+  await requireRole(["admin", "superadmin"]);
+  const supabase = await createClient();
+  await supabase.from("studio_issues").delete().eq("id", id);
+  revalidatePath("/admin/maengel");
+  revalidatePath("/maengel");
+  redirect("/admin/maengel");
+}
