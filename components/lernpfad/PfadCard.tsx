@@ -48,8 +48,13 @@ export function PfadCard({
       href={`/lernpfade/${id}`}
       className="group relative flex flex-col overflow-hidden rounded-3xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-[hsl(var(--primary))] hover:shadow-[0_30px_70px_-25px_hsl(var(--primary)/0.45)]"
     >
-      {/* === Hero-Image === */}
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-[hsl(var(--brand-ink))]">
+      {/* === Hero-Image ===
+          isolate + rounded-t-[inherit] verhindert den Border-Radius-Glitch
+          beim hover-scale: ohne isolate render't der Browser kurz das skalierte
+          Bild ueber die rounded corners drueber, weil das Inner-Div selbst
+          keinen Radius hatte und die Link-Clip-Mask waehrend der Transition
+          flimmert. */}
+      <div className="relative aspect-[16/9] w-full isolate overflow-hidden rounded-t-[inherit] bg-[hsl(var(--brand-ink))] [transform:translateZ(0)]">
         {/* Fallback-Verlauf */}
         <div
           aria-hidden
@@ -59,13 +64,15 @@ export function PfadCard({
               "linear-gradient(135deg, hsl(var(--brand-ink)) 0%, hsl(var(--primary)) 60%, hsl(var(--brand-pink)) 100%)",
           }}
         />
-        {/* Hero-Bild via next/image -- auto WebP/AVIF, responsive sizes, lazy */}
+        {/* Hero-Bild via next/image -- auto WebP/AVIF, responsive sizes, lazy
+            transform-gpu erzwingt GPU-Compositing -> Image rendert konsistent
+            innerhalb der rounded-Maske, kein Flimmern beim Scale-Hover. */}
         <Image
           src={`/lernpfade/${slug}.jpg`}
           alt=""
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+          className="transform-gpu object-cover transition-transform duration-700 group-hover:scale-[1.05]"
         />
 
         {/* Top-Verlauf — nur leicht, fuer Pill-Lesbarkeit */}
