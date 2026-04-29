@@ -18,6 +18,7 @@ import { BlockBearbeitenInline } from "@/components/admin/BlockBearbeitenInline"
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { ReihenfolgeButtons } from "@/components/admin/ReihenfolgeButtons";
 import { SpeichernButton } from "@/components/admin/SpeichernButton";
+import { BildUpload } from "@/components/admin/BildUpload";
 import { createClient } from "@/lib/supabase/server";
 import {
   blockAktualisieren,
@@ -42,6 +43,7 @@ type LektionDetail = {
   module_id: string;
   module_title: string;
   learning_path_id: string;
+  hero_image_path: string | null;
   blocks: Block[];
 };
 
@@ -50,7 +52,7 @@ async function ladeLektion(id: string): Promise<LektionDetail | null> {
   const { data } = await supabase
     .from("lessons")
     .select(
-      `id, title, summary, module_id,
+      `id, title, summary, module_id, hero_image_path,
        modules:module_id ( title, learning_path_id ),
        lesson_content_blocks ( id, block_type, content, sort_order )`,
     )
@@ -64,6 +66,7 @@ async function ladeLektion(id: string): Promise<LektionDetail | null> {
     title: string;
     summary: string | null;
     module_id: string;
+    hero_image_path: string | null;
     modules: { title: string; learning_path_id: string } | null;
     lesson_content_blocks:
       | {
@@ -83,6 +86,7 @@ async function ladeLektion(id: string): Promise<LektionDetail | null> {
     module_id: r.module_id,
     module_title: r.modules?.title ?? "",
     learning_path_id: r.modules?.learning_path_id ?? "",
+    hero_image_path: r.hero_image_path,
     blocks: (r.lesson_content_blocks ?? [])
       .slice()
       .sort((a, b) => a.sort_order - b.sort_order),
@@ -163,6 +167,22 @@ export default async function LektionBearbeitenPage({
               <SpeichernButton />
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Bild</CardTitle>
+          <CardDescription>
+            Optionales Hero-Bild oben in der Lektion.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BildUpload
+            scope="lesson"
+            id={lekt.id}
+            aktuellerPfad={lekt.hero_image_path}
+          />
         </CardContent>
       </Card>
 

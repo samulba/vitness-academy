@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ReihenfolgeButtons } from "@/components/admin/ReihenfolgeButtons";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { SpeichernButton } from "@/components/admin/SpeichernButton";
+import { BildUpload } from "@/components/admin/BildUpload";
 import { createClient } from "@/lib/supabase/server";
 import {
   lektionAnlegen,
@@ -30,6 +31,7 @@ type ModulDetail = {
   description: string | null;
   learning_path_id: string;
   learning_path_title: string;
+  hero_image_path: string | null;
   lessons: Lektion[];
 };
 
@@ -38,7 +40,7 @@ async function ladeModul(id: string): Promise<ModulDetail | null> {
   const { data } = await supabase
     .from("modules")
     .select(
-      `id, title, description, learning_path_id,
+      `id, title, description, learning_path_id, hero_image_path,
        learning_paths:learning_path_id ( title ),
        lessons ( id, title, summary, sort_order )`,
     )
@@ -52,6 +54,7 @@ async function ladeModul(id: string): Promise<ModulDetail | null> {
     title: string;
     description: string | null;
     learning_path_id: string;
+    hero_image_path: string | null;
     learning_paths: { title: string } | null;
     lessons: { id: string; title: string; summary: string | null; sort_order: number }[] | null;
   };
@@ -62,6 +65,7 @@ async function ladeModul(id: string): Promise<ModulDetail | null> {
     title: r.title,
     description: r.description,
     learning_path_id: r.learning_path_id,
+    hero_image_path: r.hero_image_path,
     learning_path_title: r.learning_paths?.title ?? "",
     lessons: (r.lessons ?? [])
       .slice()
@@ -135,6 +139,23 @@ export default async function ModulBearbeitenPage({
               <SpeichernButton />
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Bild</CardTitle>
+          <CardDescription>
+            Optionales Hero-Bild für dieses Modul. Wird Mitarbeiter:innen
+            angezeigt.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BildUpload
+            scope="module"
+            id={modul.id}
+            aktuellerPfad={modul.hero_image_path}
+          />
         </CardContent>
       </Card>
 

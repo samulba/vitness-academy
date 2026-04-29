@@ -160,6 +160,7 @@ export type LektionDetail = {
   module_sort_order: number;
   path_id: string;
   path_title: string;
+  hero_image_path: string | null;
   blocks: ContentBlock[];
   status: LektionStatus;
   vorherige: { id: string; title: string } | null;
@@ -175,7 +176,7 @@ export async function ladeLektionFuerUser(
   const { data: lesson } = await supabase
     .from("lessons")
     .select(
-      `id, title, summary, module_id, sort_order,
+      `id, title, summary, module_id, sort_order, hero_image_path,
        modules:module_id ( id, title, sort_order, learning_path_id,
          learning_paths:learning_path_id ( id, title )
        ),
@@ -251,6 +252,9 @@ export async function ladeLektionFuerUser(
     module_sort_order: modulRaw.sort_order,
     path_id: modulRaw.learning_paths?.id ?? modulRaw.learning_path_id,
     path_title: modulRaw.learning_paths?.title ?? "",
+    hero_image_path:
+      (lesson as unknown as { hero_image_path: string | null })
+        .hero_image_path ?? null,
     blocks,
     status,
     vorherige: vorherige ? { id: vorherige.id, title: vorherige.title } : null,

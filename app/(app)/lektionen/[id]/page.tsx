@@ -57,6 +57,17 @@ export default async function LektionPage({
         Zurück zum Lernpfad
       </Link>
 
+      {lektion.hero_image_path && (
+        <div className="overflow-hidden rounded-2xl border border-border bg-muted">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/lesson-images/${lektion.hero_image_path}`}
+            alt=""
+            className="aspect-[16/9] w-full object-cover"
+          />
+        </div>
+      )}
+
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           {lektion.path_title ? (
