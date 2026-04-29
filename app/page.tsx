@@ -36,75 +36,311 @@ export default async function RootPage() {
 /* -------------------------------------------------------------------- */
 
 function Bausteine() {
-  const items = [
-    {
-      icon: Compass,
-      kicker: "01",
-      titel: "Lernpfade",
-      text: "Pro Bereich ein Pfad. Modul für Modul. In der richtigen Reihenfolge — du kannst dich nicht verlaufen.",
-    },
-    {
-      icon: ListChecks,
-      kicker: "02",
-      titel: "Quizze & Aufdeck-Karten",
-      text: "Direkt in der Lektion prüfen, ob's sitzt. Falsche Antwort? Erklärung, nochmal. Kein Drama.",
-    },
-    {
-      icon: UserCheck,
-      kicker: "03",
-      titel: "Praxisfreigabe",
-      text: "Manche Dinge muss man am Tresen können. Studioleitung schaut zu, gibt Häkchen, du bist drin.",
-    },
-    {
-      icon: BookOpen,
-      kicker: "04",
-      titel: "Wissensdatenbank",
-      text: "Wenn du im Alltag eine Frage hast — kurz suchen, Antwort lesen, weiter geht's.",
-    },
-  ];
-
   return (
     <section className="bg-[hsl(var(--brand-cream))] text-foreground">
       <div className="mx-auto max-w-[1600px] px-6 py-32 lg:px-12 lg:py-48 2xl:px-20">
-        <div className="max-w-3xl">
-          <Reveal>
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-              Womit du arbeitest
+        {/* Header */}
+        <div className="flex flex-col justify-between gap-10 lg:flex-row lg:items-end">
+          <div className="max-w-3xl">
+            <Reveal>
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+                Womit du arbeitest
+              </p>
+            </Reveal>
+            <Reveal delay={120}>
+              <h2 className="mt-8 text-balance font-semibold leading-[1.0] tracking-[-0.03em] text-[clamp(2.5rem,5vw,4.5rem)]">
+                Vier Werkzeuge.
+                <br />
+                <span className="text-muted-foreground">
+                  Mehr brauchst du nicht.
+                </span>
+              </h2>
+            </Reveal>
+          </div>
+          <Reveal delay={240}>
+            <p className="max-w-md text-base leading-relaxed text-muted-foreground">
+              Jedes Werkzeug ist genau dort, wo du&apos;s brauchst. Du musst
+              nichts vorher verstehen — du fängst einfach an.
             </p>
-          </Reveal>
-          <Reveal delay={120}>
-            <h2 className="mt-8 text-balance font-semibold leading-[1.0] tracking-[-0.03em] text-[clamp(2.5rem,5vw,4.5rem)]">
-              Vier Werkzeuge.
-              <br />
-              <span className="text-muted-foreground">
-                Mehr brauchst du nicht.
-              </span>
-            </h2>
           </Reveal>
         </div>
 
-        <div className="mt-24 grid gap-x-12 gap-y-20 md:grid-cols-2 lg:gap-y-24 xl:grid-cols-4">
-          {items.map((it, i) => (
-            <Reveal key={it.titel} delay={i * 90}>
-              <article className="group">
-                <span className="font-mono text-xs text-muted-foreground">
-                  {it.kicker}
-                </span>
-                <div className="mt-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-white text-[hsl(var(--brand-pink))] transition-colors group-hover:border-[hsl(var(--brand-pink))]">
-                  <it.icon className="h-5 w-5" strokeWidth={1.75} />
-                </div>
-                <h3 className="mt-6 text-2xl font-semibold tracking-tight">
-                  {it.titel}
-                </h3>
-                <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                  {it.text}
-                </p>
-              </article>
-            </Reveal>
-          ))}
+        {/* Bento Grid */}
+        <div className="mt-20 grid gap-4 md:gap-6 lg:grid-cols-5 lg:grid-rows-2">
+          <Reveal className="lg:col-span-3 lg:row-span-1">
+            <BentoCard
+              kicker="01"
+              titel="Lernpfade"
+              text="Pro Bereich ein Pfad. Modul für Modul. In der richtigen Reihenfolge — du kannst dich nicht verlaufen."
+              icon={Compass}
+              featured
+            >
+              <LernpfadVisual />
+            </BentoCard>
+          </Reveal>
+
+          <Reveal delay={90} className="lg:col-span-2 lg:row-span-1">
+            <BentoCard
+              kicker="02"
+              titel="Mini-Quizze & Aufdeck-Karten"
+              text="Direkt prüfen, ob's sitzt. Kein Drama, falsch ist falsch — Erklärung und nochmal."
+              icon={ListChecks}
+            >
+              <QuizVisual />
+            </BentoCard>
+          </Reveal>
+
+          <Reveal delay={180} className="lg:col-span-2 lg:row-span-1">
+            <BentoCard
+              kicker="03"
+              titel="Praxisfreigabe"
+              text="Manche Dinge muss man am Tresen können. Studioleitung schaut zu, gibt Häkchen."
+              icon={UserCheck}
+            >
+              <FreigabeVisual />
+            </BentoCard>
+          </Reveal>
+
+          <Reveal delay={270} className="lg:col-span-3 lg:row-span-1">
+            <BentoCard
+              kicker="04"
+              titel="Wissensdatenbank"
+              text="Wenn du im Alltag eine Frage hast — kurz suchen, Antwort lesen, weiter geht's."
+              icon={BookOpen}
+              featured
+            >
+              <WissenVisual />
+            </BentoCard>
+          </Reveal>
         </div>
       </div>
     </section>
+  );
+}
+
+/* -------------------------------------------------------------------- */
+/* Bento-Card + Visuals                                                  */
+/* -------------------------------------------------------------------- */
+
+function BentoCard({
+  kicker,
+  titel,
+  text,
+  icon: Icon,
+  featured,
+  children,
+}: {
+  kicker: string;
+  titel: string;
+  text: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  featured?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[hsl(var(--primary))] hover:shadow-[0_24px_60px_-24px_hsl(var(--primary)/0.35)] sm:p-8">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <span className="font-mono text-xs text-muted-foreground">
+            {kicker}
+          </span>
+          <h3
+            className={
+              featured
+                ? "mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
+                : "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl"
+            }
+          >
+            {titel}
+          </h3>
+        </div>
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-[hsl(var(--brand-cream))] text-[hsl(var(--brand-pink))] transition-colors group-hover:border-[hsl(var(--primary))] group-hover:bg-[hsl(var(--primary)/0.08)]">
+          <Icon className="h-5 w-5" strokeWidth={1.75} />
+        </span>
+      </div>
+
+      <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+        {text}
+      </p>
+
+      {/* Visual */}
+      <div className="mt-8 flex-1">{children}</div>
+    </article>
+  );
+}
+
+function LernpfadVisual() {
+  const lektionen = [
+    { titel: "Begrüßung am Empfang", state: "done" as const },
+    { titel: "Standard Check-in", state: "doing" as const },
+    { titel: "Häufige Kundenfragen", state: "open" as const },
+  ];
+  return (
+    <div className="rounded-xl border border-border bg-[hsl(var(--brand-cream))] p-4">
+      <div className="flex items-baseline justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Theke und Empfang
+        </span>
+        <span className="text-[10px] tabular-nums text-muted-foreground">
+          11 / 16
+        </span>
+      </div>
+      <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
+        <div
+          className="h-full bg-[hsl(var(--primary))]"
+          style={{ width: "68%" }}
+        />
+      </div>
+      <ul className="mt-4 space-y-2">
+        {lektionen.map((l) => (
+          <li
+            key={l.titel}
+            className="flex items-center gap-3 rounded-lg bg-white px-3 py-2"
+          >
+            <span
+              className={
+                l.state === "done"
+                  ? "flex h-5 w-5 items-center justify-center rounded-full bg-[hsl(var(--success))] text-white"
+                  : l.state === "doing"
+                  ? "flex h-5 w-5 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
+                  : "h-5 w-5 rounded-full border-2 border-border"
+              }
+            >
+              {l.state === "done" && (
+                <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none">
+                  <path
+                    d="M2 6.5l2.5 2.5L10 3.5"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              )}
+              {l.state === "doing" && (
+                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              )}
+            </span>
+            <span
+              className={
+                l.state === "done"
+                  ? "flex-1 text-sm text-muted-foreground line-through"
+                  : "flex-1 text-sm font-medium"
+              }
+            >
+              {l.titel}
+            </span>
+            {l.state === "doing" && (
+              <span className="rounded-full border border-[hsl(var(--primary))] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[hsl(var(--primary))]">
+                Jetzt
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function QuizVisual() {
+  return (
+    <div className="rounded-xl border-2 border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.04)] p-4">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+        Mini-Quiz
+      </p>
+      <p className="mt-1 text-sm font-semibold leading-tight">
+        Welche Reaktion ist richtig?
+      </p>
+      <ul className="mt-3 space-y-1.5">
+        <li className="flex items-center gap-2 rounded-lg border-2 border-[hsl(var(--success))] bg-[hsl(var(--success)/0.08)] px-3 py-2">
+          <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-[hsl(var(--success))] text-white">
+            <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none">
+              <path
+                d="M2 6.5l2.5 2.5L10 3.5"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
+          <span className="text-xs font-medium">Lächeln und Blickkontakt</span>
+        </li>
+        <li className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 opacity-60">
+          <span className="h-4 w-4 shrink-0 rounded-sm border-2 border-muted-foreground/30" />
+          <span className="text-xs font-medium">Erst Aufgabe abschließen</span>
+        </li>
+      </ul>
+      <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-[hsl(var(--success)/0.15)] px-2.5 py-0.5 text-[10px] font-semibold text-[hsl(var(--success))]">
+        Richtig!
+      </div>
+    </div>
+  );
+}
+
+function FreigabeVisual() {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-3 rounded-xl border-2 border-[hsl(var(--success))] bg-[hsl(var(--success)/0.08)] px-4 py-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--success))] text-white">
+          <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none">
+            <path
+              d="M3 8.5l3.5 3.5L13 4.5"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--success))]">
+            Freigegeben
+          </p>
+          <p className="text-sm font-semibold">Begrüßung live</p>
+        </div>
+      </div>
+      <div className="rounded-xl bg-[hsl(var(--brand-cream))] p-3">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          Notiz von Maria
+        </p>
+        <p className="mt-1 text-xs italic leading-relaxed">
+          „Sehr ruhig und freundlich am Tresen. Top!“
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function WissenVisual() {
+  const ergebnisse = [
+    { titel: "Karte funktioniert nicht", kat: "Theke" },
+    { titel: "Reha-Anfrage aufnehmen", kat: "Reha" },
+    { titel: "Beitrag pausieren", kat: "Verkauf" },
+  ];
+  return (
+    <div className="rounded-xl border border-border bg-[hsl(var(--brand-cream))] p-4">
+      <div className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2">
+        <svg viewBox="0 0 16 16" className="h-4 w-4 text-muted-foreground" fill="none">
+          <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M14 14l-3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+        <span className="text-xs text-muted-foreground">Karte</span>
+        <span className="ml-auto h-2 w-px animate-pulse bg-foreground/40" />
+      </div>
+      <ul className="mt-3 space-y-1.5">
+        {ergebnisse.map((e) => (
+          <li
+            key={e.titel}
+            className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 transition-colors hover:bg-[hsl(var(--primary)/0.04)]"
+          >
+            <span className="text-xs font-medium">{e.titel}</span>
+            <span className="rounded-full bg-[hsl(var(--brand-pink)/0.12)] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+              {e.kat}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
