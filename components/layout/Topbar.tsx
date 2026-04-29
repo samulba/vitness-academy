@@ -34,7 +34,7 @@ function initialen(name: string | null): string {
 
 export function Topbar({ fullName, role }: Props) {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/70 lg:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/70 lg:hidden">
       <Link
         href="/dashboard"
         className="flex items-center gap-2.5 text-foreground"

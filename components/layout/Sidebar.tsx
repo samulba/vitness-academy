@@ -3,17 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Home,
-  GraduationCap,
-  CheckSquare,
+  Activity,
   BookOpen,
+  CheckSquare,
+  GraduationCap,
+  HelpCircle,
+  Home,
+  Settings,
   ShieldCheck,
   Users,
-  Activity,
-  HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { istAdmin, istFuehrungskraftOderHoeher, type Rolle } from "@/lib/rollen";
+import { rolleLabel } from "@/lib/format";
 
 type NavEintrag = {
   href: string;
@@ -24,8 +26,8 @@ type NavEintrag = {
 };
 
 const LERNEN_NAV: NavEintrag[] = [
-  { href: "/dashboard", label: "Mein Dashboard", icon: Home },
-  { href: "/lernpfade", label: "Meine Lernpfade", icon: GraduationCap },
+  { href: "/dashboard", label: "Dashboard", icon: Home },
+  { href: "/lernpfade", label: "Lernpfade", icon: GraduationCap },
   { href: "/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare },
 ];
 
@@ -44,39 +46,108 @@ const ADMIN_NAV: NavEintrag[] = [
   { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity },
 ];
 
-export function Sidebar({ rolle }: { rolle: Rolle }) {
+function initialen(name: string | null): string {
+  if (!name) return "VA";
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
+}
+
+export function Sidebar({
+  rolle,
+  fullName,
+}: {
+  rolle: Rolle;
+  fullName?: string | null;
+}) {
   const pathname = usePathname();
   const showAdmin = istFuehrungskraftOderHoeher(rolle);
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-border bg-background lg:block">
-      <nav className="sticky top-14 flex h-[calc(100vh-3.5rem)] flex-col gap-1 overflow-y-auto p-4 text-sm">
-        <div className="px-3 pb-2 pt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Lernen
+    <aside className="hidden w-64 shrink-0 border-r border-border bg-background lg:flex lg:flex-col">
+      <div className="sticky top-0 flex h-screen flex-col">
+        {/* Branding oben */}
+        <div className="flex items-center gap-2.5 border-b border-border px-5 py-5">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--brand-lime))] text-sm font-bold text-[hsl(var(--brand-ink))]">
+            VA
+          </span>
+          <span className="text-[15px] font-semibold tracking-tight">
+            Vitness Academy
+          </span>
         </div>
-        {LERNEN_NAV.map((eintrag) => (
-          <NavLink key={eintrag.href} eintrag={eintrag} pathname={pathname} />
-        ))}
 
-        <div className="mt-6 px-3 pb-2 pt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Studio
-        </div>
-        {STUDIO_NAV.map((eintrag) => (
-          <NavLink key={eintrag.href} eintrag={eintrag} pathname={pathname} />
-        ))}
+        {/* Nav-Gruppen scrollbar */}
+        <nav className="flex-1 overflow-y-auto px-3 py-5 text-sm">
+          <NavGruppe label="Lernen" eintraege={LERNEN_NAV} pathname={pathname} />
+          <NavGruppe
+            label="Studio"
+            eintraege={STUDIO_NAV}
+            pathname={pathname}
+            className="mt-7"
+          />
+          {showAdmin && (
+            <NavGruppe
+              label={istAdmin(rolle) ? "Verwaltung" : "Team"}
+              eintraege={ADMIN_NAV}
+              pathname={pathname}
+              className="mt-7"
+            />
+          )}
+        </nav>
 
-        {showAdmin ? (
-          <>
-            <div className="mt-6 px-3 pb-2 pt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              {istAdmin(rolle) ? "Verwaltung" : "Team"}
-            </div>
-            {ADMIN_NAV.map((eintrag) => (
-              <NavLink key={eintrag.href} eintrag={eintrag} pathname={pathname} />
-            ))}
-          </>
-        ) : null}
-      </nav>
+        {/* Profil-Footer */}
+        <Link
+          href="/einstellungen"
+          className="group flex items-center gap-3 border-t border-border px-4 py-4 transition-colors hover:bg-muted"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-sm font-semibold text-[hsl(var(--primary-foreground))]">
+            {initialen(fullName ?? null)}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-foreground">
+              {fullName ?? "—"}
+            </p>
+            <p className="truncate text-xs text-muted-foreground">
+              {rolleLabel(rolle)}
+            </p>
+          </div>
+          <Settings
+            className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground"
+            strokeWidth={1.75}
+          />
+        </Link>
+      </div>
     </aside>
+  );
+}
+
+function NavGruppe({
+  label,
+  eintraege,
+  pathname,
+  className,
+}: {
+  label: string;
+  eintraege: NavEintrag[];
+  pathname: string;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+        {label}
+      </p>
+      <ul className="space-y-0.5">
+        {eintraege.map((e) => (
+          <li key={e.href}>
+            <NavLink eintrag={e} pathname={pathname} />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -95,10 +166,10 @@ function NavLink({
   if (eintrag.bald) {
     return (
       <span
-        className="flex items-center gap-2 rounded-md px-2 py-2 text-muted-foreground/70"
+        className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground/60"
         title="Bald verfügbar"
       >
-        <Icon className="h-4 w-4" />
+        <Icon className="h-4 w-4" strokeWidth={1.75} />
         <span>{eintrag.label}</span>
         <span className="ml-auto rounded-full bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
           bald
@@ -111,17 +182,24 @@ function NavLink({
     <Link
       href={eintrag.href}
       className={cn(
-        "group flex items-center gap-3 rounded-lg px-3 py-2 transition-colors",
+        "group relative flex items-center gap-3 rounded-lg px-3 py-2 transition-colors",
         aktiv
-          ? "bg-foreground text-background font-medium"
+          ? "bg-[hsl(var(--primary)/0.08)] font-semibold text-foreground"
           : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
+      {/* Magenta-Bar links als Aktiv-Indikator */}
+      {aktiv && (
+        <span
+          aria-hidden
+          className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-[hsl(var(--primary))]"
+        />
+      )}
       <Icon
         className={cn(
-          "h-4 w-4 shrink-0",
+          "h-4 w-4 shrink-0 transition-colors",
           aktiv
-            ? "text-[hsl(var(--brand-lime))]"
+            ? "text-[hsl(var(--primary))]"
             : "text-muted-foreground group-hover:text-foreground",
         )}
         strokeWidth={1.75}
