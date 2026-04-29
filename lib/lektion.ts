@@ -45,6 +45,23 @@ export async function lektionAlsGesehenMarkieren(
 }
 
 /**
+ * Liefert die Block-IDs aller inline_quiz-Bloecke einer Lektion,
+ * die der User bereits bestanden hat.
+ */
+export async function ladeBestandeneQuizIds(
+  userId: string,
+  lessonId: string,
+): Promise<Set<string>> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("user_inline_quiz_attempts")
+    .select("block_id")
+    .eq("user_id", userId)
+    .eq("lesson_id", lessonId);
+  return new Set(((data ?? []) as { block_id: string }[]).map((r) => r.block_id));
+}
+
+/**
  * Aktivitaets-Stats fuer das Mitarbeiter-Dashboard.
  * Zaehlt die Anzahl distinkter Tage in den letzten 30 Tagen,
  * an denen mindestens eine Lektion gesehen oder abgeschlossen

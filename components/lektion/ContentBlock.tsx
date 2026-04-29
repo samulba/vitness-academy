@@ -18,7 +18,15 @@ import { SortierAufgabe } from "@/components/lektion/blocks/SortierAufgabe";
 import { Szenario } from "@/components/lektion/blocks/Szenario";
 import { Schritte } from "@/components/lektion/blocks/Schritte";
 
-export function ContentBlockView({ block }: { block: ContentBlock }) {
+export function ContentBlockView({
+  block,
+  lessonId,
+  bestandeneQuizIds,
+}: {
+  block: ContentBlock;
+  lessonId?: string;
+  bestandeneQuizIds?: Set<string>;
+}) {
   switch (block.block_type) {
     case "text":
       return <TextBlock markdown={String(block.content?.markdown ?? "")} />;
@@ -50,7 +58,12 @@ export function ContentBlockView({ block }: { block: ContentBlock }) {
       );
     case "inline_quiz":
       return (
-        <InlineQuiz content={block.content as unknown as InlineQuizContent} />
+        <InlineQuiz
+          content={block.content as unknown as InlineQuizContent}
+          blockId={block.id}
+          lessonId={lessonId ?? ""}
+          istBestanden={bestandeneQuizIds?.has(block.id) ?? false}
+        />
       );
     case "akkordeon":
       return (

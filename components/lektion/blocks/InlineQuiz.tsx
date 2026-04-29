@@ -1,20 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Check, HelpCircle, RotateCcw, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import type { InlineQuizContent } from "@/lib/lektion";
+import { inlineQuizPruefen } from "@/app/(app)/lektionen/[id]/quiz-actions";
 
-export function InlineQuiz({ content }: { content: InlineQuizContent }) {
+type Props = {
+  content: InlineQuizContent;
+  blockId: string;
+  lessonId: string;
+  /** Ist diese Quiz-Frage schon richtig beantwortet (persistiert)? */
+  istBestanden: boolean;
+};
+
+export function InlineQuiz({
+  content,
+  blockId,
+  lessonId,
+  istBestanden,
+}: Props) {
   const [auswahl, setAuswahl] = useState<Set<number>>(new Set());
-  const [geprueft, setGeprueft] = useState(false);
+  const [geprueft, setGeprueft] = useState(istBestanden);
+  const [letzteRichtig, setLetzteRichtig] = useState(istBestanden);
+  const [pending, startTransition] = useTransition();
 
   const istMultiple = content.typ === "multiple";
+  const eingefroren = istBestanden;
 
   function toggle(i: number) {
-    if (geprueft) return;
+    if (eingefroren || pending) return;
     setAuswahl((alt) => {
       const neu = new Set(alt);
       if (istMultiple) {
@@ -30,27 +47,44 @@ export function InlineQuiz({ content }: { content: InlineQuizContent }) {
 
   function pruefen() {
     if (auswahl.size === 0) return;
-    setGeprueft(true);
+    startTransition(async () => {
+      const res = await inlineQuizPruefen(blockId, lessonId, [...auswahl]);
+      setGeprueft(true);
+      setLetzteRichtig(res.istRichtig);
+    });
   }
 
-  function zuruecksetzen() {
+  function nochmal() {
+    if (eingefroren) return;
     setAuswahl(new Set());
     setGeprueft(false);
+    setLetzteRichtig(false);
   }
-
-  const allesRichtig =
-    geprueft &&
-    content.optionen.every((opt, i) => opt.korrekt === auswahl.has(i));
 
   return (
     <div className="rounded-2xl border-2 border-[hsl(var(--brand-pink)/0.3)] bg-[hsl(var(--brand-pink)/0.04)] p-5 sm:p-6">
       <div className="flex items-start gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--brand-pink)/0.15)] text-[hsl(var(--brand-pink))]">
-          <HelpCircle className="h-4 w-4" />
+        <span
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+            istBestanden
+              ? "bg-[hsl(var(--success))] text-white"
+              : "bg-[hsl(var(--brand-pink)/0.15)] text-[hsl(var(--brand-pink))]",
+          )}
+        >
+          {istBestanden ? (
+            <Check className="h-4 w-4" strokeWidth={3} />
+          ) : (
+            <HelpCircle className="h-4 w-4" />
+          )}
         </span>
         <div className="flex-1">
           <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
-            Mini-Quiz · {istMultiple ? "Mehrere Antworten möglich" : "Eine Antwort"}
+            {istBestanden
+              ? "Bestanden"
+              : `Wissens-Check · ${
+                  istMultiple ? "Mehrere Antworten möglich" : "Eine Antwort"
+                }`}
           </p>
           <p className="mt-1 text-base font-semibold text-foreground sm:text-lg">
             {content.frage}
@@ -69,7 +103,7 @@ export function InlineQuiz({ content }: { content: InlineQuizContent }) {
               <button
                 type="button"
                 onClick={() => toggle(i)}
-                disabled={geprueft}
+                disabled={eingefroren || pending}
                 className={cn(
                   "group flex w-full items-start gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all",
                   !geprueft &&
@@ -118,13 +152,15 @@ export function InlineQuiz({ content }: { content: InlineQuizContent }) {
                   <span className="text-sm font-medium text-foreground sm:text-base">
                     {opt.text}
                   </span>
-                  {geprueft && opt.erklaerung && (zeigeAlsRichtig || zeigeAlsFalsch) && (
-                    <span className="prose-vitness mt-1.5 block text-xs text-muted-foreground sm:text-sm">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {opt.erklaerung}
-                      </ReactMarkdown>
-                    </span>
-                  )}
+                  {geprueft &&
+                    opt.erklaerung &&
+                    (zeigeAlsRichtig || zeigeAlsFalsch) && (
+                      <span className="prose-vitness mt-1.5 block text-xs text-muted-foreground sm:text-sm">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {opt.erklaerung}
+                        </ReactMarkdown>
+                      </span>
+                    )}
                 </span>
               </button>
             </li>
@@ -137,38 +173,40 @@ export function InlineQuiz({ content }: { content: InlineQuizContent }) {
           <button
             type="button"
             onClick={pruefen}
-            disabled={auswahl.size === 0}
+            disabled={auswahl.size === 0 || pending}
             className="rounded-full bg-[hsl(var(--primary))] px-5 py-2 text-sm font-semibold text-[hsl(var(--primary-foreground))] shadow-sm transition-all hover:bg-[hsl(var(--primary)/0.9)] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Antwort prüfen
+            {pending ? "Prüfe …" : "Antwort prüfen"}
           </button>
         ) : (
           <>
             <span
               className={cn(
                 "inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold",
-                allesRichtig
+                letzteRichtig
                   ? "bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]"
                   : "bg-[hsl(var(--destructive)/0.12)] text-[hsl(var(--destructive))]",
               )}
             >
-              {allesRichtig ? (
+              {letzteRichtig ? (
                 <>
-                  <Check className="h-4 w-4" /> Richtig!
+                  <Check className="h-4 w-4" /> Richtig — abgehakt
                 </>
               ) : (
                 <>
-                  <X className="h-4 w-4" /> Nicht ganz
+                  <X className="h-4 w-4" /> Nicht ganz, versuch&apos;s nochmal
                 </>
               )}
             </span>
-            <button
-              type="button"
-              onClick={zuruecksetzen}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
-            >
-              <RotateCcw className="h-3.5 w-3.5" /> Nochmal
-            </button>
+            {!letzteRichtig && (
+              <button
+                type="button"
+                onClick={nochmal}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+              >
+                <RotateCcw className="h-3.5 w-3.5" /> Nochmal
+              </button>
+            )}
           </>
         )}
       </div>

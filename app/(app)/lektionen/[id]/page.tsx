@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Lock, Sparkles } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -16,7 +16,11 @@ import {
 import { QuizCard } from "@/components/lektion/QuizCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { requireProfile } from "@/lib/auth";
-import { ladeLektionFuerUser, lektionAlsGesehenMarkieren } from "@/lib/lektion";
+import {
+  ladeBestandeneQuizIds,
+  ladeLektionFuerUser,
+  lektionAlsGesehenMarkieren,
+} from "@/lib/lektion";
 import { ladeLetztenVersuch, ladeQuizFuerLektion } from "@/lib/quiz";
 import {
   lektionAbschliessen,
@@ -34,7 +38,6 @@ export default async function LektionPage({
   if (!lektion) notFound();
 
   // Lernzeit-Tracking: started_at + last_seen_at pflegen.
-  // Fire-and-forget, blockt das Rendern nicht.
   await lektionAlsGesehenMarkieren(profile.id, id);
 
   const bereitsFertig = lektion.status === "abgeschlossen";
@@ -43,6 +46,18 @@ export default async function LektionPage({
   const letzterVersuch = quiz
     ? await ladeLetztenVersuch(quiz.id, profile.id)
     : null;
+
+  // Bloecke trennen: Lehrtext oben, Wissens-Check (inline_quiz) unten.
+  const lehrBloecke = lektion.blocks.filter(
+    (b) => b.block_type !== "inline_quiz",
+  );
+  const quizBloecke = lektion.blocks.filter(
+    (b) => b.block_type === "inline_quiz",
+  );
+  const bestandene = await ladeBestandeneQuizIds(profile.id, lektion.id);
+  const offeneQuizze = quizBloecke.filter((b) => !bestandene.has(b.id));
+  const alleQuizzesBestanden = quizBloecke.length === 0 || offeneQuizze.length === 0;
+  const abschliessbar = alleQuizzesBestanden;
 
   const abschliessen = lektionAbschliessen.bind(null, lektion.id);
   const zuruecksetzen = lektionZurueckSetzen.bind(null, lektion.id);
@@ -91,31 +106,95 @@ export default async function LektionPage({
         </div>
       </header>
 
+      {/* === Lehrtext-Bloecke (alles ausser inline_quiz) === */}
       <Card>
         <CardContent className="space-y-6 py-6">
-          {lektion.blocks.length === 0 ? (
+          {lehrBloecke.length === 0 && quizBloecke.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Diese Lektion enthält noch keine Inhalte.
             </p>
+          ) : lehrBloecke.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Diese Lektion besteht ausschließlich aus dem Wissens-Check unten.
+            </p>
           ) : (
-            lektion.blocks.map((block) => (
-              <ContentBlockView key={block.id} block={block} />
+            lehrBloecke.map((block) => (
+              <ContentBlockView
+                key={block.id}
+                block={block}
+                lessonId={lektion.id}
+                bestandeneQuizIds={bestandene}
+              />
             ))
           )}
         </CardContent>
       </Card>
 
+      {/* === Wissens-Check (inline_quiz) — räumlich getrennt === */}
+      {quizBloecke.length > 0 && (
+        <section className="space-y-5 border-t-2 border-dashed border-border pt-10">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+                <Sparkles className="h-3 w-3" />
+                Wissens-Check
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                Bevor du abschließt
+              </h2>
+              <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+                Hak die Fragen ab, dann kannst du diese Lektion fertigmachen.
+                Bei falschen Antworten gibt&apos;s eine Erklärung — kein Druck,
+                versuch&apos;s nochmal.
+              </p>
+            </div>
+            <span
+              className={
+                alleQuizzesBestanden
+                  ? "inline-flex items-center gap-2 rounded-full bg-[hsl(var(--success)/0.15)] px-3 py-1 text-xs font-bold text-[hsl(var(--success))]"
+                  : "inline-flex items-center gap-2 rounded-full bg-[hsl(var(--brand-pink)/0.12)] px-3 py-1 text-xs font-bold text-[hsl(var(--brand-pink))]"
+              }
+            >
+              {bestandene.size} / {quizBloecke.length} bestanden
+            </span>
+          </div>
+          <div className="space-y-4">
+            {quizBloecke.map((block) => (
+              <ContentBlockView
+                key={block.id}
+                block={block}
+                lessonId={lektion.id}
+                bestandeneQuizIds={bestandene}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {quiz ? <QuizCard quiz={quiz} letzterVersuch={letzterVersuch} /> : null}
 
+      {/* === Abschluss-Card mit Gating === */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Bist du fertig?</CardTitle>
+          <CardTitle className="text-base">
+            {bereitsFertig
+              ? "Lektion abgeschlossen"
+              : abschliessbar
+              ? "Bist du fertig?"
+              : "Wissens-Check fehlt noch"}
+          </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             {bereitsFertig
               ? "Du hast diese Lektion bereits abgeschlossen."
-              : "Markiere die Lektion als abgeschlossen, sobald du den Inhalt verinnerlicht hast."}
+              : abschliessbar
+              ? "Markiere die Lektion als abgeschlossen, sobald du den Inhalt verinnerlicht hast."
+              : `Beantworte zuerst die ${offeneQuizze.length} ${
+                  offeneQuizze.length === 1
+                    ? "offene Frage"
+                    : "offenen Fragen"
+                } im Wissens-Check oben — danach kannst du abschließen.`}
           </p>
           <div className="flex gap-2">
             {bereitsFertig ? (
@@ -128,10 +207,15 @@ export default async function LektionPage({
                   <ZurueckSetzenSubmit />
                 </form>
               </>
-            ) : (
+            ) : abschliessbar ? (
               <form action={abschliessen}>
                 <AbschliessenSubmit />
               </form>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-4 py-2 text-sm font-medium text-muted-foreground">
+                <Lock className="h-3.5 w-3.5" />
+                Erst Wissens-Check abschließen
+              </span>
             )}
           </div>
         </CardContent>
