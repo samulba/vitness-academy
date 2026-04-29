@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, BookOpen, CheckCircle2 } from "lucide-react";
 import { formatProzent } from "@/lib/format";
 
@@ -58,10 +59,13 @@ export function PfadCard({
               "linear-gradient(135deg, hsl(var(--brand-ink)) 0%, hsl(var(--primary)) 60%, hsl(var(--brand-pink)) 100%)",
           }}
         />
-        {/* Hero-Bild */}
-        <div
-          className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.05]"
-          style={{ backgroundImage: `url(/lernpfade/${slug}.jpg)` }}
+        {/* Hero-Bild via next/image -- auto WebP/AVIF, responsive sizes, lazy */}
+        <Image
+          src={`/lernpfade/${slug}.jpg`}
+          alt=""
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
         />
 
         {/* Top-Verlauf — nur leicht, fuer Pill-Lesbarkeit */}

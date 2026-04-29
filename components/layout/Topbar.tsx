@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
@@ -62,6 +62,13 @@ export function Topbar({ fullName, role }: Props) {
             <div className="font-medium">{fullName ?? "Mitarbeiter"}</div>
             <div className="text-xs text-muted-foreground">{rolleLabel(role)}</div>
           </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href="/einstellungen" className="w-full">
+              <Settings className="h-4 w-4" />
+              <span>Einstellungen</span>
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <form action={abmelden}>
             <DropdownMenuItem asChild>
