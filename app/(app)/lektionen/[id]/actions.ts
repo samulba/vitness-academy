@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
+import { zertifikatErzeugenWennFertig } from "@/lib/zertifikat";
 
 /**
  * Wird beim Oeffnen einer Lektion aufgerufen.
@@ -64,9 +65,23 @@ export async function lektionAbschliessen(lessonId: string) {
     { onConflict: "user_id,lesson_id" },
   );
 
+  // Wenn diese Lektion den Pfad komplettiert, Zertifikat erzeugen
+  const { data: lesson } = await supabase
+    .from("lessons")
+    .select("modules:module_id ( learning_path_id )")
+    .eq("id", lessonId)
+    .single();
+  const pfadId = (lesson as unknown as {
+    modules: { learning_path_id: string } | null;
+  } | null)?.modules?.learning_path_id;
+  if (pfadId) {
+    await zertifikatErzeugenWennFertig(user.id, pfadId);
+  }
+
   revalidatePath(`/lektionen/${lessonId}`);
   revalidatePath("/dashboard");
   revalidatePath("/lernpfade");
+  revalidatePath(`/lernpfade/${pfadId}`);
 }
 
 export async function lektionZurueckSetzen(lessonId: string) {
