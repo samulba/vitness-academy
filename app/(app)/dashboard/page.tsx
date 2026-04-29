@@ -1,18 +1,14 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  ArrowUpRight,
   BookOpen,
+  CheckCircle2,
   CheckSquare,
   GraduationCap,
-  HelpCircle,
+  Sparkles,
   Trophy,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
 import { PfadCard } from "@/components/lernpfad/PfadCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { requireProfile } from "@/lib/auth";
@@ -41,104 +37,183 @@ export default async function DashboardPage() {
   const abgeschlossen = pfade.reduce((s, p) => s + p.abgeschlossen, 0);
   const prozent = gesamt === 0 ? 0 : (abgeschlossen / gesamt) * 100;
   const offen = offeneLektionen(pfade, 5);
+  const next = offen[0];
 
   return (
-    <div className="space-y-12">
-      {/* Hero */}
-      <section className="space-y-8">
-        <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
-          <div className="lg:col-span-7">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
-              Mein Dashboard
-            </p>
-            <h1 className="mt-3 text-balance font-semibold leading-[1.05] tracking-[-0.025em] text-[clamp(2rem,3.5vw,3rem)]">
-              {tageszeitGruss(profile.full_name)}.
-            </h1>
-            <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground">
-              Hier siehst du auf einen Blick, wo du stehst und was als
-              Nächstes ansteht.
-            </p>
+    <div className="space-y-14">
+      {/* === Hero === */}
+      <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-10">
+        {/* Subtiler Magenta-Glow rechts oben */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-20 right-[-10%] h-[400px] w-[400px] rounded-full opacity-[0.10] blur-[100px]"
+          style={{
+            background:
+              "radial-gradient(closest-side, hsl(var(--primary)), transparent)",
+          }}
+        />
+
+        <div className="relative">
+          <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+            <span className="h-px w-10 bg-[hsl(var(--primary))]" />
+            <span>Mein Dashboard</span>
+            <span className="text-muted-foreground">
+              · {formatProzent(prozent)} Gesamtfortschritt
+            </span>
           </div>
 
-          <div className="lg:col-span-5">
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <div className="flex items-baseline justify-between">
-                <p className="text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
-                  Gesamtfortschritt
-                </p>
-                <span className="text-xs text-muted-foreground">
-                  {abgeschlossen} / {gesamt} Lektionen
-                </span>
+          <h1 className="mt-6 text-balance font-semibold leading-[1.05] tracking-[-0.025em] text-[clamp(2rem,4vw,3.5rem)]">
+            {tageszeitGruss(profile.full_name)}.
+          </h1>
+          <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            {gesamt === 0
+              ? "Sobald dir Lernpfade zugewiesen sind, geht's hier los."
+              : abgeschlossen === gesamt
+              ? "Alle Lektionen abgeschlossen — stark!"
+              : `Du hast ${offen.length} ${
+                  offen.length === 1 ? "offene Lektion" : "offene Lektionen"
+                } — und ${abgeschlossen} schon geschafft.`}
+          </p>
+
+          {/* Progress + Stats kombiniert */}
+          {gesamt > 0 && (
+            <div className="mt-10 space-y-5">
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between text-xs">
+                  <span className="font-medium uppercase tracking-wider text-muted-foreground">
+                    Fortschritt
+                  </span>
+                  <span className="font-semibold tabular-nums">
+                    {abgeschlossen} / {gesamt} Lektionen
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-[hsl(var(--primary))] transition-[width] duration-500"
+                    style={{ width: `${prozent}%` }}
+                  />
+                </div>
               </div>
-              <div className="mt-2 flex items-baseline gap-3">
-                <span className="text-5xl font-semibold tracking-tight text-foreground">
-                  {formatProzent(prozent)}
-                </span>
-              </div>
-              <div className="mt-4">
-                <Progress value={prozent} />
+
+              {/* Stat-Pills inline */}
+              <div className="flex flex-wrap gap-2">
+                <StatPill
+                  icon={<GraduationCap className="h-3.5 w-3.5" />}
+                  label="Lernpfade"
+                  wert={pfade.length}
+                  href="/lernpfade"
+                />
+                <StatPill
+                  icon={<BookOpen className="h-3.5 w-3.5" />}
+                  label="Offen"
+                  wert={offen.length}
+                />
+                <StatPill
+                  icon={<Trophy className="h-3.5 w-3.5" />}
+                  label="Abgeschlossen"
+                  wert={abgeschlossen}
+                  akzent="success"
+                />
+                <StatPill
+                  icon={<CheckSquare className="h-3.5 w-3.5" />}
+                  label="Praxis offen"
+                  wert={anzOffenePraxis}
+                  href="/praxisfreigaben"
+                  akzent={anzOffenePraxis > 0 ? "primary" : undefined}
+                />
               </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
-      {/* Kennzahl-Karten */}
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KennzahlCard
-          icon={<GraduationCap className="h-5 w-5" />}
-          label="Lernpfade"
-          wert={pfade.length}
-          akzent="lime"
-          href="/lernpfade"
-        />
-        <KennzahlCard
-          icon={<BookOpen className="h-5 w-5" />}
-          label="Offene Lektionen"
-          wert={offen.length}
-          akzent="pink"
-        />
-        <KennzahlCard
-          icon={<Trophy className="h-5 w-5" />}
-          label="Abgeschlossen"
-          wert={abgeschlossen}
-          akzent="success"
-        />
-        <KennzahlCard
-          icon={<CheckSquare className="h-5 w-5" />}
-          label="Praxis offen"
-          wert={anzOffenePraxis}
-          akzent="coral"
-          href="/praxisfreigaben"
-        />
-      </section>
+      {/* === Heute weitermachen (Featured Next-Up) === */}
+      {next && (
+        <section className="space-y-5">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+              Heute weitermachen
+            </h2>
+          </div>
+          <Link
+            href={`/lektionen/${next.lesson_id}`}
+            className="group relative grid gap-6 overflow-hidden rounded-3xl border border-border bg-[hsl(var(--brand-ink))] p-6 text-[hsl(var(--brand-cream))] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-25px_hsl(var(--primary)/0.45)] sm:grid-cols-[1fr_auto] sm:items-end sm:p-10"
+          >
+            {/* Magenta-Glow */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-32 right-[-10%] h-[450px] w-[450px] rounded-full opacity-25 blur-[100px]"
+              style={{
+                background:
+                  "radial-gradient(closest-side, hsl(var(--primary)), transparent)",
+              }}
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-[0.05]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(hsl(var(--brand-cream)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--brand-cream)) 1px, transparent 1px)",
+                backgroundSize: "56px 56px",
+              }}
+            />
 
-      {/* Lernpfade */}
-      <section className="space-y-5">
-        <div className="flex items-end justify-between">
+            <div className="relative">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[hsl(var(--brand-cream)/0.55)]">
+                <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                <span className="font-medium uppercase tracking-wider">
+                  Nächster Schritt
+                </span>
+                <span>·</span>
+                <span>{next.path_title}</span>
+                <span>·</span>
+                <span>{next.module_title}</span>
+              </div>
+              <h3 className="mt-4 max-w-[24ch] text-balance font-semibold leading-tight tracking-tight text-[hsl(var(--brand-cream))] text-[clamp(1.5rem,2.5vw,2.25rem)]">
+                {next.lesson_title}
+              </h3>
+              <div className="mt-4">
+                <StatusBadge status={next.status} />
+              </div>
+            </div>
+
+            <div className="relative flex items-center gap-3 self-end sm:self-auto">
+              <span className="hidden text-sm font-medium text-[hsl(var(--brand-cream)/0.7)] sm:inline">
+                Lektion öffnen
+              </span>
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-md transition-transform group-hover:translate-x-1 group-hover:-translate-y-1">
+                <ArrowUpRight className="h-5 w-5" />
+              </span>
+            </div>
+          </Link>
+        </section>
+      )}
+
+      {/* === Lernpfade === */}
+      <section className="space-y-6">
+        <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+              Deine Kapitel
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
               Meine Lernpfade
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Alle dir zugewiesenen Lernpfade auf einen Blick.
-            </p>
           </div>
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/lernpfade" className="text-foreground">
-              Alle ansehen
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+          <Link
+            href="/lernpfade"
+            className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Alle ansehen
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
         {pfade.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
-              Dir wurden noch keine Lernpfade zugewiesen. Sprich kurz dein
-              Studio-Team an.
-            </CardContent>
-          </Card>
+          <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center text-muted-foreground">
+            Dir wurden noch keine Lernpfade zugewiesen. Sprich kurz dein
+            Studio-Team an.
+          </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {pfade.map((pfad) => (
@@ -157,124 +232,116 @@ export default async function DashboardPage() {
         )}
       </section>
 
-      {/* Offene Lektionen */}
-      <section className="space-y-5">
-        <h2 className="text-2xl font-semibold tracking-tight">
+      {/* === Offene Lektionen === */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
           Offene Lektionen
         </h2>
+
         {offen.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[hsl(var(--brand-lime))] text-[hsl(var(--brand-ink))]">
-                <Trophy className="h-6 w-6" />
-              </div>
-              <div className="mt-3 text-sm font-medium">
-                Du hast aktuell keine offenen Lektionen.
-              </div>
-              <div className="text-sm text-muted-foreground">Stark!</div>
-            </CardContent>
-          </Card>
+          <div className="rounded-2xl border border-border bg-card p-12 text-center">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]">
+              <CheckCircle2 className="h-6 w-6" />
+            </span>
+            <p className="mt-4 text-sm font-medium">
+              Aktuell keine offenen Lektionen — stark!
+            </p>
+          </div>
         ) : (
-          <Card>
-            <ul className="divide-y divide-border">
-              {offen.map((eintrag) => (
-                <li
-                  key={eintrag.lesson_id}
-                  className="flex flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6"
+          <ul className="overflow-hidden rounded-2xl border border-border bg-card">
+            {offen.map((eintrag, i) => (
+              <li
+                key={eintrag.lesson_id}
+                className={i > 0 ? "border-t border-border" : ""}
+              >
+                <Link
+                  href={`/lektionen/${eintrag.lesson_id}`}
+                  className="group relative flex items-center gap-5 px-6 py-5 transition-colors hover:bg-[hsl(var(--primary)/0.04)]"
                 >
-                  <div className="min-w-0">
-                    <Link
-                      href={`/lektionen/${eintrag.lesson_id}`}
-                      className="font-medium hover:text-primary"
-                    >
-                      {eintrag.lesson_title}
-                    </Link>
-                    <div className="text-xs text-muted-foreground">
+                  <span
+                    aria-hidden
+                    className="absolute inset-y-3 left-0 w-[3px] origin-top scale-y-0 rounded-r-full bg-[hsl(var(--primary))] transition-transform duration-200 group-hover:scale-y-100"
+                  />
+                  <span className="hidden font-mono text-xs tabular-nums text-muted-foreground sm:block">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                       {eintrag.path_title} · {eintrag.module_title}
-                    </div>
+                    </span>
+                    <p className="mt-1 truncate text-base font-semibold tracking-tight">
+                      {eintrag.lesson_title}
+                    </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <StatusBadge status={eintrag.status} />
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={`/lektionen/${eintrag.lesson_id}`}>
-                        Öffnen
-                      </Link>
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </Card>
+                  <StatusBadge status={eintrag.status} />
+                  <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-[hsl(var(--primary))]" />
+                </Link>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
 
-      {/* Handbuch-Promo */}
-      <section className="overflow-hidden rounded-2xl border border-border bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
-        <div className="grid gap-6 p-6 sm:p-10 lg:grid-cols-12 lg:items-center lg:gap-10">
-          <div className="lg:col-span-8">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.5)]">
-              <HelpCircle className="mr-1 inline h-3 w-3" />
-              Handbuch
+      {/* === Handbuch-Promo (kompakt) === */}
+      <section>
+        <Link
+          href="/wissen"
+          className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary))] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.3)] sm:p-8"
+        >
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]">
+            <BookOpen className="h-5 w-5" strokeWidth={1.75} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
+              Vitness Handbuch
             </p>
-            <h3 className="mt-3 text-balance text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
-              Schnelle Antworten für den Studio-Alltag.
-            </h3>
-            <p className="mt-3 max-w-md text-sm leading-relaxed text-[hsl(var(--brand-cream)/0.7)]">
-              Durchsuchbar nach Stichworten und Kategorien — vom Notfallplan
-              bis zur Reinigungsroutine.
+            <p className="mt-0.5 text-base font-semibold sm:text-lg">
+              Schnelle Antworten für den Studio-Alltag
             </p>
           </div>
-          <div className="lg:col-span-4 lg:text-right">
-            <Link
-              href="/wissen"
-              className="group inline-flex items-center gap-2 rounded-full bg-[hsl(var(--brand-lime))] px-5 py-3 text-sm font-semibold text-[hsl(var(--brand-ink))] transition-transform hover:scale-[1.02]"
-            >
-              Handbuch öffnen
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          </div>
-        </div>
+          <ArrowUpRight className="h-5 w-5 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))]" />
+        </Link>
       </section>
     </div>
   );
 }
 
-type Akzent = "lime" | "pink" | "coral" | "success";
+/* -------------------------------------------------------------------- */
+/* Stat-Pill                                                             */
+/* -------------------------------------------------------------------- */
 
-function KennzahlCard({
+function StatPill({
   icon,
   label,
   wert,
-  akzent,
   href,
+  akzent,
 }: {
   icon: React.ReactNode;
   label: string;
   wert: number;
-  akzent: Akzent;
   href?: string;
+  akzent?: "primary" | "success";
 }) {
-  const akzentBg: Record<Akzent, string> = {
-    lime: "bg-[hsl(var(--brand-lime)/0.18)] text-[hsl(var(--primary))]",
-    pink: "bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]",
-    coral: "bg-[hsl(var(--brand-coral)/0.12)] text-[hsl(var(--brand-coral))]",
-    success: "bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]",
-  };
+  const akzentBg =
+    akzent === "primary"
+      ? "border-[hsl(var(--primary)/0.3)] bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))]"
+      : akzent === "success"
+      ? "border-[hsl(var(--success)/0.3)] bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))]"
+      : "border-border bg-background text-foreground";
 
   const inhalt = (
-    <Card className="h-full transition-colors hover:border-foreground/20">
-      <CardContent className="flex items-center gap-4 py-6">
-        <div
-          className={`flex h-11 w-11 items-center justify-center rounded-xl ${akzentBg[akzent]}`}
-        >
-          {icon}
-        </div>
-        <div>
-          <div className="text-2xl font-semibold tracking-tight">{wert}</div>
-          <div className="text-sm text-muted-foreground">{label}</div>
-        </div>
-      </CardContent>
-    </Card>
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${akzentBg} ${
+        href ? "hover:bg-muted" : ""
+      }`}
+    >
+      <span className="flex items-center gap-1.5 text-muted-foreground">
+        {icon}
+        {label}
+      </span>
+      <span className="font-bold tabular-nums">{wert}</span>
+    </span>
   );
 
   if (href) return <Link href={href}>{inhalt}</Link>;
