@@ -5,9 +5,10 @@ import { LoginFormular } from "./LoginFormular";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ weiter?: string; fehler?: string }>;
+  searchParams: Promise<{ weiter?: string; fehler?: string; archived?: string }>;
 }) {
-  const { weiter, fehler } = await searchParams;
+  const { weiter, fehler, archived } = await searchParams;
+  const istArchiviert = archived === "1";
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
@@ -87,6 +88,18 @@ export default async function LoginPage({
               Kurz beim Studio-Team melden.
             </p>
           </div>
+
+          {istArchiviert && (
+            <div className="rounded-xl border border-[hsl(var(--brand-pink)/0.4)] bg-[hsl(var(--brand-pink)/0.06)] px-4 py-3 text-sm">
+              <p className="font-semibold text-[hsl(var(--brand-pink))]">
+                Konto archiviert
+              </p>
+              <p className="mt-1 text-muted-foreground">
+                Dein Zugang wurde von der Studioleitung deaktiviert. Wenn das
+                ein Versehen war, melde dich kurz beim Team.
+              </p>
+            </div>
+          )}
 
           <LoginFormular weiter={weiter} fehler={fehler} />
         </div>

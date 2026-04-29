@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BookOpen, GraduationCap, Plus } from "lucide-react";
+import { Archive, ArchiveRestore, ArrowLeft, BookOpen, GraduationCap, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,8 @@ import { formatDatum, formatProzent, rolleLabel } from "@/lib/format";
 import {
   lernpfadEntziehen,
   lernpfadZuweisen,
+  mitarbeiterArchivieren,
+  mitarbeiterReaktivieren,
   profilAktualisieren,
 } from "../actions";
 
@@ -25,6 +27,7 @@ type Profil = {
   role: string;
   location_id: string | null;
   created_at: string;
+  archived_at: string | null;
   email: string | null;
 };
 
@@ -32,7 +35,7 @@ async function ladeProfil(id: string): Promise<Profil | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name, role, location_id, created_at")
+    .select("id, full_name, role, location_id, created_at, archived_at")
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
@@ -43,6 +46,7 @@ async function ladeProfil(id: string): Promise<Profil | null> {
     role: data.role as string,
     location_id: data.location_id as string | null,
     created_at: data.created_at as string,
+    archived_at: data.archived_at as string | null,
     email: null,
   };
 }
@@ -124,9 +128,17 @@ export default async function BenutzerBearbeitenPage({
       </Link>
 
       <header>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          {profil.full_name ?? "Mitarbeiter"}
-        </h1>
+        <div className="flex flex-wrap items-baseline gap-3">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {profil.full_name ?? "Mitarbeiter"}
+          </h1>
+          {profil.archived_at && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <Archive className="h-3 w-3" />
+              archiviert seit {formatDatum(profil.archived_at)}
+            </span>
+          )}
+        </div>
         <p className="mt-1 text-muted-foreground">
           Aktuelle Rolle: {rolleLabel(profil.role)} · Angelegt am{" "}
           {formatDatum(profil.created_at)}
@@ -300,6 +312,36 @@ export default async function BenutzerBearbeitenPage({
                 </div>
               ))}
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Archivieren / Reaktivieren */}
+      <Card className="border-destructive/30 bg-destructive/5">
+        <CardHeader>
+          <CardTitle className="text-base">
+            {profil.archived_at ? "Mitarbeiter reaktivieren" : "Mitarbeiter archivieren"}
+          </CardTitle>
+          <CardDescription>
+            {profil.archived_at
+              ? "Login wird wieder erlaubt, der Mitarbeiter taucht wieder in der Standard-Liste auf."
+              : "Der Mitarbeiter kann sich nicht mehr einloggen, alle Daten (Audit, Quizversuche, Praxis) bleiben aber erhalten. Statt loeschen empfohlen."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {profil.archived_at ? (
+            <form action={mitarbeiterReaktivieren.bind(null, profil.id)}>
+              <Button type="submit" size="sm">
+                <ArchiveRestore className="h-4 w-4" />
+                Reaktivieren
+              </Button>
+            </form>
+          ) : (
+            <LoeschenButton
+              action={mitarbeiterArchivieren.bind(null, profil.id)}
+              label="Mitarbeiter archivieren"
+              bestaetigung={`"${profil.full_name ?? "Mitarbeiter"}" wirklich archivieren? Login wird sofort gesperrt.`}
+            />
           )}
         </CardContent>
       </Card>

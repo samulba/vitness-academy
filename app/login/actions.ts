@@ -24,9 +24,14 @@ export async function anmelden(formData: FormData) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, archived_at")
     .eq("id", data.user.id)
     .single();
+
+  if (profile?.archived_at) {
+    await supabase.auth.signOut();
+    redirect("/login?archived=1");
+  }
 
   const rolle = (profile?.role as Rolle | undefined) ?? "mitarbeiter";
 

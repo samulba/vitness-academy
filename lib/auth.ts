@@ -27,7 +27,7 @@ export async function getCurrentProfile(): Promise<Profil | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done",
+      "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at",
     )
     .eq("id", user.id)
     .single();
@@ -39,6 +39,11 @@ export async function getCurrentProfile(): Promise<Profil | null> {
 export async function requireProfile(): Promise<Profil> {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
+  if (profile.archived_at) {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    redirect("/login?archived=1");
+  }
   return profile;
 }
 

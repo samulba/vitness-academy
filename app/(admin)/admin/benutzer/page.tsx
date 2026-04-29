@@ -27,24 +27,28 @@ type Zeile = {
   created_at: string;
   location_name: string | null;
   zugewiesen: number;
+  archived_at: string | null;
 };
 
-async function ladeBenutzer(): Promise<Zeile[]> {
+async function ladeBenutzer(includeArchiviert: boolean): Promise<Zeile[]> {
   const supabase = await createClient();
-  const { data } = await supabase
+  let q = supabase
     .from("profiles")
     .select(
-      `id, full_name, role, created_at,
+      `id, full_name, role, created_at, archived_at,
        locations:location_id ( name ),
        user_learning_path_assignments ( id )`,
     )
     .order("created_at", { ascending: false });
+  if (!includeArchiviert) q = q.is("archived_at", null);
+  const { data } = await q;
 
   type Roh = {
     id: string;
     full_name: string | null;
     role: string;
     created_at: string;
+    archived_at: string | null;
     locations: { name: string } | null;
     user_learning_path_assignments: { id: string }[] | null;
   };
@@ -54,13 +58,24 @@ async function ladeBenutzer(): Promise<Zeile[]> {
     full_name: r.full_name,
     role: r.role,
     created_at: r.created_at,
+    archived_at: r.archived_at,
     location_name: r.locations?.name ?? null,
     zugewiesen: (r.user_learning_path_assignments ?? []).length,
   }));
 }
 
-export default async function AdminBenutzerListe() {
-  const benutzer = await ladeBenutzer();
+export default async function AdminBenutzerListe({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
+  const archivPrm = sp.archiviert;
+  const showArchiv =
+    archivPrm === "1" || archivPrm === "true";
+  const benutzer = await ladeBenutzer(showArchiv);
+  const aktive = benutzer.filter((b) => !b.archived_at).length;
+  const archiviert = benutzer.filter((b) => b.archived_at).length;
 
   return (
     <div className="space-y-6">
@@ -80,12 +95,39 @@ export default async function AdminBenutzerListe() {
         </Link>
       </header>
 
+      <div className="flex flex-wrap items-center gap-2">
+        <Link
+          href="/admin/benutzer"
+          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            !showArchiv
+              ? "bg-[hsl(var(--brand-pink))] text-white"
+              : "border border-border text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Aktive
+        </Link>
+        <Link
+          href="/admin/benutzer?archiviert=1"
+          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            showArchiv
+              ? "bg-[hsl(var(--brand-pink))] text-white"
+              : "border border-border text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Auch archivierte zeigen
+        </Link>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>Mitarbeiter ({benutzer.length})</CardTitle>
+          <CardTitle>
+            Mitarbeiter ({showArchiv ? `${aktive} aktiv · ${archiviert} archiviert` : aktive})
+          </CardTitle>
           <CardDescription>
-            Neue Benutzer werden über das Supabase-Dashboard angelegt
-            (Authentication → Users → „Add user“, mit „Auto Confirm“).
+            Neue Mitarbeiter über „Neue:r Mitarbeiter:in“ anlegen — sie
+            erhalten dann einen Magic-Link per E-Mail. Archivierte können
+            sich nicht mehr einloggen, sind aber für Audit-Log + historische
+            Daten erhalten.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -112,7 +154,10 @@ export default async function AdminBenutzerListe() {
                 </TableRow>
               ) : (
                 benutzer.map((b) => (
-                  <TableRow key={b.id}>
+                  <TableRow
+                    key={b.id}
+                    className={b.archived_at ? "opacity-60" : ""}
+                  >
                     <TableCell>
                       <Link
                         href={`/admin/benutzer/${b.id}`}
@@ -120,6 +165,11 @@ export default async function AdminBenutzerListe() {
                       >
                         {b.full_name ?? "—"}
                       </Link>
+                      {b.archived_at && (
+                        <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          archiviert
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge

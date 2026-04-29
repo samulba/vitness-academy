@@ -9,6 +9,7 @@ export type Profil = {
   role: Rolle;
   location_id: string | null;
   onboarding_done: boolean;
+  archived_at: string | null;
 };
 
 export function istAdmin(role: Rolle | undefined | null): boolean {

@@ -79,6 +79,40 @@ export async function lernpfadEntziehen(
   revalidatePath("/dashboard");
 }
 
+export async function mitarbeiterArchivieren(benutzerId: string): Promise<void> {
+  const aktuell = await ensureAdmin();
+  // Sich selbst nicht archivieren
+  if (benutzerId === aktuell.id) return;
+  const supabase = await createClient();
+  // Pruefen ob Ziel ein Superadmin ist -- den darf nur ein Superadmin archivieren
+  const { data: ziel } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", benutzerId)
+    .maybeSingle();
+  if (ziel?.role === "superadmin" && aktuell.role !== "superadmin") return;
+
+  await supabase
+    .from("profiles")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", benutzerId);
+
+  revalidatePath("/admin/benutzer");
+  revalidatePath(`/admin/benutzer/${benutzerId}`);
+}
+
+export async function mitarbeiterReaktivieren(benutzerId: string): Promise<void> {
+  await ensureAdmin();
+  const supabase = await createClient();
+  await supabase
+    .from("profiles")
+    .update({ archived_at: null })
+    .eq("id", benutzerId);
+
+  revalidatePath("/admin/benutzer");
+  revalidatePath(`/admin/benutzer/${benutzerId}`);
+}
+
 // Fortschritt einer User-Lektion zurücksetzen (nuetzlich beim Testen)
 export async function fortschrittZuruecksetzen(
   benutzerId: string,
