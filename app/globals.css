@@ -19,10 +19,12 @@
     --primary-foreground: 40 30% 98%;
 
     /* Brand-Akzentfarben
-       brand-pink ist der hellere Magenta-Akzent fuer Eyebrow-Labels
-       und Text-on-Cream. brand-lime bleibt der energetische CTA-
-       Akzent (Lime + Magenta = Fitness-Energie). */
-    --brand-lime: 75 95% 58%;
+       Vitness ist konsequent Magenta -- kein Gruen, kein Lime.
+       brand-pink: heller Magenta-Akzent (Eyebrow, Hover).
+       brand-lime: heller Magenta-Glow (Logo-Hintergrund, Gradients).
+       success: dunklerer Magenta -- "erledigt/bestaetigt", optisch
+       von --primary unterscheidbar durch Saettigung + Icon. */
+    --brand-lime: 331 90% 65%;
     --brand-pink: 331 75% 52%;
     --brand-coral: 14 95% 64%;
     --brand-ink: 222 30% 7%;
@@ -37,7 +39,7 @@
     --accent: 331 60% 95%;
     --accent-foreground: 331 80% 30%;
 
-    --success: 145 65% 38%;
+    --success: 331 70% 42%;
     --success-foreground: 0 0% 100%;
 
     --warning: 24 95% 55%;
@@ -65,7 +67,7 @@
     --popover-foreground: 40 30% 96%;
     --primary: 331 80% 60%;
     --primary-foreground: 222 30% 7%;
-    --brand-lime: 75 95% 60%;
+    --brand-lime: 331 85% 70%;
     --brand-pink: 331 75% 65%;
     --brand-coral: 14 95% 64%;
     --brand-ink: 222 30% 5%;
@@ -76,7 +78,7 @@
     --muted-foreground: 220 14% 65%;
     --accent: 331 50% 22%;
     --accent-foreground: 331 80% 70%;
-    --success: 145 65% 50%;
+    --success: 331 75% 55%;
     --success-foreground: 222 30% 7%;
     --warning: 24 95% 60%;
     --warning-foreground: 222 30% 7%;
