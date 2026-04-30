@@ -25,12 +25,14 @@ export default async function AppLayout({
       <Topbar
         fullName={profile.full_name}
         role={profile.role}
+        avatarPath={profile.avatar_path}
         notificationSlot={bell}
       />
       <div className="flex flex-1">
         <Sidebar
           rolle={profile.role}
           fullName={profile.full_name}
+          avatarPath={profile.avatar_path}
           notificationSlot={bell}
         />
         <main

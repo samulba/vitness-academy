@@ -6,6 +6,7 @@ import { abmelden } from "@/app/login/actions";
 import { ProfilForm } from "./ProfilForm";
 import { PasswortForm } from "./PasswortForm";
 import { EmailForm } from "./EmailForm";
+import { AvatarUpload } from "./AvatarUpload";
 
 export default async function EinstellungenPage() {
   const profile = await requireProfile();
@@ -62,6 +63,18 @@ export default async function EinstellungenPage() {
           Rolle wird vom Studio verwaltet — wenn da etwas falsch ist, sag
           deiner Studioleitung Bescheid.
         </p>
+      </Section>
+
+      {/* Profilbild */}
+      <Section
+        eyebrow="Profilbild"
+        titel="Dein Foto"
+        beschreibung="Hilft Kolleg:innen dich schnell zu erkennen."
+      >
+        <AvatarUpload
+          initialPfad={profile.avatar_path}
+          fullName={profile.full_name}
+        />
       </Section>
 
       {/* Persönliche Daten */}

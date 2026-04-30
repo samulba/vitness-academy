@@ -1,14 +1,28 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Suspense } from "react";
 import { ThemeScript } from "@/components/ThemeScript";
 import { Toaster } from "@/components/ui/toast";
 import { ToastFlash } from "@/components/ui/toast-flash";
+import { ShortcutsHelp } from "@/components/help/ShortcutsHelp";
 
 export const metadata: Metadata = {
   title: "Vitness Academy",
   description:
     "Interne Schulungsplattform für Fitnessstudio-Mitarbeiter mit Lernpfaden, Quizzen, Praxisfreigaben und Handbuch.",
+  manifest: "/manifest.json",
+  applicationName: "Vitness Academy",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Vitness",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#b50f5f",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -30,6 +44,7 @@ export default function RootLayout({
         </a>
         {children}
         <Toaster />
+        <ShortcutsHelp />
         <Suspense fallback={null}>
           <ToastFlash />
         </Suspense>

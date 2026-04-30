@@ -31,6 +31,7 @@ import {
 import { rolleLabel } from "@/lib/format";
 import { SearchTrigger } from "@/components/search/SearchTrigger";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { avatarUrlFuerPfad } from "@/lib/storage";
 
 type NavEintrag = {
   href: string;
@@ -133,10 +134,12 @@ function aktiverGruppenId(pathname: string): string | null {
 export function Sidebar({
   rolle,
   fullName,
+  avatarPath,
   notificationSlot,
 }: {
   rolle: Rolle;
   fullName?: string | null;
+  avatarPath?: string | null;
   notificationSlot?: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -215,9 +218,24 @@ export function Sidebar({
           href="/einstellungen"
           className="group flex items-center gap-3 border-t border-border px-4 py-3 transition-colors hover:bg-muted"
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-xs font-semibold text-[hsl(var(--primary-foreground))]">
-            {initialen(fullName ?? null)}
-          </span>
+          {(() => {
+            const url = avatarUrlFuerPfad(avatarPath);
+            return url ? (
+              <span className="block h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-border">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={url}
+                  alt={fullName ?? "Profilbild"}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              </span>
+            ) : (
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-xs font-semibold text-[hsl(var(--primary-foreground))]">
+                {initialen(fullName ?? null)}
+              </span>
+            );
+          })()}
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-medium text-foreground">
               {fullName ?? "—"}

@@ -6,6 +6,7 @@ import {
   Avatar,
   AvatarFallback,
 } from "@/components/ui/avatar";
+import { avatarUrlFuerPfad } from "@/lib/storage";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +22,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 type Props = {
   fullName: string | null;
   role: string;
+  avatarPath?: string | null;
   notificationSlot?: React.ReactNode;
 };
 
@@ -34,7 +36,8 @@ function initialen(name: string | null): string {
     .join("");
 }
 
-export function Topbar({ fullName, role, notificationSlot }: Props) {
+export function Topbar({ fullName, role, avatarPath, notificationSlot }: Props) {
+  const avatarUrl = avatarUrlFuerPfad(avatarPath);
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/70 lg:hidden">
       <Link
@@ -54,9 +57,21 @@ export function Topbar({ fullName, role, notificationSlot }: Props) {
         <ThemeToggle variant="icon" />
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-2 rounded-full p-1 hover:bg-accent">
-          <Avatar>
-            <AvatarFallback>{initialen(fullName)}</AvatarFallback>
-          </Avatar>
+          {avatarUrl ? (
+            <span className="block h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-border">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={avatarUrl}
+                alt={fullName ?? "Profilbild"}
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            </span>
+          ) : (
+            <Avatar>
+              <AvatarFallback>{initialen(fullName)}</AvatarFallback>
+            </Avatar>
+          )}
           <div className="hidden text-left sm:block">
             <div className="text-sm font-medium leading-none">{fullName ?? "Mitarbeiter"}</div>
             <div className="text-xs text-muted-foreground">{rolleLabel(role)}</div>

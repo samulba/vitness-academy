@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { avatarUrlFuerPfad } from "@/lib/storage";
 
 /**
  * Avatar-Initialen mit deterministischer Magenta-Tonsaettigung aus dem Namen.
@@ -33,11 +34,34 @@ export function ColoredAvatar({
   name,
   size = "md",
   className,
+  avatarPath,
 }: {
   name: string | null;
   size?: keyof typeof SIZES;
   className?: string;
+  avatarPath?: string | null;
 }) {
+  const url = avatarUrlFuerPfad(avatarPath);
+  if (url) {
+    return (
+      <span
+        className={cn(
+          "inline-block shrink-0 overflow-hidden rounded-full bg-muted",
+          SIZES[size],
+          className,
+        )}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={url}
+          alt={name ?? "Profilbild"}
+          className="h-full w-full object-cover"
+          loading="lazy"
+        />
+      </span>
+    );
+  }
+
   // Hue-Variation innerhalb der Magenta-Familie: 310-345 deg
   const h = hash(name ?? "?");
   const hue = 310 + (h % 36); // 310..345

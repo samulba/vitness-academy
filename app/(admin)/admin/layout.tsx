@@ -18,10 +18,16 @@ export default async function AdminLayout({
       <Topbar
         fullName={profile.full_name}
         role={profile.role}
+        avatarPath={profile.avatar_path}
         notificationSlot={bell}
       />
       <div className="flex flex-1">
-        <Sidebar rolle={profile.role} notificationSlot={bell} />
+        <Sidebar
+          rolle={profile.role}
+          fullName={profile.full_name}
+          avatarPath={profile.avatar_path}
+          notificationSlot={bell}
+        />
         <main
           id="main"
           className="flex-1 px-4 pb-20 pt-6 lg:px-8 lg:pb-10"
