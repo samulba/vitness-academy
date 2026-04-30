@@ -86,7 +86,7 @@ export async function templateAnlegen(formData: FormData): Promise<void> {
     .single();
   revalidatePath("/admin/formulare");
   revalidatePath("/formulare");
-  if (data?.id) redirect(`/admin/formulare/${data.id}`);
+  if (data?.id) redirect(`/admin/formulare/${data.id}?toast=created`);
 }
 
 export async function templateAktualisieren(
@@ -101,6 +101,7 @@ export async function templateAktualisieren(
   revalidatePath("/admin/formulare");
   revalidatePath(`/admin/formulare/${id}`);
   revalidatePath("/formulare");
+  redirect(`/admin/formulare/${id}?toast=saved`);
 }
 
 export async function templateLoeschen(id: string): Promise<void> {
@@ -109,7 +110,7 @@ export async function templateLoeschen(id: string): Promise<void> {
   await supabase.from("form_templates").delete().eq("id", id);
   revalidatePath("/admin/formulare");
   revalidatePath("/formulare");
-  redirect("/admin/formulare");
+  redirect("/admin/formulare?toast=deleted");
 }
 
 export async function submissionStatusSetzen(
@@ -138,4 +139,5 @@ export async function submissionStatusSetzen(
     .eq("id", id);
   revalidatePath("/admin/formulare");
   revalidatePath(`/admin/formulare/eingaenge/${id}`);
+  redirect(`/admin/formulare/eingaenge/${id}?toast=saved`);
 }

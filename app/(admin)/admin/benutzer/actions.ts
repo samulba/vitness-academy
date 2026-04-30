@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, istAdmin, istFuehrungskraftOderHoeher } from "@/lib/auth";
 import type { Rolle } from "@/lib/rollen";
@@ -40,6 +41,7 @@ export async function profilAktualisieren(
 
   revalidatePath("/admin/benutzer");
   revalidatePath(`/admin/benutzer/${benutzerId}`);
+  redirect(`/admin/benutzer/${benutzerId}?toast=saved`);
 }
 
 export async function lernpfadZuweisen(
@@ -99,6 +101,7 @@ export async function mitarbeiterArchivieren(benutzerId: string): Promise<void> 
 
   revalidatePath("/admin/benutzer");
   revalidatePath(`/admin/benutzer/${benutzerId}`);
+  redirect(`/admin/benutzer/${benutzerId}?toast=archived`);
 }
 
 export async function mitarbeiterReaktivieren(benutzerId: string): Promise<void> {
@@ -111,6 +114,7 @@ export async function mitarbeiterReaktivieren(benutzerId: string): Promise<void>
 
   revalidatePath("/admin/benutzer");
   revalidatePath(`/admin/benutzer/${benutzerId}`);
+  redirect(`/admin/benutzer/${benutzerId}?toast=restored`);
 }
 
 // Fortschritt einer User-Lektion zurücksetzen (nuetzlich beim Testen)

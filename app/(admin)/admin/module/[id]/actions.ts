@@ -35,6 +35,7 @@ export async function modulAktualisieren(
     revalidatePath(`/admin/lernpfade/${pfadId}`);
     revalidatePath(`/lernpfade/${pfadId}`);
   }
+  redirect(`/admin/module/${modulId}?toast=saved`);
 }
 
 export async function modulLoeschen(modulId: string): Promise<void> {
@@ -50,9 +51,9 @@ export async function modulLoeschen(modulId: string): Promise<void> {
   if (pfadId) {
     revalidatePath(`/admin/lernpfade/${pfadId}`);
     revalidatePath(`/lernpfade/${pfadId}`);
-    redirect(`/admin/lernpfade/${pfadId}`);
+    redirect(`/admin/lernpfade/${pfadId}?toast=deleted`);
   }
-  redirect("/admin/lernpfade");
+  redirect("/admin/lernpfade?toast=deleted");
 }
 
 export async function lektionAnlegen(

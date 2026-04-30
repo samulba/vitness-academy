@@ -57,7 +57,7 @@ export async function quizAnlegen(formData: FormData): Promise<void> {
     .single();
 
   revalidatePath("/admin/quizze");
-  if (neu?.id) redirect(`/admin/quizze/${neu.id}`);
+  if (neu?.id) redirect(`/admin/quizze/${neu.id}?toast=created`);
 }
 
 export async function quizAktualisieren(
@@ -89,6 +89,7 @@ export async function quizAktualisieren(
   revalidatePath("/admin/quizze");
   revalidatePath(`/admin/quizze/${id}`);
   revalidatePath(`/quiz/${id}`);
+  redirect(`/admin/quizze/${id}?toast=saved`);
 }
 
 export async function quizLoeschen(id: string): Promise<void> {
@@ -96,7 +97,7 @@ export async function quizLoeschen(id: string): Promise<void> {
   const supabase = await createClient();
   await supabase.from("quizzes").delete().eq("id", id);
   revalidatePath("/admin/quizze");
-  redirect("/admin/quizze");
+  redirect("/admin/quizze?toast=deleted");
 }
 
 // =========================================================

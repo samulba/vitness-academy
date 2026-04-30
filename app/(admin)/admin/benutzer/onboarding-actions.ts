@@ -100,5 +100,5 @@ export async function mitarbeiterAnlegen(
   }
 
   revalidatePath("/admin/benutzer");
-  redirect(`/admin/benutzer/${userId}`);
+  redirect(`/admin/benutzer/${userId}?toast=invited`);
 }

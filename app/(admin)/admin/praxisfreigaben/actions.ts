@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, istFuehrungskraftOderHoeher } from "@/lib/auth";
 
@@ -31,8 +32,10 @@ async function entscheide(
 
 export async function praxisFreigeben(signoffId: string, formData: FormData) {
   await entscheide(signoffId, formData, "freigegeben");
+  redirect("/admin/praxisfreigaben?toast=approved");
 }
 
 export async function praxisAblehnen(signoffId: string, formData: FormData) {
   await entscheide(signoffId, formData, "abgelehnt");
+  redirect("/admin/praxisfreigaben?toast=rejected");
 }

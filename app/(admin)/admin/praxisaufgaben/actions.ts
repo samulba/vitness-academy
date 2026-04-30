@@ -48,7 +48,7 @@ export async function aufgabeAnlegen(formData: FormData): Promise<void> {
 
   revalidatePath("/admin/praxisaufgaben");
   revalidatePath("/praxisfreigaben");
-  if (neu?.id) redirect(`/admin/praxisaufgaben/${neu.id}`);
+  if (neu?.id) redirect(`/admin/praxisaufgaben/${neu.id}?toast=created`);
 }
 
 export async function aufgabeAktualisieren(
@@ -75,6 +75,7 @@ export async function aufgabeAktualisieren(
   revalidatePath("/admin/praxisaufgaben");
   revalidatePath(`/admin/praxisaufgaben/${id}`);
   revalidatePath("/praxisfreigaben");
+  redirect(`/admin/praxisaufgaben/${id}?toast=saved`);
 }
 
 export async function aufgabeLoeschen(id: string): Promise<void> {
@@ -83,7 +84,7 @@ export async function aufgabeLoeschen(id: string): Promise<void> {
   await supabase.from("practical_tasks").delete().eq("id", id);
   revalidatePath("/admin/praxisaufgaben");
   revalidatePath("/praxisfreigaben");
-  redirect("/admin/praxisaufgaben");
+  redirect("/admin/praxisaufgaben?toast=deleted");
 }
 
 export async function aufgabeReihenfolge(

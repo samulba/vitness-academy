@@ -124,7 +124,7 @@ export async function artikelAnlegen(formData: FormData): Promise<void> {
 
   revalidatePath("/admin/wissen");
   revalidatePath("/wissen");
-  if (neu?.id) redirect(`/admin/wissen/${neu.id}`);
+  if (neu?.id) redirect(`/admin/wissen/${neu.id}?toast=created`);
 }
 
 export async function artikelAktualisieren(
@@ -152,6 +152,7 @@ export async function artikelAktualisieren(
   revalidatePath(`/admin/wissen/${id}`);
   revalidatePath("/wissen");
   revalidatePath(`/wissen/${slug}`);
+  redirect(`/admin/wissen/${id}?toast=saved`);
 }
 
 export async function artikelLoeschen(id: string): Promise<void> {
@@ -160,7 +161,7 @@ export async function artikelLoeschen(id: string): Promise<void> {
   await supabase.from("knowledge_articles").delete().eq("id", id);
   revalidatePath("/admin/wissen");
   revalidatePath("/wissen");
-  redirect("/admin/wissen");
+  redirect("/admin/wissen?toast=deleted");
 }
 
 export async function artikelReihenfolge(

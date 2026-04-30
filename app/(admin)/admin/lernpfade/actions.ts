@@ -48,7 +48,7 @@ export async function lernpfadAnlegen(formData: FormData): Promise<void> {
     .single();
 
   revalidatePath("/admin/lernpfade");
-  if (neu?.id) redirect(`/admin/lernpfade/${neu.id}`);
+  if (neu?.id) redirect(`/admin/lernpfade/${neu.id}?toast=created`);
 }
 
 export async function lernpfadAktualisieren(
@@ -71,6 +71,7 @@ export async function lernpfadAktualisieren(
   revalidatePath(`/admin/lernpfade/${id}`);
   revalidatePath(`/lernpfade/${id}`);
   revalidatePath("/lernpfade");
+  redirect(`/admin/lernpfade/${id}?toast=saved`);
 }
 
 export async function lernpfadLoeschen(id: string): Promise<void> {
@@ -80,7 +81,7 @@ export async function lernpfadLoeschen(id: string): Promise<void> {
 
   revalidatePath("/admin/lernpfade");
   revalidatePath("/lernpfade");
-  redirect("/admin/lernpfade");
+  redirect("/admin/lernpfade?toast=deleted");
 }
 
 export async function lernpfadReihenfolge(

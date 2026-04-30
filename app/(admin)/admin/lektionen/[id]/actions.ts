@@ -29,6 +29,7 @@ export async function lektionAktualisieren(
 
   revalidatePath(`/admin/lektionen/${lessonId}`);
   revalidatePath(`/lektionen/${lessonId}`);
+  redirect(`/admin/lektionen/${lessonId}?toast=saved`);
 }
 
 export async function lektionLoeschen(lessonId: string): Promise<void> {
@@ -43,9 +44,9 @@ export async function lektionLoeschen(lessonId: string): Promise<void> {
   const modulId = l?.module_id as string | undefined;
   if (modulId) {
     revalidatePath(`/admin/module/${modulId}`);
-    redirect(`/admin/module/${modulId}`);
+    redirect(`/admin/module/${modulId}?toast=deleted`);
   }
-  redirect("/admin/lernpfade");
+  redirect("/admin/lernpfade?toast=deleted");
 }
 
 // =========================================================
