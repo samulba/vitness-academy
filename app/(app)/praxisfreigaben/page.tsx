@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { PraxisStatusBadge } from "@/components/praxis/PraxisStatusBadge";
 import { BereitMeldenForm } from "@/components/praxis/BereitMeldenForm";
 import { requireProfile } from "@/lib/auth";
@@ -19,23 +20,20 @@ export default async function PraxisfreigabenPage() {
   const abgelehnt = aufgaben.filter((a) => a.status === "abgelehnt");
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Meine Praxisfreigaben
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Diese Aufgaben musst du in der Praxis zeigen. Wenn du dich bereit
-          fühlst, melde dich für die Freigabe.
-        </p>
-      </header>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Lernen"
+        title="Meine Praxisfreigaben"
+        description="Diese Aufgaben musst du in der Praxis zeigen. Wenn du dich bereit fühlst, melde dich für die Freigabe."
+      />
 
       {aufgaben.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center text-muted-foreground">
-            Aktuell sind keine Praxisaufgaben für dich aktiv.
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border border-border bg-card">
+          <EmptyState
+            title="Keine Praxisaufgaben aktiv"
+            description="Sobald dir Praxisaufgaben zugewiesen werden, tauchen sie hier auf."
+          />
+        </div>
       ) : (
         <>
           <Sektion
@@ -101,65 +99,63 @@ function Sektion({
   if (eintraege.length === 0) return null;
 
   return (
-    <section className="space-y-3">
-      <div>
-        <h2 className="text-xl font-semibold">
-          {titel}{" "}
-          <span className="text-base font-normal text-muted-foreground">
+    <section className="space-y-2">
+      <header>
+        <h2 className="text-[14px] font-semibold tracking-tight">
+          {titel}
+          <span className="ml-1.5 font-normal text-muted-foreground">
             ({eintraege.length})
           </span>
         </h2>
-        <p className="text-sm text-muted-foreground">{beschreibung}</p>
-      </div>
+        <p className="text-[12px] text-muted-foreground">{beschreibung}</p>
+      </header>
 
-      <div className="space-y-3">
-        {eintraege.map((e) => (
-          <Card key={e.id}>
-            <CardHeader className="pb-3">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="divide-y divide-border">
+          {eintraege.map((e) => (
+            <div key={e.id} className="px-5 py-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{e.title}</CardTitle>
-                  <div className="text-xs text-muted-foreground">
+                <div className="min-w-0">
+                  <p className="text-[14px] font-medium leading-tight">
+                    {e.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {[e.learning_path_title, e.lesson_title]
                       .filter(Boolean)
                       .join(" · ") || ""}
-                  </div>
+                  </p>
                 </div>
                 <PraxisStatusBadge status={e.status} />
               </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {e.description ? (
-                <p className="text-sm text-muted-foreground">{e.description}</p>
-              ) : null}
 
-              {e.user_note ? (
-                <div className="rounded-md border bg-muted/40 p-3 text-sm">
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Deine Notiz
+              <div className="mt-3 space-y-3">
+                {e.description && (
+                  <p className="text-sm text-muted-foreground">
+                    {e.description}
+                  </p>
+                )}
+                {e.user_note && (
+                  <div className="rounded-md border border-border bg-muted/40 p-3 text-sm">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Deine Notiz
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap">{e.user_note}</p>
                   </div>
-                  <p className="whitespace-pre-wrap">{e.user_note}</p>
-                </div>
-              ) : null}
-
-              {e.reviewer_note ? (
-                <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Notiz von {e.approved_by_name ?? "Führungskraft"}
-                    {e.approved_at
-                      ? ` · ${formatDatum(e.approved_at)}`
-                      : ""}
+                )}
+                {e.reviewer_note && (
+                  <div className="rounded-md border border-[hsl(var(--brand-pink)/0.3)] bg-[hsl(var(--brand-pink)/0.04)] p-3 text-sm">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Notiz von {e.approved_by_name ?? "Führungskraft"}
+                      {e.approved_at ? ` · ${formatDatum(e.approved_at)}` : ""}
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap">{e.reviewer_note}</p>
                   </div>
-                  <p className="whitespace-pre-wrap">{e.reviewer_note}</p>
-                </div>
-              ) : null}
-
-              {renderAktion ? (
-                <div className="pt-1">{renderAktion(e)}</div>
-              ) : null}
-            </CardContent>
-          </Card>
-        ))}
+                )}
+                {renderAktion && <div className="pt-1">{renderAktion(e)}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
