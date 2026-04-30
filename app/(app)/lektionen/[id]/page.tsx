@@ -1,12 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, CheckCircle2, Lock, Sparkles } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { ContentBlockView } from "@/components/lektion/ContentBlock";
 import {
@@ -93,28 +87,26 @@ export default async function LektionPage({
       )}
 
       {/* === Lehrtext-Bloecke (alles ausser inline_quiz) === */}
-      <Card>
-        <CardContent className="space-y-6 py-6">
-          {lehrBloecke.length === 0 && quizBloecke.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Diese Lektion enthält noch keine Inhalte.
-            </p>
-          ) : lehrBloecke.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Diese Lektion besteht ausschließlich aus dem Wissens-Check unten.
-            </p>
-          ) : (
-            lehrBloecke.map((block) => (
-              <ContentBlockView
-                key={block.id}
+      <div className="space-y-6 rounded-xl border border-border bg-card p-6">
+        {lehrBloecke.length === 0 && quizBloecke.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Diese Lektion enthält noch keine Inhalte.
+          </p>
+        ) : lehrBloecke.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Diese Lektion besteht ausschließlich aus dem Wissens-Check unten.
+          </p>
+        ) : (
+          lehrBloecke.map((block) => (
+            <ContentBlockView
+              key={block.id}
                 block={block}
-                lessonId={lektion.id}
-                bestandeneQuizIds={bestandene}
-              />
-            ))
-          )}
-        </CardContent>
-      </Card>
+              lessonId={lektion.id}
+              bestandeneQuizIds={bestandene}
+            />
+          ))
+        )}
+      </div>
 
       {/* === Wissens-Check (inline_quiz) — räumlich getrennt === */}
       {quizBloecke.length > 0 && (
@@ -159,33 +151,33 @@ export default async function LektionPage({
 
       {quiz ? <QuizCard quiz={quiz} letzterVersuch={letzterVersuch} /> : null}
 
-      {/* === Abschluss-Card mit Gating === */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
+      {/* === Abschluss-Section mit Gating === */}
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight">
             {bereitsFertig
               ? "Lektion abgeschlossen"
               : abschliessbar
-              ? "Bist du fertig?"
-              : "Wissens-Check fehlt noch"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                ? "Bist du fertig?"
+                : "Wissens-Check fehlt noch"}
+          </h2>
+        </div>
+        <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             {bereitsFertig
               ? "Du hast diese Lektion bereits abgeschlossen."
               : abschliessbar
-              ? "Markiere die Lektion als abgeschlossen, sobald du den Inhalt verinnerlicht hast."
-              : `Beantworte zuerst die ${offeneQuizze.length} ${
-                  offeneQuizze.length === 1
-                    ? "offene Frage"
-                    : "offenen Fragen"
-                } im Wissens-Check oben — danach kannst du abschließen.`}
+                ? "Markiere die Lektion als abgeschlossen, sobald du den Inhalt verinnerlicht hast."
+                : `Beantworte zuerst die ${offeneQuizze.length} ${
+                    offeneQuizze.length === 1
+                      ? "offene Frage"
+                      : "offenen Fragen"
+                  } im Wissens-Check oben — danach kannst du abschließen.`}
           </p>
           <div className="flex gap-2">
             {bereitsFertig ? (
               <>
-                <span className="inline-flex items-center gap-1 text-sm text-success">
+                <span className="inline-flex items-center gap-1 text-sm text-[hsl(var(--success))]">
                   <CheckCircle2 className="h-4 w-4" />
                   Abgeschlossen
                 </span>
@@ -198,14 +190,14 @@ export default async function LektionPage({
                 <AbschliessenSubmit />
               </form>
             ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-4 py-2 text-sm font-medium text-muted-foreground">
-                <Lock className="h-3.5 w-3.5" />
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-3 py-2 text-[13px] font-medium text-muted-foreground">
+                <Lock className="h-3 w-3" />
                 Erst Wissens-Check abschließen
               </span>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <QASection
         lessonId={lektion.id}
