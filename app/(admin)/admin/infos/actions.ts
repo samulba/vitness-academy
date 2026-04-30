@@ -36,7 +36,7 @@ export async function infoAnlegen(formData: FormData): Promise<void> {
   revalidatePath("/admin/infos");
   revalidatePath("/infos");
   revalidatePath("/dashboard");
-  if (data?.id) redirect(`/admin/infos/${data.id}`);
+  if (data?.id) redirect(`/admin/infos/${data.id}?toast=created`);
 }
 
 export async function infoAktualisieren(
@@ -52,6 +52,7 @@ export async function infoAktualisieren(
   revalidatePath(`/admin/infos/${id}`);
   revalidatePath("/infos");
   revalidatePath("/dashboard");
+  redirect(`/admin/infos/${id}?toast=saved`);
 }
 
 export async function infoLoeschen(id: string): Promise<void> {
@@ -60,5 +61,5 @@ export async function infoLoeschen(id: string): Promise<void> {
   await supabase.from("studio_announcements").delete().eq("id", id);
   revalidatePath("/admin/infos");
   revalidatePath("/infos");
-  redirect("/admin/infos");
+  redirect("/admin/infos?toast=deleted");
 }

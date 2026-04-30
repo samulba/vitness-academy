@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Suspense } from "react";
 import { ThemeScript } from "@/components/ThemeScript";
 import { Toaster } from "@/components/ui/toast";
+import { ToastFlash } from "@/components/ui/toast-flash";
 
 export const metadata: Metadata = {
   title: "Vitness Academy",
@@ -22,6 +24,9 @@ export default function RootLayout({
       <body className="min-h-screen bg-background text-foreground">
         {children}
         <Toaster />
+        <Suspense fallback={null}>
+          <ToastFlash />
+        </Suspense>
       </body>
     </html>
   );

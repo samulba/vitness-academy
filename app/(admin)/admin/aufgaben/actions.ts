@@ -40,7 +40,7 @@ export async function aufgabeAnlegen(formData: FormData): Promise<void> {
   revalidatePath("/admin/aufgaben");
   revalidatePath("/aufgaben");
   revalidatePath("/dashboard");
-  if (data?.id) redirect(`/admin/aufgaben/${data.id}`);
+  if (data?.id) redirect(`/admin/aufgaben/${data.id}?toast=created`);
 }
 
 export async function aufgabeAktualisieren(
@@ -55,6 +55,7 @@ export async function aufgabeAktualisieren(
   revalidatePath("/admin/aufgaben");
   revalidatePath(`/admin/aufgaben/${id}`);
   revalidatePath("/aufgaben");
+  redirect(`/admin/aufgaben/${id}?toast=saved`);
 }
 
 export async function aufgabeLoeschen(id: string): Promise<void> {
@@ -63,5 +64,5 @@ export async function aufgabeLoeschen(id: string): Promise<void> {
   await supabase.from("studio_tasks").delete().eq("id", id);
   revalidatePath("/admin/aufgaben");
   revalidatePath("/aufgaben");
-  redirect("/admin/aufgaben");
+  redirect("/admin/aufgaben?toast=deleted");
 }

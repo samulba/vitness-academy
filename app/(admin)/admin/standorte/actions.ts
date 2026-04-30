@@ -16,11 +16,13 @@ export async function standortAnlegen(formData: FormData): Promise<void> {
     .insert({ name })
     .select("id")
     .single();
-  if (error || !data) return;
+  if (error || !data) {
+    redirect("/admin/standorte/neu?toast=error");
+  }
 
   revalidatePath("/admin/standorte");
   revalidatePath("/admin");
-  redirect(`/admin/standorte/${data.id}`);
+  redirect(`/admin/standorte/${data.id}?toast=created`);
 }
 
 export async function standortAktualisieren(
@@ -35,6 +37,7 @@ export async function standortAktualisieren(
   await supabase.from("locations").update({ name }).eq("id", id);
   revalidatePath("/admin/standorte");
   revalidatePath(`/admin/standorte/${id}`);
+  redirect(`/admin/standorte/${id}?toast=saved`);
 }
 
 export async function standortLoeschen(id: string): Promise<void> {
@@ -43,5 +46,5 @@ export async function standortLoeschen(id: string): Promise<void> {
   await supabase.from("locations").delete().eq("id", id);
   revalidatePath("/admin/standorte");
   revalidatePath("/admin");
-  redirect("/admin/standorte");
+  redirect("/admin/standorte?toast=deleted");
 }

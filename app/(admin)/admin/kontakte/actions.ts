@@ -62,7 +62,7 @@ export async function kontaktAnlegen(formData: FormData): Promise<void> {
 
   revalidatePath("/admin/kontakte");
   revalidatePath("/kontakte");
-  if (data?.id) redirect(`/admin/kontakte/${data.id}`);
+  if (data?.id) redirect(`/admin/kontakte/${data.id}?toast=created`);
 }
 
 export async function kontaktAktualisieren(
@@ -78,6 +78,7 @@ export async function kontaktAktualisieren(
   revalidatePath("/admin/kontakte");
   revalidatePath(`/admin/kontakte/${id}`);
   revalidatePath("/kontakte");
+  redirect(`/admin/kontakte/${id}?toast=saved`);
 }
 
 export async function kontaktLoeschen(id: string): Promise<void> {
@@ -87,5 +88,5 @@ export async function kontaktLoeschen(id: string): Promise<void> {
 
   revalidatePath("/admin/kontakte");
   revalidatePath("/kontakte");
-  redirect("/admin/kontakte");
+  redirect("/admin/kontakte?toast=deleted");
 }

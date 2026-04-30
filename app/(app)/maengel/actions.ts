@@ -102,6 +102,7 @@ export async function mangelStatusSetzen(
   revalidatePath("/admin/maengel");
   revalidatePath(`/admin/maengel/${id}`);
   revalidatePath("/maengel");
+  redirect(`/admin/maengel/${id}?toast=saved`);
 }
 
 export async function mangelLoeschen(id: string): Promise<void> {
@@ -110,5 +111,5 @@ export async function mangelLoeschen(id: string): Promise<void> {
   await supabase.from("studio_issues").delete().eq("id", id);
   revalidatePath("/admin/maengel");
   revalidatePath("/maengel");
-  redirect("/admin/maengel");
+  redirect("/admin/maengel?toast=deleted");
 }
