@@ -9,6 +9,10 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import {
+  QuizBestehensquoteChart,
+  QuizFragenChart,
+} from "@/components/charts/QuizCharts";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -85,6 +89,41 @@ export default async function QuizAuswertungPage({
           icon={<Clock />}
         />
       </StatGrid>
+
+      {/* Charts */}
+      {stats.versuche > 0 && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <div className="border-b border-border px-5 py-4">
+              <h2 className="text-[14px] font-semibold tracking-tight">
+                Bestehensquote
+              </h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {stats.bestandene} von {stats.versuche} Versuchen bestanden
+              </p>
+            </div>
+            <div className="p-5">
+              <QuizBestehensquoteChart
+                bestanden={stats.bestandene}
+                nichtBestanden={stats.versuche - stats.bestandene}
+              />
+            </div>
+          </div>
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <div className="border-b border-border px-5 py-4">
+              <h2 className="text-[14px] font-semibold tracking-tight">
+                Korrektquote pro Frage
+              </h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Schwierigste zuerst — wo Antworten am häufigsten falsch sind.
+              </p>
+            </div>
+            <div className="p-3">
+              <QuizFragenChart fragen={fragen} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Schwierigste Fragen */}
       {schwierigste.length > 0 && schwierigste.some((f) => f.versuche > 0) && (

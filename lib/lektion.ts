@@ -62,6 +62,32 @@ export async function ladeBestandeneQuizIds(
 }
 
 /**
+ * Liefert eine Tagesaktivitaets-Map ueber 365 Tage fuer die Heatmap.
+ * Map-Schluessel ist YYYY-MM-DD, Wert ist Anzahl abgeschlossener
+ * Lektionen an dem Tag.
+ */
+export async function ladeAktivitaetsMap(
+  userId: string,
+): Promise<Record<string, number>> {
+  const supabase = await createClient();
+  const vorJahr = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+  const { data } = await supabase
+    .from("user_lesson_progress")
+    .select("completed_at")
+    .eq("user_id", userId)
+    .eq("status", "abgeschlossen")
+    .gte("completed_at", vorJahr.toISOString());
+
+  const map: Record<string, number> = {};
+  for (const r of (data ?? []) as { completed_at: string | null }[]) {
+    if (!r.completed_at) continue;
+    const tag = r.completed_at.slice(0, 10);
+    map[tag] = (map[tag] ?? 0) + 1;
+  }
+  return map;
+}
+
+/**
  * Aktivitaets-Stats fuer das Mitarbeiter-Dashboard.
  * Zaehlt die Anzahl distinkter Tage in den letzten 30 Tagen,
  * an denen mindestens eine Lektion gesehen oder abgeschlossen

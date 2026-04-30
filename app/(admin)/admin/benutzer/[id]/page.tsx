@@ -13,6 +13,8 @@ import { SpeichernButton } from "@/components/admin/SpeichernButton";
 import { createClient } from "@/lib/supabase/server";
 import { ladeMeineLernpfade } from "@/lib/lernpfade";
 import { mitarbeiterQuizVerlauf } from "@/lib/quiz_stats";
+import { ladeAktivitaetsMap } from "@/lib/lektion";
+import { AktivitaetsHeatmap } from "@/components/charts/AktivitaetsHeatmap";
 import { requireRole } from "@/lib/auth";
 import { formatDatum, formatProzent, rolleLabel } from "@/lib/format";
 import {
@@ -113,6 +115,7 @@ export default async function BenutzerBearbeitenPage({
     ]);
 
   const quizVerlauf = await mitarbeiterQuizVerlauf(id, 10);
+  const aktivitaetsMap = await ladeAktivitaetsMap(id);
 
   if (!profil) notFound();
 
@@ -310,6 +313,22 @@ export default async function BenutzerBearbeitenPage({
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Aktivitaets-Heatmap */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Lern-Aktivität</CardTitle>
+          <CardDescription>
+            Abgeschlossene Lektionen pro Tag, letzte 12 Monate.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AktivitaetsHeatmap
+            data={aktivitaetsMap}
+            beschriftung="abgeschlossene Lektionen"
+          />
         </CardContent>
       </Card>
 
