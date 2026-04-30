@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, Pencil, Plus } from "lucide-react";
+import { ExternalLink, Pencil, Plus } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import {
   Card,
   CardContent,
@@ -88,20 +89,20 @@ export default async function ModulBearbeitenPage({
 
   return (
     <div className="space-y-6">
-      <Link
-        href={`/admin/lernpfade/${modul.learning_path_id}`}
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zu „{modul.learning_path_title}“
-      </Link>
-
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">{modul.title}</h1>
-        <p className="mt-1 text-muted-foreground">
-          Modul bearbeiten und Lektionen verwalten.
-        </p>
-      </header>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Lernpfade", href: "/admin/lernpfade" },
+          {
+            label: modul.learning_path_title,
+            href: `/admin/lernpfade/${modul.learning_path_id}`,
+          },
+          { label: modul.title },
+        ]}
+        eyebrow="Modul"
+        title={modul.title}
+        description="Stammdaten und Lektionen-Liste pflegen. Hero-Bild gibt's in der Section unten."
+      />
 
       <Card>
         <CardHeader>

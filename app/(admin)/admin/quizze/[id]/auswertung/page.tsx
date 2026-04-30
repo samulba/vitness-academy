@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  ArrowLeft,
   CheckCircle2,
   Clock,
   Sparkles,
   Target,
   XCircle,
 } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -47,55 +48,43 @@ export default async function QuizAuswertungPage({
   const schwierigste = sortiert.slice(0, 3);
 
   return (
-    <div className="space-y-12">
-      <Link
-        href={`/admin/quizze/${id}`}
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zum Quiz
-      </Link>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Quizze", href: "/admin/quizze" },
+          { label: quiz.title, href: `/admin/quizze/${id}` },
+          { label: "Auswertung" },
+        ]}
+        eyebrow="Quiz-Auswertung"
+        title={quiz.title}
+        description={`Bestehensgrenze ${quiz.passing_score} %. Versuche und Bestehensquote über alle Mitarbeiter.`}
+      />
 
-      <header>
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
-          Verwaltung · Quiz-Auswertung
-        </p>
-        <h1 className="mt-3 text-balance font-semibold leading-[1.1] tracking-[-0.025em] text-[clamp(1.875rem,3vw,2.75rem)]">
-          {quiz.title}
-        </h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          Bestehensgrenze {quiz.passing_score} %.
-        </p>
-      </header>
-
-      {/* KPI-Kacheln */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiKachel
-          icon={<Sparkles className="h-4 w-4" />}
+      <StatGrid cols={4}>
+        <StatCard
           label="Versuche gesamt"
-          wert={stats.versuche.toString()}
+          value={stats.versuche}
+          icon={<Sparkles />}
         />
-        <KpiKachel
-          icon={<Target className="h-4 w-4" />}
+        <StatCard
           label="Bestehensquote"
-          wert={`${stats.bestehensquote} %`}
-          akzent
+          value={`${stats.bestehensquote} %`}
+          icon={<Target />}
         />
-        <KpiKachel
-          icon={<CheckCircle2 className="h-4 w-4" />}
+        <StatCard
           label="Durchschnitt"
-          wert={`${stats.durchschnitt} %`}
+          value={`${stats.durchschnitt} %`}
+          icon={<CheckCircle2 />}
         />
-        <KpiKachel
-          icon={<Clock className="h-4 w-4" />}
+        <StatCard
           label="Letzte Aktivität"
-          wert={
-            stats.letzte_aktivitaet
-              ? formatDatum(stats.letzte_aktivitaet)
-              : "—"
+          value={
+            stats.letzte_aktivitaet ? formatDatum(stats.letzte_aktivitaet) : "—"
           }
+          icon={<Clock />}
         />
-      </section>
+      </StatGrid>
 
       {/* Schwierigste Fragen */}
       {schwierigste.length > 0 && schwierigste.some((f) => f.versuche > 0) && (
@@ -228,36 +217,3 @@ export default async function QuizAuswertungPage({
   );
 }
 
-function KpiKachel({
-  icon,
-  label,
-  wert,
-  akzent,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  wert: string;
-  akzent?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-2xl border bg-card p-5 ${
-        akzent
-          ? "border-[hsl(var(--brand-pink)/0.4)]"
-          : "border-border"
-      }`}
-    >
-      <span
-        className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-          akzent
-            ? "bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]"
-            : "bg-muted text-muted-foreground"
-        }`}
-      >
-        {icon}
-      </span>
-      <p className="mt-3 text-2xl font-semibold tracking-tight">{wert}</p>
-      <p className="mt-1 text-sm text-muted-foreground">{label}</p>
-    </div>
-  );
-}

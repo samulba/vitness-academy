@@ -1,8 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { ExternalLink } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { ArtikelFormular } from "@/components/admin/ArtikelFormular";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { createClient } from "@/lib/supabase/server";
@@ -41,51 +39,67 @@ export default async function ArtikelBearbeitenPage({
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/admin/wissen"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zur Handbuch
-      </Link>
-
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {artikel.title}
-          </h1>
-        </div>
-        <Button asChild variant="outline">
-          <Link href={`/wissen/${artikel.slug}`}>
-            <ExternalLink className="h-4 w-4" />
-            Vorschau
-          </Link>
-        </Button>
-      </header>
-
-      <ArtikelFormular
-        modus="bearbeiten"
-        action={artikelAktualisieren.bind(null, artikel.id)}
-        kategorien={kategorien}
-        werte={{
-          title: artikel.title,
-          slug: artikel.slug,
-          summary: artikel.summary,
-          body: artikel.body,
-          status: artikel.status,
-          category_id: artikel.category_id,
-        }}
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Handbuch", href: "/admin/wissen" },
+          { label: artikel.title },
+        ]}
+        eyebrow="Artikel"
+        title={artikel.title}
+        description="Markdown-Body, Kategorie und Status pflegen."
+        secondaryActions={[
+          {
+            icon: <ExternalLink />,
+            label: "Vorschau",
+            href: `/wissen/${artikel.slug}`,
+          },
+        ]}
       />
 
-      <Card>
-        <CardContent className="flex justify-end py-4">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight">
+            Inhalt
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Markdown unterstützt Headlines, Listen, Code-Blöcke, Links.
+          </p>
+        </div>
+        <div className="p-5">
+          <ArtikelFormular
+            modus="bearbeiten"
+            action={artikelAktualisieren.bind(null, artikel.id)}
+            kategorien={kategorien}
+            werte={{
+              title: artikel.title,
+              slug: artikel.slug,
+              summary: artikel.summary,
+              body: artikel.body,
+              status: artikel.status,
+              category_id: artikel.category_id,
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-destructive/25 bg-destructive/[0.03]">
+        <div className="border-b border-destructive/20 px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight text-destructive">
+            Artikel löschen
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Mitarbeiter sehen ihn dann nicht mehr.
+          </p>
+        </div>
+        <div className="p-5">
           <LoeschenButton
             action={artikelLoeschen.bind(null, artikel.id)}
-            label="Artikel löschen"
+            label="Artikel endgültig löschen"
             bestaetigung="Artikel wirklich löschen? Mitarbeiter sehen ihn dann nicht mehr."
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

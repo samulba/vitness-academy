@@ -1,11 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  ExternalLink,
-  Pencil,
-  Plus,
-} from "lucide-react";
+import { ExternalLink, Pencil, Plus } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -13,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -108,30 +104,23 @@ export default async function LernpfadBearbeitenPage({
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/admin/lernpfade"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zur Liste
-      </Link>
-
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {pfad.title}
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            Lernpfad bearbeiten und Module verwalten.
-          </p>
-        </div>
-        <Button asChild variant="outline">
-          <Link href={`/lernpfade/${pfad.id}`}>
-            <ExternalLink className="h-4 w-4" />
-            Vorschau
-          </Link>
-        </Button>
-      </header>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Lernpfade", href: "/admin/lernpfade" },
+          { label: pfad.title },
+        ]}
+        eyebrow="Lernpfad"
+        title={pfad.title}
+        description="Stammdaten, Hero-Bild und Module verwalten."
+        secondaryActions={[
+          {
+            icon: <ExternalLink />,
+            label: "Vorschau",
+            href: `/lernpfade/${pfad.id}`,
+          },
+        ]}
+      />
 
       <Card>
         <CardHeader>

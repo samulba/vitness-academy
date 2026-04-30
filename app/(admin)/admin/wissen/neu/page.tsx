@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { ArtikelFormular } from "@/components/admin/ArtikelFormular";
 import { createClient } from "@/lib/supabase/server";
 import { artikelAnlegen } from "../actions";
@@ -18,25 +17,29 @@ export default async function NeuerArtikelPage() {
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/admin/wissen"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zur Handbuch
-      </Link>
-
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Neuer Wissensartikel
-        </h1>
-      </header>
-
-      <ArtikelFormular
-        modus="anlegen"
-        action={artikelAnlegen}
-        kategorien={kategorien}
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Handbuch", href: "/admin/wissen" },
+          { label: "Neu" },
+        ]}
+        eyebrow="Artikel"
+        title="Neuer Wissensartikel"
+        description="Markdown-Body, Kategorie zuordnen, Status setzen — und live geht's."
       />
+
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight">Inhalt</h2>
+        </div>
+        <div className="p-5">
+          <ArtikelFormular
+            modus="anlegen"
+            action={artikelAnlegen}
+            kategorien={kategorien}
+          />
+        </div>
+      </div>
     </div>
   );
 }

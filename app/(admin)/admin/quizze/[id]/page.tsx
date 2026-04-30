@@ -1,7 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  ArrowLeft,
   BarChart3,
   CheckCircle2,
   ExternalLink,
@@ -19,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/ui/page-header";
 import { ReihenfolgeButtons } from "@/components/admin/ReihenfolgeButtons";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { QuizFormular } from "@/components/admin/QuizFormular";
@@ -128,58 +127,73 @@ export default async function QuizBearbeitenPage({
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/admin/quizze"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zu Quizzen
-      </Link>
-
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{quiz.title}</h1>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline">
-            <Link href={`/admin/quizze/${quiz.id}/auswertung`}>
-              <BarChart3 className="h-4 w-4" />
-              Auswertung
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href={`/quiz/${quiz.id}`}>
-              <ExternalLink className="h-4 w-4" />
-              Vorschau
-            </Link>
-          </Button>
-        </div>
-      </header>
-
-      <QuizFormular
-        modus="bearbeiten"
-        action={quizAktualisieren.bind(null, quiz.id)}
-        lektionen={lektionen}
-        module={module}
-        werte={{
-          title: quiz.title,
-          description: quiz.description,
-          passing_score: quiz.passing_score,
-          status: quiz.status,
-          lesson_id: quiz.lesson_id,
-          module_id: quiz.module_id,
-        }}
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Quizze", href: "/admin/quizze" },
+          { label: quiz.title },
+        ]}
+        eyebrow="Quiz"
+        title={quiz.title}
+        description="Stammdaten, Fragen und Antwort-Optionen pflegen."
+        secondaryActions={[
+          {
+            icon: <BarChart3 />,
+            label: "Auswertung",
+            href: `/admin/quizze/${quiz.id}/auswertung`,
+          },
+          {
+            icon: <ExternalLink />,
+            label: "Vorschau",
+            href: `/quiz/${quiz.id}`,
+          },
+        ]}
       />
 
-      <Card>
-        <CardContent className="flex justify-end py-4">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight">
+            Stammdaten
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Title, Beschreibung, Pass-Score, Bindung an Lektion oder Modul.
+          </p>
+        </div>
+        <div className="p-5">
+          <QuizFormular
+            modus="bearbeiten"
+            action={quizAktualisieren.bind(null, quiz.id)}
+            lektionen={lektionen}
+            module={module}
+            werte={{
+              title: quiz.title,
+              description: quiz.description,
+              passing_score: quiz.passing_score,
+              status: quiz.status,
+              lesson_id: quiz.lesson_id,
+              module_id: quiz.module_id,
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-destructive/25 bg-destructive/[0.03]">
+        <div className="border-b border-destructive/20 px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight text-destructive">
+            Quiz löschen
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Inklusive aller Fragen, Antworten und bestehender Versuche.
+          </p>
+        </div>
+        <div className="p-5">
           <LoeschenButton
             action={quizLoeschen.bind(null, quiz.id)}
-            label="Quiz löschen"
+            label="Quiz endgültig löschen"
             bestaetigung="Quiz inkl. aller Fragen, Antworten und Versuche wirklich löschen?"
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Fragen ({quiz.fragen.length})</h2>

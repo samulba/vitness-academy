@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import {
   Card,
   CardContent,
@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ContentBlockView } from "@/components/lektion/ContentBlock";
 import { BlockEditor } from "@/components/admin/BlockEditor";
@@ -108,28 +107,27 @@ export default async function LektionBearbeitenPage({
 
   return (
     <div className="space-y-6">
-      <Link
-        href={`/admin/module/${lekt.module_id}`}
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zum Modul „{lekt.module_title}“
-      </Link>
-
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{lekt.title}</h1>
-          <p className="mt-1 text-muted-foreground">
-            Lektion bearbeiten und Inhalts-Blöcke pflegen.
-          </p>
-        </div>
-        <Button asChild variant="outline">
-          <Link href={`/lektionen/${lekt.id}`}>
-            <ExternalLink className="h-4 w-4" />
-            Vorschau
-          </Link>
-        </Button>
-      </header>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Lernpfade", href: "/admin/lernpfade" },
+          {
+            label: lekt.module_title,
+            href: `/admin/module/${lekt.module_id}`,
+          },
+          { label: lekt.title },
+        ]}
+        eyebrow="Lektion"
+        title={lekt.title}
+        description="Stammdaten, Hero-Bild und Inhalts-Blöcke pflegen."
+        secondaryActions={[
+          {
+            icon: <ExternalLink />,
+            label: "Vorschau",
+            href: `/lektionen/${lekt.id}`,
+          },
+        ]}
+      />
 
       <Card>
         <CardHeader>
