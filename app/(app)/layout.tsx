@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
 import { CmdK } from "@/components/search/CmdK";
+import { NotificationBellServer } from "@/components/notifications/NotificationBellServer";
 
 export default async function AppLayout({
   children,
@@ -17,11 +18,21 @@ export default async function AppLayout({
   // Aufrufe sind sicher.
   await generiereWiederkehrendeAufgaben();
 
+  const bell = <NotificationBellServer />;
+
   return (
     <div className="flex min-h-screen flex-col">
-      <Topbar fullName={profile.full_name} role={profile.role} />
+      <Topbar
+        fullName={profile.full_name}
+        role={profile.role}
+        notificationSlot={bell}
+      />
       <div className="flex flex-1">
-        <Sidebar rolle={profile.role} fullName={profile.full_name} />
+        <Sidebar
+          rolle={profile.role}
+          fullName={profile.full_name}
+          notificationSlot={bell}
+        />
         <main
           id="main"
           className="flex-1 px-4 pb-20 pt-8 lg:px-10 lg:pb-12 lg:pt-10 2xl:px-16"

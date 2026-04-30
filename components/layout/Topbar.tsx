@@ -21,6 +21,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 type Props = {
   fullName: string | null;
   role: string;
+  notificationSlot?: React.ReactNode;
 };
 
 function initialen(name: string | null): string {
@@ -33,7 +34,7 @@ function initialen(name: string | null): string {
     .join("");
 }
 
-export function Topbar({ fullName, role }: Props) {
+export function Topbar({ fullName, role, notificationSlot }: Props) {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/70 lg:hidden">
       <Link
@@ -49,6 +50,7 @@ export function Topbar({ fullName, role }: Props) {
       </Link>
 
       <div className="flex items-center gap-2">
+        {notificationSlot}
         <ThemeToggle variant="icon" />
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-2 rounded-full p-1 hover:bg-accent">

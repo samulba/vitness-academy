@@ -133,9 +133,11 @@ function aktiverGruppenId(pathname: string): string | null {
 export function Sidebar({
   rolle,
   fullName,
+  notificationSlot,
 }: {
   rolle: Rolle;
   fullName?: string | null;
+  notificationSlot?: React.ReactNode;
 }) {
   const pathname = usePathname();
   const showAdmin = istFuehrungskraftOderHoeher(rolle);
@@ -149,14 +151,15 @@ export function Sidebar({
   return (
     <aside className="hidden w-60 shrink-0 border-r border-border bg-background lg:flex lg:flex-col">
       <div className="sticky top-0 flex h-screen flex-col">
-        {/* Branding oben */}
-        <div className="flex items-center gap-2.5 border-b border-border px-5 py-4">
+        {/* Branding + NotificationBell oben */}
+        <div className="flex items-center gap-2 border-b border-border px-3 py-3">
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[hsl(var(--primary))] text-[11px] font-bold text-[hsl(var(--primary-foreground))]">
             VA
           </span>
-          <span className="text-[14px] font-semibold tracking-tight">
+          <span className="flex-1 text-[14px] font-semibold tracking-tight">
             Vitness Academy
           </span>
+          {notificationSlot}
         </div>
 
         {/* Search-Trigger */}
