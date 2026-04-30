@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
 import { Check, Clock, User, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { aufgabeAbhaken } from "@/app/(app)/aufgaben/actions";
@@ -19,12 +19,20 @@ const PRIO_LABEL = {
 } as const;
 
 export function AufgabenZeile({ a }: { a: Aufgabe }) {
-  const [pending, startTransition] = useTransition();
-  const istErledigt = !!a.completed_at;
+  const [, startTransition] = useTransition();
+
+  // Optimistic State: Server-Daten + lokale Toggles, ohne auf Roundtrip
+  // zu warten. Wenn der Server bestaetigt, ueberschreibt revalidatePath
+  // den Wert sowieso.
+  const [optimistischErledigt, setOptimistischErledigt] = useOptimistic(
+    !!a.completed_at,
+  );
 
   function toggle() {
+    const naechster = !optimistischErledigt;
     startTransition(async () => {
-      await aufgabeAbhaken(a.id, istErledigt);
+      setOptimistischErledigt(naechster);
+      await aufgabeAbhaken(a.id, optimistischErledigt);
     });
   }
 
@@ -32,22 +40,23 @@ export function AufgabenZeile({ a }: { a: Aufgabe }) {
     <div
       className={cn(
         "flex items-start gap-4 px-5 py-4 transition-colors hover:bg-muted/30",
-        istErledigt && "opacity-60",
+        optimistischErledigt && "opacity-60",
       )}
     >
       <button
         type="button"
         onClick={toggle}
-        disabled={pending}
-        aria-pressed={istErledigt}
+        aria-pressed={optimistischErledigt}
         className={cn(
-          "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-colors",
-          istErledigt
+          "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-all active:scale-90",
+          optimistischErledigt
             ? "border-[hsl(var(--success))] bg-[hsl(var(--success))] text-white"
             : "border-border bg-background hover:border-[hsl(var(--primary))]",
         )}
       >
-        {istErledigt && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+        {optimistischErledigt && (
+          <Check className="h-3.5 w-3.5" strokeWidth={3} />
+        )}
       </button>
 
       <div className="min-w-0 flex-1">
@@ -55,7 +64,7 @@ export function AufgabenZeile({ a }: { a: Aufgabe }) {
           <p
             className={cn(
               "text-sm font-semibold leading-tight sm:text-base",
-              istErledigt && "line-through",
+              optimistischErledigt && "line-through",
             )}
           >
             {a.title}
@@ -96,7 +105,7 @@ export function AufgabenZeile({ a }: { a: Aufgabe }) {
               {a.due_date}
             </span>
           )}
-          {istErledigt && a.completed_by_name && (
+          {optimistischErledigt && a.completed_by_name && (
             <span className="text-[hsl(var(--success))]">
               ✓ {a.completed_by_name}
             </span>
