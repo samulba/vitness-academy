@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Archive, ArchiveRestore, ArrowLeft, BookOpen, GraduationCap, Plus } from "lucide-react";
+import { Archive, ArchiveRestore, BookOpen, GraduationCap, Plus } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -122,31 +123,24 @@ export default async function BenutzerBearbeitenPage({
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/admin/benutzer"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zur Benutzerliste
-      </Link>
-
-      <header>
-        <div className="flex flex-wrap items-baseline gap-3">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {profil.full_name ?? "Mitarbeiter"}
-          </h1>
-          {profil.archived_at && (
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Mitarbeiter", href: "/admin/benutzer" },
+          { label: profil.full_name ?? "Mitarbeiter" },
+        ]}
+        eyebrow="Mitarbeiter"
+        title={profil.full_name ?? "Mitarbeiter"}
+        description={`${rolleLabel(profil.role)} · Angelegt am ${formatDatum(profil.created_at)}`}
+        meta={
+          profil.archived_at ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               <Archive className="h-3 w-3" />
               archiviert seit {formatDatum(profil.archived_at)}
             </span>
-          )}
-        </div>
-        <p className="mt-1 text-muted-foreground">
-          Aktuelle Rolle: {rolleLabel(profil.role)} · Angelegt am{" "}
-          {formatDatum(profil.created_at)}
-        </p>
-      </header>
+          ) : null
+        }
+      />
 
       <Card>
         <CardHeader>

@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { requireRole } from "@/lib/auth";
 import {
   fotoUrlFuerPfad,
@@ -32,33 +31,25 @@ export default async function MangelDetailPage({
   const loeschen = mangelLoeschen.bind(null, id);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
-      <Link
-        href="/admin/maengel"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zu allen Mängeln
-      </Link>
-
-      <header className="space-y-4">
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
-          Studio · Mängel
-        </p>
-        <h1 className="text-balance font-semibold leading-[1.1] tracking-[-0.025em] text-[clamp(1.875rem,3vw,2.5rem)]">
-          {m.title}
-        </h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <MangelStatusBadge status={m.status} />
-          <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            {SEVERITY_LABEL[m.severity]}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {formatDatum(m.created_at)}
-            {m.reported_by_name && <> · {m.reported_by_name}</>}
-          </span>
-        </div>
-      </header>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Mängel", href: "/admin/maengel" },
+          { label: m.title },
+        ]}
+        eyebrow="Mangel"
+        title={m.title}
+        description={`Gemeldet am ${formatDatum(m.created_at)}${m.reported_by_name ? ` von ${m.reported_by_name}` : ""}.`}
+        meta={
+          <div className="flex items-center gap-2">
+            <MangelStatusBadge status={m.status} />
+            <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {SEVERITY_LABEL[m.severity]}
+            </span>
+          </div>
+        }
+      />
 
       {url && (
         <div className="overflow-hidden rounded-2xl border border-border bg-muted">

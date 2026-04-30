@@ -1,8 +1,71 @@
-import Link from "next/link";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { CheckCircle2, Inbox, Sparkles } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { StatusPill } from "@/components/admin/StatusPill";
+import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { requireRole } from "@/lib/auth";
-import { ladeSubmissions, STATUS_LABEL } from "@/lib/formulare";
+import {
+  ladeSubmissions,
+  STATUS_LABEL,
+  type Submission,
+  type SubmissionStatus,
+} from "@/lib/formulare";
 import { formatDatum } from "@/lib/format";
+
+function StatusBadge({ status }: { status: SubmissionStatus }) {
+  if (status === "eingereicht")
+    return (
+      <StatusPill ton="primary" dot>
+        {STATUS_LABEL[status]}
+      </StatusPill>
+    );
+  if (status === "in_bearbeitung")
+    return <StatusPill ton="warn">{STATUS_LABEL[status]}</StatusPill>;
+  if (status === "erledigt")
+    return <StatusPill ton="success">{STATUS_LABEL[status]}</StatusPill>;
+  return <StatusPill ton="neutral">{STATUS_LABEL[status]}</StatusPill>;
+}
+
+const columns: Column<Submission>[] = [
+  {
+    key: "template_title",
+    label: "Formular",
+    sortable: true,
+    render: (s) => (
+      <span className="font-medium text-foreground">
+        {s.template_title ?? "Formular"}
+      </span>
+    ),
+  },
+  {
+    key: "submitted_by_name",
+    label: "Eingereicht von",
+    render: (s) => (
+      <div className="flex items-center gap-2.5">
+        <ColoredAvatar name={s.submitted_by_name} size="sm" />
+        <span className="text-[13px]">{s.submitted_by_name ?? "—"}</span>
+      </div>
+    ),
+  },
+  {
+    key: "status",
+    label: "Status",
+    sortable: true,
+    render: (s) => <StatusBadge status={s.status} />,
+  },
+  {
+    key: "submitted_at",
+    label: "Datum",
+    sortable: true,
+    render: (s) => (
+      <span className="text-xs text-muted-foreground">
+        {formatDatum(s.submitted_at)}
+      </span>
+    ),
+  },
+];
 
 export default async function EingaengePage() {
   await requireRole(["fuehrungskraft", "admin", "superadmin"]);
@@ -12,97 +75,77 @@ export default async function EingaengePage() {
   const erledigt = await ladeSubmissions({
     status: ["erledigt", "abgelehnt"],
   });
+  const erledigtAnzahl = erledigt.filter((e) => e.status === "erledigt").length;
 
   return (
-    <div className="space-y-10">
-      <Link
-        href="/admin/formulare"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zu allen Formularen
-      </Link>
-
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Eingänge
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Eingereichte Formulare. Klick öffnet die Details mit Antwort-Optionen.
-        </p>
-      </header>
-
-      <Section
-        titel="Aktuell offen"
-        anzahl={offen.length}
-        liste={offen}
-        leer="Keine offenen Einreichungen."
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Formulare", href: "/admin/formulare" },
+          { label: "Eingänge" },
+        ]}
+        eyebrow="Eingänge"
+        title="Formular-Eingänge"
+        description="Eingereichte Formulare. Klick öffnet die Details mit Status-Setzung."
       />
-      {erledigt.length > 0 && (
-        <Section
-          titel="Erledigt (letzte 30)"
-          anzahl={erledigt.length}
-          liste={erledigt.slice(0, 30)}
-          leer=""
+
+      <StatGrid cols={3}>
+        <StatCard label="Aktuell offen" value={offen.length} icon={<Inbox />} />
+        <StatCard
+          label="Erledigt"
+          value={erledigtAnzahl}
+          icon={<CheckCircle2 />}
         />
+        <StatCard
+          label="Gesamt"
+          value={offen.length + erledigt.length}
+          icon={<Sparkles />}
+        />
+      </StatGrid>
+
+      <section className="space-y-2">
+        <header>
+          <h2 className="text-[14px] font-semibold tracking-tight">
+            Aktuell offen ({offen.length})
+          </h2>
+        </header>
+        {offen.length === 0 ? (
+          <div className="rounded-xl border border-border bg-card">
+            <EmptyState
+              illustration={<EmptyStateTablePreview />}
+              title="Keine offenen Einreichungen"
+              description="Alles bearbeitet — neue Eingänge tauchen hier auf."
+            />
+          </div>
+        ) : (
+          <DataTable<Submission>
+            data={offen}
+            columns={columns}
+            rowHref={(s) => `/admin/formulare/eingaenge/${s.id}`}
+            defaultSort={{ key: "submitted_at", direction: "desc" }}
+          />
+        )}
+      </section>
+
+      {erledigt.length > 0 && (
+        <section className="space-y-2">
+          <header>
+            <h2 className="text-[14px] font-semibold tracking-tight">
+              Erledigt ({Math.min(30, erledigt.length)})
+            </h2>
+            <p className="text-[12px] text-muted-foreground">
+              Letzte 30 abgeschlossene Einreichungen.
+            </p>
+          </header>
+          <DataTable<Submission>
+            data={erledigt.slice(0, 30)}
+            columns={columns}
+            rowHref={(s) => `/admin/formulare/eingaenge/${s.id}`}
+            defaultSort={{ key: "submitted_at", direction: "desc" }}
+          />
+        </section>
       )}
     </div>
-  );
-}
-
-type Eintrag = Awaited<ReturnType<typeof ladeSubmissions>>[number];
-
-function Section({
-  titel,
-  anzahl,
-  liste,
-  leer,
-}: {
-  titel: string;
-  anzahl: number;
-  liste: Eintrag[];
-  leer: string;
-}) {
-  return (
-    <section className="space-y-3">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-lg font-semibold tracking-tight">{titel}</h2>
-        <span className="text-xs tabular-nums text-muted-foreground">
-          {anzahl}
-        </span>
-      </div>
-      {liste.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
-          {leer}
-        </div>
-      ) : (
-        <ul className="overflow-hidden rounded-2xl border border-border bg-card">
-          {liste.map((s, i) => (
-            <li key={s.id} className={i > 0 ? "border-t border-border" : ""}>
-              <Link
-                href={`/admin/formulare/eingaenge/${s.id}`}
-                className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-[hsl(var(--primary)/0.04)]"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                    <p className="truncate font-semibold leading-tight">
-                      {s.template_title ?? "Formular"}
-                    </p>
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      {STATUS_LABEL[s.status]}
-                    </span>
-                  </div>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {s.submitted_by_name ?? "—"} ·{" "}
-                    {formatDatum(s.submitted_at)}
-                  </p>
-                </div>
-                <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-[hsl(var(--primary))]" />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
   );
 }

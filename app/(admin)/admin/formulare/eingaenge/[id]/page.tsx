@@ -1,6 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatusPill } from "@/components/admin/StatusPill";
 import { requireRole } from "@/lib/auth";
 import {
   ladeSubmission,
@@ -10,6 +11,20 @@ import {
 } from "@/lib/formulare";
 import { formatDatum } from "@/lib/format";
 import { submissionStatusSetzen } from "../../actions";
+
+function StatusBadge({ status }: { status: SubmissionStatus }) {
+  if (status === "eingereicht")
+    return (
+      <StatusPill ton="primary" dot>
+        {STATUS_LABEL[status]}
+      </StatusPill>
+    );
+  if (status === "in_bearbeitung")
+    return <StatusPill ton="warn">{STATUS_LABEL[status]}</StatusPill>;
+  if (status === "erledigt")
+    return <StatusPill ton="success">{STATUS_LABEL[status]}</StatusPill>;
+  return <StatusPill ton="neutral">{STATUS_LABEL[status]}</StatusPill>;
+}
 
 export default async function EingangsDetailPage({
   params,
@@ -26,50 +41,46 @@ export default async function EingangsDetailPage({
     submissionStatusSetzen.bind(null, id, next);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
-      <Link
-        href="/admin/formulare/eingaenge"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zu allen Eingängen
-      </Link>
-
-      <header className="space-y-3">
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
-          Studio · Formulare
-        </p>
-        <h1 className="text-balance font-semibold leading-[1.1] tracking-[-0.025em] text-[clamp(1.875rem,3vw,2.5rem)]">
-          {s.template_title ?? "Formular"}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Eingereicht von <strong>{s.submitted_by_name ?? "—"}</strong> am{" "}
-          {formatDatum(s.submitted_at)}
-        </p>
-        <span className="inline-flex rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          {STATUS_LABEL[s.status]}
-        </span>
-      </header>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Formulare", href: "/admin/formulare" },
+          { label: "Eingänge", href: "/admin/formulare/eingaenge" },
+          { label: s.template_title ?? "Eingang" },
+        ]}
+        eyebrow="Einreichung"
+        title={s.template_title ?? "Formular"}
+        description={`Eingereicht von ${s.submitted_by_name ?? "—"} am ${formatDatum(s.submitted_at)}.`}
+        meta={<StatusBadge status={s.status} />}
+      />
 
       {/* Antworten */}
-      <div className="space-y-3 rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-          Antworten
-        </h2>
-        <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight">
+            Antworten
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Was die Person ausgefüllt hat.
+          </p>
+        </div>
+        <dl className="grid gap-x-6 gap-y-4 p-5 sm:grid-cols-2">
           {(tpl?.fields ?? []).map((f) => {
             const wert = s.data[f.name];
             return (
               <div key={f.name}>
-                <dt className="text-xs text-muted-foreground">{f.label}</dt>
-                <dd className="mt-1 break-words text-sm font-medium">
+                <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {f.label}
+                </dt>
+                <dd className="mt-1 break-words text-[13px] font-medium">
                   {wert === null || wert === undefined || wert === ""
                     ? "—"
                     : wert === true
-                    ? "Ja"
-                    : wert === false
-                    ? "Nein"
-                    : String(wert)}
+                      ? "Ja"
+                      : wert === false
+                        ? "Nein"
+                        : String(wert)}
                 </dd>
               </div>
             );
@@ -78,72 +89,81 @@ export default async function EingangsDetailPage({
       </div>
 
       {/* Status setzen */}
-      <div className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-          Status setzen
-        </h2>
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          {(
-            [
-              "eingereicht",
-              "in_bearbeitung",
-              "erledigt",
-              "abgelehnt",
-            ] as const
-          ).map((next) => (
-            <form key={next} action={setStatus(next)}>
-              <input
-                type="hidden"
-                name="admin_note"
-                value={s.admin_note ?? ""}
-              />
-              <button
-                type="submit"
-                disabled={next === s.status}
-                className={
-                  next === s.status
-                    ? "w-full rounded-lg border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.06)] px-4 py-3 text-left text-sm font-medium opacity-60"
-                    : "w-full rounded-lg border border-border bg-background px-4 py-3 text-left text-sm font-medium transition-colors hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.04)]"
-                }
-              >
-                {STATUS_LABEL[next]}
-                {next === s.status && (
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    aktuell
-                  </span>
-                )}
-              </button>
-            </form>
-          ))}
-        </div>
-
-        {/* Notiz fuer den Mitarbeiter */}
-        <form action={setStatus(s.status)} className="mt-6 space-y-3">
-          <label htmlFor="admin_note" className="text-sm font-medium">
-            Antwort / Notiz (für den Mitarbeiter sichtbar)
-          </label>
-          <textarea
-            id="admin_note"
-            name="admin_note"
-            rows={3}
-            defaultValue={s.admin_note ?? ""}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            placeholder="z.B. „Genehmigt, gute Erholung!“"
-          />
-          <button
-            type="submit"
-            className="rounded-full bg-[hsl(var(--primary))] px-4 py-2 text-sm font-semibold text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/0.9)]"
-          >
-            Notiz speichern
-          </button>
-        </form>
-
-        {s.processed_at && (
-          <p className="mt-4 text-xs text-muted-foreground">
-            Bearbeitet am {formatDatum(s.processed_at)}
-            {s.processed_by_name && <> von {s.processed_by_name}</>}
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight">
+            Status setzen
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Mit Notiz, die der Mitarbeiter sieht.
           </p>
-        )}
+        </div>
+        <div className="space-y-5 p-5">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(
+              [
+                "eingereicht",
+                "in_bearbeitung",
+                "erledigt",
+                "abgelehnt",
+              ] as const
+            ).map((next) => (
+              <form key={next} action={setStatus(next)}>
+                <input
+                  type="hidden"
+                  name="admin_note"
+                  value={s.admin_note ?? ""}
+                />
+                <button
+                  type="submit"
+                  disabled={next === s.status}
+                  className={
+                    next === s.status
+                      ? "w-full rounded-md border border-[hsl(var(--brand-pink)/0.4)] bg-[hsl(var(--brand-pink)/0.06)] px-3 py-2 text-left text-[13px] font-medium opacity-70"
+                      : "w-full rounded-md border border-border bg-background px-3 py-2 text-left text-[13px] font-medium transition-colors hover:border-[hsl(var(--brand-pink)/0.4)] hover:bg-muted/40"
+                  }
+                >
+                  {STATUS_LABEL[next]}
+                  {next === s.status && (
+                    <span className="ml-1.5 text-[11px] text-muted-foreground">
+                      · aktuell
+                    </span>
+                  )}
+                </button>
+              </form>
+            ))}
+          </div>
+
+          {/* Notiz */}
+          <form action={setStatus(s.status)} className="space-y-2">
+            <label
+              htmlFor="admin_note"
+              className="text-[12px] font-medium text-muted-foreground"
+            >
+              Antwort / Notiz (für den Mitarbeiter sichtbar)
+            </label>
+            <textarea
+              id="admin_note"
+              name="admin_note"
+              rows={3}
+              defaultValue={s.admin_note ?? ""}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-[13px] focus-visible:border-[hsl(var(--ring))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              placeholder="z.B. „Genehmigt, gute Erholung!"
+            />
+            <div className="flex justify-end">
+              <Button type="submit" variant="primary">
+                Notiz speichern
+              </Button>
+            </div>
+          </form>
+
+          {s.processed_at && (
+            <p className="text-xs text-muted-foreground">
+              Bearbeitet am {formatDatum(s.processed_at)}
+              {s.processed_by_name && <> von {s.processed_by_name}</>}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
