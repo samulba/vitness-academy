@@ -1,5 +1,6 @@
 import { CheckCircle2, Inbox, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -79,6 +80,7 @@ export default async function EingaengePage() {
 
   return (
     <div className="space-y-6">
+      <RealtimeRefresh table="form_submissions" />
       <PageHeader
         breadcrumbs={[
           { label: "Verwaltung", href: "/admin" },

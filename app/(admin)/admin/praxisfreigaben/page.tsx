@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { PraxisStatusBadge } from "@/components/praxis/PraxisStatusBadge";
 import { EntscheidungsForm } from "@/components/praxis/EntscheidungsForm";
 import { PageHeader } from "@/components/ui/page-header";
+import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ladePraxisInbox } from "@/lib/praxis";
@@ -27,6 +28,7 @@ export default async function AdminPraxisInboxPage() {
 
   return (
     <div className="space-y-6">
+      <RealtimeRefresh table="user_practical_signoffs" />
       <PageHeader
         eyebrow="Studio-Daten"
         title="Anfragen"

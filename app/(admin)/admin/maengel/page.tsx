@@ -10,6 +10,7 @@ import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
+import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
 import { requireRole } from "@/lib/auth";
 import { fotoUrlFuerPfad, ladeMaengel, type Mangel } from "@/lib/maengel";
 import { formatDatum } from "@/lib/format";
@@ -103,6 +104,7 @@ export default async function MaengelAdminPage() {
 
   return (
     <div className="space-y-6">
+      <RealtimeRefresh table="studio_issues" />
       <PageHeader
         eyebrow="Studio-Daten"
         title="Mängel"

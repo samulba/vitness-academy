@@ -1,5 +1,6 @@
 import { ladeNotifications, ungeleseneAnzahl } from "@/lib/notifications";
 import { getCurrentProfile } from "@/lib/auth";
+import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
 import { NotificationBell } from "./NotificationBell";
 
 /**
@@ -20,9 +21,12 @@ export async function NotificationBellServer() {
   ]);
 
   return (
-    <NotificationBell
-      notifications={notifications}
-      ungeleseneAnzahl={anzahl}
-    />
+    <>
+      <RealtimeRefresh table="notifications" event="INSERT" />
+      <NotificationBell
+        notifications={notifications}
+        ungeleseneAnzahl={anzahl}
+      />
+    </>
   );
 }
