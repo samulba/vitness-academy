@@ -7,10 +7,13 @@ export type Profil = {
   last_name: string | null;
   phone: string | null;
   role: Rolle;
+  custom_role_id: string | null;
   location_id: string | null;
   onboarding_done: boolean;
   archived_at: string | null;
   avatar_path: string | null;
+  /** Set aus "modul:aktion"-Keys, geladen via getCurrentProfile */
+  permissions: ReadonlySet<string>;
 };
 
 export function istAdmin(role: Rolle | undefined | null): boolean {
