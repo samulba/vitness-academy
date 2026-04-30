@@ -19,6 +19,7 @@ import {
   Megaphone,
   Settings,
   ShieldCheck,
+  Sparkles,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -101,6 +102,7 @@ const ADMIN_GROUPS: AdminGruppe[] = [
     eintraege: [
       { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity },
       { href: "/admin/audit-log", label: "Audit-Log", icon: ShieldCheck },
+      { href: "/admin/showcase", label: "Design-Showcase", icon: Sparkles },
     ],
   },
 ];

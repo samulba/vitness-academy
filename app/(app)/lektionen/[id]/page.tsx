@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/ui/page-header";
 import { ContentBlockView } from "@/components/lektion/ContentBlock";
 import {
   AbschliessenSubmit,
@@ -65,16 +65,24 @@ export default async function LektionPage({
 
   return (
     <div className="space-y-6">
-      <Link
-        href={`/lernpfade/${lektion.path_id}`}
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zum Lernpfad
-      </Link>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Lernen", href: "/dashboard" },
+          { label: "Lernpfade", href: "/lernpfade" },
+          {
+            label: lektion.path_title || "Lernpfad",
+            href: `/lernpfade/${lektion.path_id}`,
+          },
+          { label: lektion.title },
+        ]}
+        eyebrow={lektion.module_title}
+        title={lektion.title}
+        description={lektion.summary ?? undefined}
+        meta={<StatusBadge status={lektion.status} />}
+      />
 
       {lektion.hero_image_path && (
-        <div className="overflow-hidden rounded-2xl border border-border bg-muted">
+        <div className="overflow-hidden rounded-xl border border-border bg-muted">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/lesson-images/${lektion.hero_image_path}`}
@@ -83,29 +91,6 @@ export default async function LektionPage({
           />
         </div>
       )}
-
-      <header className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          {lektion.path_title ? (
-            <Badge variant="outline">{lektion.path_title}</Badge>
-          ) : null}
-          <span>·</span>
-          <span>{lektion.module_title}</span>
-        </div>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight">
-              {lektion.title}
-            </h1>
-            {lektion.summary ? (
-              <p className="max-w-2xl text-muted-foreground">
-                {lektion.summary}
-              </p>
-            ) : null}
-          </div>
-          <StatusBadge status={lektion.status} />
-        </div>
-      </header>
 
       {/* === Lehrtext-Bloecke (alles ausser inline_quiz) === */}
       <Card>
