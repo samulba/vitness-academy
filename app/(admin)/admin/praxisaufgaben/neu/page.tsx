@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { AufgabenFormular } from "@/components/admin/AufgabenFormular";
 import {
   ladeLektionOptionen,
@@ -16,28 +15,34 @@ export default async function NeueAufgabePage() {
   ]);
 
   return (
-    <div className="space-y-6">
-      <Link
-        href="/admin/praxisaufgaben"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zu Praxisaufgaben
-      </Link>
-
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Neue Praxisaufgabe
-        </h1>
-      </header>
-
-      <AufgabenFormular
-        modus="anlegen"
-        action={aufgabeAnlegen}
-        pfade={pfade}
-        module={module}
-        lektionen={lektionen}
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Praxisaufgaben", href: "/admin/praxisaufgaben" },
+          { label: "Neu" },
+        ]}
+        eyebrow="Praxisaufgabe"
+        title="Neue Praxisaufgabe"
+        description="Vorlage für Mitarbeiter, die eine praktische Aufgabe abschließen sollen. Anfragen pflegt die Studioleitung dann unter Anfragen."
       />
+
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight">
+            Stammdaten
+          </h2>
+        </div>
+        <div className="p-5">
+          <AufgabenFormular
+            modus="anlegen"
+            action={aufgabeAnlegen}
+            pfade={pfade}
+            module={module}
+            lektionen={lektionen}
+          />
+        </div>
+      </div>
     </div>
   );
 }

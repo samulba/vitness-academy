@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { requireRole } from "@/lib/auth";
 import { KontaktForm } from "../KontaktForm";
 import { kontaktAnlegen } from "../actions";
@@ -7,30 +6,30 @@ import { kontaktAnlegen } from "../actions";
 export default async function NeuerKontaktPage() {
   await requireRole(["admin", "superadmin"]);
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
-      <Link
-        href="/admin/kontakte"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zur Kontaktliste
-      </Link>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Kontakte", href: "/admin/kontakte" },
+          { label: "Neu" },
+        ]}
+        eyebrow="Kontakt"
+        title="Neuer Kontakt"
+        description="Mitarbeiter:innen, externe Trainer, Lieferanten — alles, was im Studio-Alltag erreichbar sein soll."
+      />
 
-      <header>
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
-          Studio · Kontakte
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-          Neuer Kontakt
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Mitarbeiter:innen, externe Trainer, Lieferanten — alles, was im
-          Studio-Alltag erreichbar sein soll.
-        </p>
-      </header>
-
-      <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <KontaktForm action={kontaktAnlegen} modus="neu" />
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight">
+            Stammdaten
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Mindestens Vorname oder Nachname pflichtfeld.
+          </p>
+        </div>
+        <div className="p-5">
+          <KontaktForm action={kontaktAnlegen} modus="neu" />
+        </div>
       </div>
     </div>
   );

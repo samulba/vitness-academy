@@ -1,10 +1,9 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ladeAufgabe } from "@/lib/aufgaben";
-import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { AufgabeForm } from "../AufgabeForm";
 import { aufgabeAktualisieren, aufgabeLoeschen } from "../actions";
 
@@ -31,47 +30,56 @@ export default async function AufgabeBearbeitenPage({
   const loeschen = aufgabeLoeschen.bind(null, id);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
-      <Link
-        href="/admin/aufgaben"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zu allen Aufgaben
-      </Link>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Aufgaben", href: "/admin/aufgaben" },
+          { label: a.title },
+        ]}
+        eyebrow="Aufgabe"
+        title={a.title}
+        description={
+          a.recurrence === "none"
+            ? "Einmalige Aufgabe — Empfänger, Fälligkeit und Priorität pflegen."
+            : `Wiederholende Aufgabe (${a.recurrence === "daily" ? "täglich" : "wöchentlich"}).`
+        }
+      />
 
-      <header>
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
-          Studio · Aufgaben
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-          Aufgabe bearbeiten
-        </h1>
-      </header>
-
-      <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <AufgabeForm
-          action={aktualisieren}
-          modus="bearbeiten"
-          mitarbeiter={mitarbeiter}
-          initial={{
-            title: a.title,
-            description: a.description,
-            assigned_to: a.assigned_to,
-            due_date: a.due_date,
-            priority: a.priority,
-            recurrence: a.recurrence,
-            active: a.active,
-          }}
-        />
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight">
+            Stammdaten
+          </h2>
+        </div>
+        <div className="p-5">
+          <AufgabeForm
+            action={aktualisieren}
+            modus="bearbeiten"
+            mitarbeiter={mitarbeiter}
+            initial={{
+              title: a.title,
+              description: a.description,
+              assigned_to: a.assigned_to,
+              due_date: a.due_date,
+              priority: a.priority,
+              recurrence: a.recurrence,
+              active: a.active,
+            }}
+          />
+        </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-sm font-semibold">Aufgabe löschen</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Bei Templates werden auch alle generierten Instanzen mitgelöscht.
-        </p>
-        <div className="mt-4">
+      <div className="overflow-hidden rounded-xl border border-destructive/25 bg-destructive/[0.03]">
+        <div className="border-b border-destructive/20 px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight text-destructive">
+            Aufgabe löschen
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Bei Templates werden auch alle generierten Instanzen mitgelöscht.
+          </p>
+        </div>
+        <div className="p-5">
           <LoeschenButton
             action={loeschen}
             label="Aufgabe endgültig löschen"

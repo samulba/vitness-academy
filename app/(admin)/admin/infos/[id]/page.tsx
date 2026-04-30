@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { requireRole } from "@/lib/auth";
 import { ladeAnnouncement } from "@/lib/infos";
-import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { InfoForm } from "../InfoForm";
 import { infoAktualisieren, infoLoeschen } from "../actions";
 
@@ -21,44 +20,49 @@ export default async function InfoBearbeitenPage({
   const loeschen = infoLoeschen.bind(null, id);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
-      <Link
-        href="/admin/infos"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zu allen Infos
-      </Link>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Wichtige Infos", href: "/admin/infos" },
+          { label: info.title },
+        ]}
+        eyebrow="Info"
+        title={info.title}
+        description="Mitteilung an dein Team — Markdown-Body, Wichtigkeit, Pin- und Veröffentlichungs-Status."
+      />
 
-      <header>
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
-          Studio · Wichtige Infos
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-          Info bearbeiten
-        </h1>
-      </header>
-
-      <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <InfoForm
-          action={aktualisieren}
-          modus="bearbeiten"
-          initial={{
-            title: info.title,
-            body: info.body,
-            importance: info.importance,
-            pinned: info.pinned,
-            published: info.published,
-          }}
-        />
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight">
+            Inhalt
+          </h2>
+        </div>
+        <div className="p-5">
+          <InfoForm
+            action={aktualisieren}
+            modus="bearbeiten"
+            initial={{
+              title: info.title,
+              body: info.body,
+              importance: info.importance,
+              pinned: info.pinned,
+              published: info.published,
+            }}
+          />
+        </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-sm font-semibold">Info löschen</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Kann nicht rückgängig gemacht werden.
-        </p>
-        <div className="mt-4">
+      <div className="overflow-hidden rounded-xl border border-destructive/25 bg-destructive/[0.03]">
+        <div className="border-b border-destructive/20 px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight text-destructive">
+            Info löschen
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Kann nicht rückgängig gemacht werden.
+          </p>
+        </div>
+        <div className="p-5">
           <LoeschenButton
             action={loeschen}
             label="Info endgültig löschen"

@@ -1,7 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { AufgabenFormular } from "@/components/admin/AufgabenFormular";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { createClient } from "@/lib/supabase/server";
@@ -40,46 +38,60 @@ export default async function AufgabeBearbeitenPage({
   if (!aufgabe) notFound();
 
   return (
-    <div className="space-y-6">
-      <Link
-        href="/admin/praxisaufgaben"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Zurück zu Praxisaufgaben
-      </Link>
-
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          {aufgabe.title}
-        </h1>
-      </header>
-
-      <AufgabenFormular
-        modus="bearbeiten"
-        action={aufgabeAktualisieren.bind(null, aufgabe.id)}
-        pfade={pfade}
-        module={module}
-        lektionen={lektionen}
-        werte={{
-          title: aufgabe.title,
-          description: aufgabe.description,
-          status: aufgabe.status,
-          learning_path_id: aufgabe.learning_path_id,
-          module_id: aufgabe.module_id,
-          lesson_id: aufgabe.lesson_id,
-        }}
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Praxisaufgaben", href: "/admin/praxisaufgaben" },
+          { label: aufgabe.title },
+        ]}
+        eyebrow="Praxisaufgabe"
+        title={aufgabe.title}
+        description="Vorlage für Praxisfreigaben — pflege Verknüpfung zu Pfad/Modul/Lektion."
       />
 
-      <Card>
-        <CardContent className="flex justify-end py-4">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight">
+            Stammdaten
+          </h2>
+        </div>
+        <div className="p-5">
+          <AufgabenFormular
+            modus="bearbeiten"
+            action={aufgabeAktualisieren.bind(null, aufgabe.id)}
+            pfade={pfade}
+            module={module}
+            lektionen={lektionen}
+            werte={{
+              title: aufgabe.title,
+              description: aufgabe.description,
+              status: aufgabe.status,
+              learning_path_id: aufgabe.learning_path_id,
+              module_id: aufgabe.module_id,
+              lesson_id: aufgabe.lesson_id,
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-destructive/25 bg-destructive/[0.03]">
+        <div className="border-b border-destructive/20 px-5 py-4">
+          <h2 className="text-[14px] font-semibold tracking-tight text-destructive">
+            Aufgabe löschen
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Inklusive aller eingegangenen Anfragen.
+          </p>
+        </div>
+        <div className="p-5">
           <LoeschenButton
             action={aufgabeLoeschen.bind(null, aufgabe.id)}
-            label="Aufgabe löschen"
+            label="Aufgabe endgültig löschen"
             bestaetigung="Aufgabe inkl. aller Anfragen wirklich löschen?"
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
