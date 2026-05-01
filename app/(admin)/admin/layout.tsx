@@ -26,7 +26,7 @@ export default async function AdminLayout({
           rolle={profile.role}
           fullName={profile.full_name}
           avatarPath={profile.avatar_path}
-          permissions={profile.permissions}
+          permissions={Array.from(profile.permissions)}
           notificationSlot={bell}
         />
         <main

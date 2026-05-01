@@ -146,17 +146,19 @@ export function Sidebar({
   rolle: Rolle;
   fullName?: string | null;
   avatarPath?: string | null;
-  permissions?: ReadonlySet<string>;
+  /** Array von "modul:aktion"-Keys (Set ist nicht ueber RSC serialisierbar) */
+  permissions?: readonly string[];
   notificationSlot?: React.ReactNode;
 }) {
   const pathname = usePathname();
   const showAdmin = istFuehrungskraftOderHoeher(rolle);
   const offen = aktiverGruppenId(pathname);
+  const permSet = permissions ? new Set(permissions) : undefined;
 
   function filterEintraege(eintraege: NavEintrag[]): NavEintrag[] {
-    if (!permissions) return eintraege;
+    if (!permSet) return eintraege;
     return eintraege.filter(
-      (e) => !e.modul || hatModulZugriff(permissions, e.modul),
+      (e) => !e.modul || hatModulZugriff(permSet, e.modul),
     );
   }
   const [openGroup, setOpenGroup] = useState<string | null>(offen);
