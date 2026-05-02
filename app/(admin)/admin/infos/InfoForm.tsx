@@ -3,23 +3,30 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { INFO_KATEGORIEN, type InfoKategorie } from "@/lib/infos-types";
 
 type Initial = {
   title: string;
   body: string;
   importance: "info" | "warning" | "critical";
+  category: InfoKategorie;
+  location_id: string | null;
   pinned: boolean;
   published: boolean;
 };
+
+type Standort = { id: string; name: string };
 
 export function InfoForm({
   action,
   initial,
   modus,
+  standorte,
 }: {
   action: (formData: FormData) => Promise<void>;
   initial?: Initial;
   modus: "neu" | "bearbeiten";
+  standorte: Standort[];
 }) {
   return (
     <form action={action} className="space-y-6">
@@ -31,7 +38,7 @@ export function InfoForm({
           required
           defaultValue={initial?.title ?? ""}
           maxLength={120}
-          placeholder="z.B. „Studio am Freitag ab 14 Uhr geschlossen“"
+          placeholder="z.B. „Studio am Freitag ab 14 Uhr geschlossen"
         />
       </div>
 
@@ -54,6 +61,39 @@ export function InfoForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
+          <Label htmlFor="category">Kategorie</Label>
+          <select
+            id="category"
+            name="category"
+            defaultValue={initial?.category ?? "allgemein"}
+            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            {INFO_KATEGORIEN.map((k) => (
+              <option key={k.value} value={k.value}>
+                {k.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="location_id">Standort</Label>
+          <select
+            id="location_id"
+            name="location_id"
+            defaultValue={initial?.location_id ?? ""}
+            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="">Alle Standorte</option>
+            {standorte.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="importance">Wichtigkeit</Label>
           <select
             id="importance"
@@ -66,7 +106,7 @@ export function InfoForm({
             <option value="critical">Dringend (Banner)</option>
           </select>
           <p className="text-xs text-muted-foreground">
-            Wichtig + Dringend erscheinen ungelesen als Dashboard-Banner.
+            „Dringend&ldquo; erscheint ungelesen als Dashboard-Banner.
           </p>
         </div>
         <div className="space-y-3 pt-1">

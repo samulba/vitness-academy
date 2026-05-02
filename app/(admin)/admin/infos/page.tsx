@@ -12,12 +12,22 @@ import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state"
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { requireRole } from "@/lib/auth";
-import { ladeAnnouncements, type Announcement } from "@/lib/infos";
+import {
+  INFO_KATEGORIEN,
+  kategorieLabel,
+  ladeAnnouncements,
+  type Announcement,
+} from "@/lib/infos";
+import { ladeStandorte } from "@/lib/standorte";
 import { formatDatum } from "@/lib/format";
 
 export default async function InfosAdminPage() {
   await requireRole(["admin", "superadmin"]);
-  const infos = await ladeAnnouncements({ nurPublished: false });
+  const [infos, standorte] = await Promise.all([
+    ladeAnnouncements({ nurPublished: false }),
+    ladeStandorte(),
+  ]);
+  const standortById = new Map(standorte.map((s) => [s.id, s.name]));
   const veroeffentlicht = infos.filter((i) => i.published).length;
   const kritisch = infos.filter(
     (i) => i.importance === "critical" && i.published,
@@ -70,6 +80,25 @@ export default async function InfosAdminPage() {
             Entwurf
           </StatusPill>
         ),
+    },
+    {
+      key: "category",
+      label: "Kategorie",
+      sortable: true,
+      render: (i) => (
+        <span className="text-xs text-muted-foreground">
+          {kategorieLabel(i.category)}
+        </span>
+      ),
+    },
+    {
+      key: "location_id",
+      label: "Standort",
+      render: (i) => (
+        <span className="text-xs text-muted-foreground">
+          {i.location_id ? standortById.get(i.location_id) ?? "—" : "Alle"}
+        </span>
+      ),
     },
     {
       key: "author_name",
@@ -153,6 +182,15 @@ export default async function InfosAdminPage() {
                 { value: "warning", label: "Warnung" },
                 { value: "critical", label: "Kritisch" },
               ],
+              multi: true,
+            },
+            {
+              key: "category",
+              label: "Kategorie",
+              options: INFO_KATEGORIEN.map((k) => ({
+                value: k.value,
+                label: k.label,
+              })),
               multi: true,
             },
           ]}

@@ -4,11 +4,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
+import { istValideKategorie } from "@/lib/infos";
 
 function buildPayload(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
   const importance = String(formData.get("importance") ?? "info");
+  const categoryRaw = String(formData.get("category") ?? "allgemein");
+  const locationRaw = String(formData.get("location_id") ?? "").trim();
   const pinned = formData.get("pinned") === "on";
   const published = formData.get("published") === "on";
   return {
@@ -17,6 +20,8 @@ function buildPayload(formData: FormData) {
     importance: ["info", "warning", "critical"].includes(importance)
       ? importance
       : "info",
+    category: istValideKategorie(categoryRaw) ? categoryRaw : "allgemein",
+    location_id: locationRaw.length > 0 ? locationRaw : null,
     pinned,
     published,
   };

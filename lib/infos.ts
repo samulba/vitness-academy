@@ -1,24 +1,26 @@
 import { createClient } from "@/lib/supabase/server";
+import {
+  istValideKategorie,
+  type Announcement,
+  type Importance,
+} from "@/lib/infos-types";
 
-export type Importance = "info" | "warning" | "critical";
-
-export type Announcement = {
-  id: string;
-  location_id: string | null;
-  title: string;
-  body: string;
-  importance: Importance;
-  pinned: boolean;
-  published: boolean;
-  author_id: string | null;
-  author_name: string | null;
-  created_at: string;
-  updated_at: string;
-};
+// Re-export client-safe Types fuer Server-Code-Convenience
+export type {
+  Announcement,
+  Importance,
+  InfoKategorie,
+} from "@/lib/infos-types";
+export {
+  INFO_KATEGORIEN,
+  istValideKategorie,
+  kategorieLabel,
+} from "@/lib/infos-types";
 
 type Roh = {
   id: string;
   location_id: string | null;
+  category: string | null;
   title: string;
   body: string;
   importance: string;
@@ -31,9 +33,11 @@ type Roh = {
 };
 
 function map(r: Roh): Announcement {
+  const cat = r.category && istValideKategorie(r.category) ? r.category : "allgemein";
   return {
     id: r.id,
     location_id: r.location_id,
+    category: cat,
     title: r.title,
     body: r.body,
     importance: (["info", "warning", "critical"].includes(r.importance)
@@ -48,17 +52,17 @@ function map(r: Roh): Announcement {
   };
 }
 
+const SELECT_COLS = `id, location_id, category, title, body, importance, pinned, published,
+       author_id, created_at, updated_at,
+       profiles:author_id ( full_name )`;
+
 export async function ladeAnnouncements(opts?: {
   nurPublished?: boolean;
 }): Promise<Announcement[]> {
   const supabase = await createClient();
   let q = supabase
     .from("studio_announcements")
-    .select(
-      `id, location_id, title, body, importance, pinned, published,
-       author_id, created_at, updated_at,
-       profiles:author_id ( full_name )`,
-    )
+    .select(SELECT_COLS)
     .order("pinned", { ascending: false })
     .order("created_at", { ascending: false });
 
@@ -75,11 +79,7 @@ export async function ladeAnnouncement(
   const supabase = await createClient();
   const { data } = await supabase
     .from("studio_announcements")
-    .select(
-      `id, location_id, title, body, importance, pinned, published,
-       author_id, created_at, updated_at,
-       profiles:author_id ( full_name )`,
-    )
+    .select(SELECT_COLS)
     .eq("id", id)
     .maybeSingle();
   return data ? map(data as unknown as Roh) : null;
@@ -100,7 +100,11 @@ export async function ladeReadIds(userId: string): Promise<Set<string>> {
 }
 
 /**
- * Erste ungelesene + warning/critical Announcement (fuer Dashboard-Banner).
+ * Erste ungelesene + critical Announcement (fuer Dashboard-Banner).
+ *
+ * Bewusst NUR critical, nicht mehr warning -- seitdem Mitarbeiter
+ * selbst Infos posten duerfen, wuerde 'warning' jeden Mitarbeiter-
+ * Hinweis als Banner auf jedem Dashboard zeigen.
  */
 export async function aktiveBannerInfo(
   userId: string,
@@ -110,9 +114,7 @@ export async function aktiveBannerInfo(
     ladeReadIds(userId),
   ]);
   const ungelesen = alle.filter(
-    (a) =>
-      !gelesen.has(a.id) &&
-      (a.importance === "warning" || a.importance === "critical"),
+    (a) => !gelesen.has(a.id) && a.importance === "critical",
   );
   return ungelesen[0] ?? null;
 }

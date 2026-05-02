@@ -1,10 +1,12 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { requireRole } from "@/lib/auth";
+import { ladeStandorte } from "@/lib/standorte";
 import { InfoForm } from "../InfoForm";
 import { infoAnlegen } from "../actions";
 
 export default async function NeueInfoPage() {
   await requireRole(["admin", "superadmin"]);
+  const standorte = await ladeStandorte();
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <PageHeader
@@ -25,7 +27,11 @@ export default async function NeueInfoPage() {
           </h2>
         </div>
         <div className="p-5">
-          <InfoForm action={infoAnlegen} modus="neu" />
+          <InfoForm
+            action={infoAnlegen}
+            modus="neu"
+            standorte={standorte.map((s) => ({ id: s.id, name: s.name }))}
+          />
         </div>
       </div>
     </div>

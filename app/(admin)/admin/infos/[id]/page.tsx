@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { requireRole } from "@/lib/auth";
 import { ladeAnnouncement } from "@/lib/infos";
+import { ladeStandorte } from "@/lib/standorte";
 import { InfoForm } from "../InfoForm";
 import { infoAktualisieren, infoLoeschen } from "../actions";
 
@@ -13,7 +14,10 @@ export default async function InfoBearbeitenPage({
 }) {
   await requireRole(["admin", "superadmin"]);
   const { id } = await params;
-  const info = await ladeAnnouncement(id);
+  const [info, standorte] = await Promise.all([
+    ladeAnnouncement(id),
+    ladeStandorte(),
+  ]);
   if (!info) notFound();
 
   const aktualisieren = infoAktualisieren.bind(null, id);
@@ -42,10 +46,13 @@ export default async function InfoBearbeitenPage({
           <InfoForm
             action={aktualisieren}
             modus="bearbeiten"
+            standorte={standorte.map((s) => ({ id: s.id, name: s.name }))}
             initial={{
               title: info.title,
               body: info.body,
               importance: info.importance,
+              category: info.category,
+              location_id: info.location_id,
               pinned: info.pinned,
               published: info.published,
             }}
