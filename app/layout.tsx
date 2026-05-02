@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { ThemeScript } from "@/components/ThemeScript";
 import { Toaster } from "@/components/ui/toast";
 import { ToastFlash } from "@/components/ui/toast-flash";
+import { ShortcutsHelp } from "@/components/help/ShortcutsHelp";
 
 export const metadata: Metadata = {
   title: "Vitness Academy",
@@ -30,6 +31,7 @@ export default function RootLayout({
         </a>
         {children}
         <Toaster />
+        <ShortcutsHelp />
         <Suspense fallback={null}>
           <ToastFlash />
         </Suspense>
