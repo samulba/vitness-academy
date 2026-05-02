@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,6 +13,9 @@ import { createClient } from "@/lib/supabase/client";
  * einfach refresh wenn was passiert. Reicht fuer das Use-Case
  * "Admin sieht neuen Mangel ohne Reload".
  *
+ * Channel-Name enthaelt useId(), damit mehrere Instances derselben
+ * Subscription nebeneinander leben koennen (z.B. Bell in Topbar + Sidebar).
+ *
  * @example
  *   <RealtimeRefresh table="studio_issues" />
  *   <RealtimeRefresh table="form_submissions" event="INSERT" />
@@ -22,11 +25,12 @@ export function useRealtimeRefresh(
   event: "*" | "INSERT" | "UPDATE" | "DELETE" = "*",
 ) {
   const router = useRouter();
+  const id = useId();
 
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
-      .channel(`realtime-${table}-${event}`)
+      .channel(`realtime-${table}-${event}-${id}`)
       .on(
         "postgres_changes",
         {
@@ -43,7 +47,7 @@ export function useRealtimeRefresh(
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [table, event, router]);
+  }, [table, event, router, id]);
 }
 
 /**
