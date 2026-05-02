@@ -33,7 +33,6 @@ export default async function AppLayout({
           rolle={profile.role}
           fullName={profile.full_name}
           avatarPath={profile.avatar_path}
-          permissions={Array.from(profile.permissions)}
           notificationSlot={bell}
         />
         <main

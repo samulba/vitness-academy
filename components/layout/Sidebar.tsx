@@ -29,7 +29,6 @@ import {
   istFuehrungskraftOderHoeher,
   type Rolle,
 } from "@/lib/rollen";
-import { hatModulZugriff, type Modul } from "@/lib/permissions";
 import { rolleLabel } from "@/lib/format";
 import { SearchTrigger } from "@/components/search/SearchTrigger";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -39,8 +38,6 @@ type NavEintrag = {
   href: string;
   label: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  /** Wenn gesetzt: Eintrag nur sichtbar wenn Permission auf diesem Modul */
-  modul?: Modul;
 };
 
 type AdminGruppe = {
@@ -75,39 +72,39 @@ const ADMIN_GROUPS: AdminGruppe[] = [
     id: "inhalte",
     label: "Inhalte",
     eintraege: [
-      { href: "/admin/lernpfade", label: "Lernpfade", icon: GraduationCap, modul: "lernpfade" },
-      { href: "/admin/quizze", label: "Quizze", icon: HelpCircle, modul: "quizze" },
-      { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare, modul: "praxisaufgaben" },
-      { href: "/admin/wissen", label: "Handbuch", icon: BookOpen, modul: "wissen" },
+      { href: "/admin/lernpfade", label: "Lernpfade", icon: GraduationCap },
+      { href: "/admin/quizze", label: "Quizze", icon: HelpCircle },
+      { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare },
+      { href: "/admin/wissen", label: "Handbuch", icon: BookOpen },
     ],
   },
   {
     id: "team",
     label: "Mitarbeiter",
     eintraege: [
-      { href: "/admin/benutzer", label: "Benutzer", icon: Users, modul: "benutzer" },
-      { href: "/admin/standorte", label: "Standorte", icon: MapPin, modul: "standorte" },
-      { href: "/admin/rollen", label: "Rollen & Rechte", icon: Lock, modul: "rollen" },
+      { href: "/admin/benutzer", label: "Benutzer", icon: Users },
+      { href: "/admin/standorte", label: "Standorte", icon: MapPin },
+      { href: "/admin/rollen", label: "Rollen & Rechte", icon: Lock },
     ],
   },
   {
     id: "studio",
     label: "Studio-Daten",
     eintraege: [
-      { href: "/admin/aufgaben", label: "Aufgaben", icon: ListTodo, modul: "aufgaben" },
-      { href: "/admin/infos", label: "Infos", icon: Megaphone, modul: "infos" },
-      { href: "/admin/kontakte", label: "Kontakte", icon: Contact, modul: "kontakte" },
-      { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle, modul: "maengel" },
-      { href: "/admin/formulare", label: "Formulare", icon: FileText, modul: "formulare" },
-      { href: "/admin/praxisfreigaben", label: "Anfragen", icon: CheckSquare, modul: "praxisfreigaben" },
+      { href: "/admin/aufgaben", label: "Aufgaben", icon: ListTodo },
+      { href: "/admin/infos", label: "Infos", icon: Megaphone },
+      { href: "/admin/kontakte", label: "Kontakte", icon: Contact },
+      { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle },
+      { href: "/admin/formulare", label: "Formulare", icon: FileText },
+      { href: "/admin/praxisfreigaben", label: "Anfragen", icon: CheckSquare },
     ],
   },
   {
     id: "auswertung",
     label: "Auswertung",
     eintraege: [
-      { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity, modul: "fortschritt" },
-      { href: "/admin/audit-log", label: "Audit-Log", icon: ShieldCheck, modul: "audit" },
+      { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity },
+      { href: "/admin/audit-log", label: "Audit-Log", icon: ShieldCheck },
       { href: "/admin/showcase", label: "Design-Showcase", icon: Sparkles },
     ],
   },
@@ -140,27 +137,16 @@ export function Sidebar({
   rolle,
   fullName,
   avatarPath,
-  permissions,
   notificationSlot,
 }: {
   rolle: Rolle;
   fullName?: string | null;
   avatarPath?: string | null;
-  /** Array von "modul:aktion"-Keys (Set ist nicht ueber RSC serialisierbar) */
-  permissions?: readonly string[];
   notificationSlot?: React.ReactNode;
 }) {
   const pathname = usePathname();
   const showAdmin = istFuehrungskraftOderHoeher(rolle);
   const offen = aktiverGruppenId(pathname);
-  const permSet = permissions ? new Set(permissions) : undefined;
-
-  function filterEintraege(eintraege: NavEintrag[]): NavEintrag[] {
-    if (!permSet) return eintraege;
-    return eintraege.filter(
-      (e) => !e.modul || hatModulZugriff(permSet, e.modul),
-    );
-  }
   const [openGroup, setOpenGroup] = useState<string | null>(offen);
 
   function toggle(id: string) {
@@ -210,19 +196,15 @@ export function Sidebar({
                 </li>
               </ul>
               <div className="mt-1 space-y-0.5">
-                {ADMIN_GROUPS.map((g) => {
-                  const eintraege = filterEintraege(g.eintraege);
-                  if (eintraege.length === 0) return null;
-                  return (
-                    <CollapsibleGruppe
-                      key={g.id}
-                      gruppe={{ ...g, eintraege }}
-                      pathname={pathname}
-                      open={openGroup === g.id}
-                      onToggle={() => toggle(g.id)}
-                    />
-                  );
-                })}
+                {ADMIN_GROUPS.map((g) => (
+                  <CollapsibleGruppe
+                    key={g.id}
+                    gruppe={g}
+                    pathname={pathname}
+                    open={openGroup === g.id}
+                    onToggle={() => toggle(g.id)}
+                  />
+                ))}
               </div>
             </div>
           )}
