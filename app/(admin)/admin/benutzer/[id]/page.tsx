@@ -29,7 +29,6 @@ type Profil = {
   id: string;
   full_name: string | null;
   role: string;
-  custom_role_id: string | null;
   location_id: string | null;
   created_at: string;
   archived_at: string | null;
@@ -40,9 +39,7 @@ async function ladeProfil(id: string): Promise<Profil | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select(
-      "id, full_name, role, custom_role_id, location_id, created_at, archived_at",
-    )
+    .select("id, full_name, role, location_id, created_at, archived_at")
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
@@ -51,27 +48,11 @@ async function ladeProfil(id: string): Promise<Profil | null> {
     id: data.id as string,
     full_name: data.full_name as string | null,
     role: data.role as string,
-    custom_role_id: data.custom_role_id as string | null,
     location_id: data.location_id as string | null,
     created_at: data.created_at as string,
     archived_at: data.archived_at as string | null,
     email: null,
   };
-}
-
-async function ladeAktiveCustomRollen() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("roles")
-    .select("id, name, base_level")
-    .eq("is_system", false)
-    .is("archived_at", null)
-    .order("name", { ascending: true });
-  return (data ?? []) as {
-    id: string;
-    name: string;
-    base_level: string;
-  }[];
 }
 
 async function ladeStandorte() {
@@ -124,14 +105,13 @@ export default async function BenutzerBearbeitenPage({
   const { id } = await params;
   const aktuell = await requireRole(["admin", "superadmin"]);
 
-  const [profil, standorte, alleLernpfade, zuweisungen, fortschritt, customRollen] =
+  const [profil, standorte, alleLernpfade, zuweisungen, fortschritt] =
     await Promise.all([
       ladeProfil(id),
       ladeStandorte(),
       ladeAlleLernpfade(),
       ladeZuweisungen(id),
       ladeMeineLernpfade(id),
-      ladeAktiveCustomRollen(),
     ]);
 
   const quizVerlauf = await mitarbeiterQuizVerlauf(id, 10);
@@ -221,40 +201,6 @@ export default async function BenutzerBearbeitenPage({
                 </select>
               </div>
             </div>
-
-            {customRollen.length > 0 && (
-              <div className="space-y-2">
-                <Label htmlFor="custom_role_id">
-                  Custom-Rolle{" "}
-                  <span className="text-xs font-normal text-muted-foreground">
-                    (optional, überschreibt Permissions der Basis-Rolle)
-                  </span>
-                </Label>
-                <select
-                  id="custom_role_id"
-                  name="custom_role_id"
-                  defaultValue={profil.custom_role_id ?? ""}
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="">— keine —</option>
-                  {customRollen.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name} ({r.base_level})
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[11px] text-muted-foreground">
-                  Custom-Rollen verwaltest du unter{" "}
-                  <Link
-                    href="/admin/rollen"
-                    className="underline underline-offset-2 hover:text-foreground"
-                  >
-                    Rollen & Rechte
-                  </Link>
-                  .
-                </p>
-              </div>
-            )}
 
             <div className="flex justify-end">
               <SpeichernButton />

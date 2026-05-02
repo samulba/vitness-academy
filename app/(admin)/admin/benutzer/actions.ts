@@ -32,14 +32,11 @@ export async function profilAktualisieren(
   if (role === "superadmin" && aktuell.role !== "superadmin") return;
   const location_id =
     String(formData.get("location_id") ?? "").trim() || null;
-  const customRoleRaw =
-    String(formData.get("custom_role_id") ?? "").trim();
-  const custom_role_id = customRoleRaw.length > 0 ? customRoleRaw : null;
 
   const supabase = await createClient();
   await supabase
     .from("profiles")
-    .update({ full_name, role, location_id, custom_role_id })
+    .update({ full_name, role, location_id })
     .eq("id", benutzerId);
 
   revalidatePath("/admin/benutzer");

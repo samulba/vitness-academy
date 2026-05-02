@@ -14,7 +14,6 @@ import {
   GraduationCap,
   HelpCircle,
   Home,
-  Lock,
   ListTodo,
   MapPin,
   Megaphone,
@@ -84,7 +83,6 @@ const ADMIN_GROUPS: AdminGruppe[] = [
     eintraege: [
       { href: "/admin/benutzer", label: "Benutzer", icon: Users },
       { href: "/admin/standorte", label: "Standorte", icon: MapPin },
-      { href: "/admin/rollen", label: "Rollen & Rechte", icon: Lock },
     ],
   },
   {
