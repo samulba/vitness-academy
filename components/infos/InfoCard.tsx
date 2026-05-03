@@ -22,6 +22,7 @@ import {
   type InfoKategorie,
   kategorieLabel,
 } from "@/lib/infos-types";
+import { useRelativeZeit } from "@/lib/hooks/useRelativeZeit";
 import {
   eigeneInfoLoeschen,
   infoAlsGelesenMarkieren,
@@ -47,22 +48,6 @@ const IMPORTANCE_LABEL: Record<Importance, string> = {
   critical: "Dringend",
 };
 
-function relativeZeit(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime();
-  const min = Math.floor(ms / 60_000);
-  if (min < 1) return "gerade eben";
-  if (min < 60) return `vor ${min} Min`;
-  const std = Math.floor(min / 60);
-  if (std < 24) return `vor ${std} Std`;
-  const tage = Math.floor(std / 24);
-  if (tage < 7) return `vor ${tage} Tg`;
-  return new Date(iso).toLocaleDateString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
-
 export function InfoCard({
   info,
   istGelesen,
@@ -82,6 +67,7 @@ export function InfoCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [loeschError, setLoeschError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const zeit = useRelativeZeit(info.created_at);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -148,7 +134,7 @@ export function InfoCard({
                   </span>
                 )}
                 <span className="text-xs text-muted-foreground">
-                  · {relativeZeit(info.created_at)}
+                  {zeit ? `· ${zeit}` : ""}
                 </span>
               </div>
             </div>

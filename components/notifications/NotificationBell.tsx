@@ -19,10 +19,10 @@ import {
 } from "@/app/(app)/notifications/actions";
 import {
   iconKey,
-  relativeZeit,
   type Notification,
   type NotificationType,
 } from "@/lib/notifications-types";
+import { useRelativeZeit } from "@/lib/hooks/useRelativeZeit";
 
 const ICON_MAP = {
   wrench: Wrench,
@@ -164,6 +164,7 @@ function NotificationItem({
   onClick: () => void;
 }) {
   const istUngelesen = !n.read_at;
+  const zeit = useRelativeZeit(n.created_at);
 
   function markRead() {
     if (!istUngelesen) return;
@@ -197,7 +198,7 @@ function NotificationItem({
           </p>
         )}
         <p className="mt-1 text-[10px] text-muted-foreground/70">
-          {relativeZeit(n.created_at)}
+          {zeit}
         </p>
       </div>
       {istUngelesen && (

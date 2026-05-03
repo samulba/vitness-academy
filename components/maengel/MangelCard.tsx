@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { MangelStatusBadge } from "@/components/maengel/StatusBadge";
 import { fotoUrlFuerPfad, type Mangel } from "@/lib/maengel-types";
+import { useRelativeZeit } from "@/lib/hooks/useRelativeZeit";
+import { formatDatum } from "@/lib/format";
 
 const SEVERITY_DOT: Record<string, string> = {
   niedrig: "bg-zinc-400",
@@ -18,22 +20,6 @@ const SEVERITY_LABEL: Record<string, string> = {
   kritisch: "Kritisch",
 };
 
-function relativeZeit(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime();
-  const min = Math.floor(ms / 60_000);
-  if (min < 1) return "gerade eben";
-  if (min < 60) return `vor ${min} Min`;
-  const std = Math.floor(min / 60);
-  if (std < 24) return `vor ${std} Std`;
-  const tage = Math.floor(std / 24);
-  if (tage < 7) return `vor ${tage} Tg`;
-  return new Date(iso).toLocaleDateString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
-
 export function MangelCard({
   mangel,
   istEigener,
@@ -42,6 +28,7 @@ export function MangelCard({
   istEigener: boolean;
 }) {
   const url = fotoUrlFuerPfad(mangel.photo_path);
+  const zeit = useRelativeZeit(mangel.created_at);
   const istKritisch = mangel.severity === "kritisch";
 
   return (
@@ -77,7 +64,7 @@ export function MangelCard({
                   </span>
                 )}
                 <span className="text-xs text-muted-foreground">
-                  · {relativeZeit(mangel.created_at)}
+                  {zeit ? `· ${zeit}` : ""}
                 </span>
               </div>
             </div>
@@ -142,7 +129,7 @@ export function MangelCard({
         </div>
         {mangel.resolved_at && (
           <span className="text-[11px] text-muted-foreground">
-            Behoben am {new Date(mangel.resolved_at).toLocaleDateString("de-DE")}
+            Behoben am {formatDatum(mangel.resolved_at)}
           </span>
         )}
       </div>
