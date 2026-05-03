@@ -3,15 +3,19 @@ export function formatProzent(value: number): string {
   return `${Math.round(value)}%`;
 }
 
+/**
+ * Liefert deterministisches "DD.MM.YYYY"-Format unabhaengig von ICU/
+ * Locale-Verfuegbarkeit. Vermeidet Hydration-Mismatches zwischen Node
+ * (Server) und Browser bei minimalen Builds ohne Intl-Locales.
+ */
 export function formatDatum(date: string | Date | null | undefined): string {
   if (!date) return "—";
   const d = typeof date === "string" ? new Date(date) : date;
   if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}.${mm}.${yyyy}`;
 }
 
 export function rolleLabel(role: string | null | undefined): string {
