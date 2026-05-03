@@ -22,18 +22,23 @@ export async function anmelden(formData: FormData) {
     redirect(`/login?${params.toString()}`);
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role, archived_at")
     .eq("id", data.user.id)
-    .single();
+    .maybeSingle();
 
-  if (profile?.archived_at) {
+  if (profileError || !profile) {
+    await supabase.auth.signOut();
+    redirect("/login?fehler=profil-fehlt");
+  }
+
+  if (profile.archived_at) {
     await supabase.auth.signOut();
     redirect("/login?archived=1");
   }
 
-  const rolle = (profile?.role as Rolle | undefined) ?? "mitarbeiter";
+  const rolle = (profile.role as Rolle | undefined) ?? "mitarbeiter";
 
   if (weiter && weiter.startsWith("/") && !weiter.startsWith("//")) {
     redirect(weiter);

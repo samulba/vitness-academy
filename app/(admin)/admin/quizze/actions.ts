@@ -41,7 +41,7 @@ export async function quizAnlegen(formData: FormData): Promise<void> {
     .maybeSingle();
   const sort_order = ((maxRow?.sort_order as number | undefined) ?? 0) + 1;
 
-  const { data: neu } = await supabase
+  const { data: neu, error: insError } = await supabase
     .from("quizzes")
     .insert({
       title,
@@ -54,10 +54,13 @@ export async function quizAnlegen(formData: FormData): Promise<void> {
       created_by: profile.id,
     })
     .select("id")
-    .single();
+    .maybeSingle();
 
   revalidatePath("/admin/quizze");
-  if (neu?.id) redirect(`/admin/quizze/${neu.id}?toast=created`);
+  if (insError || !neu?.id) {
+    redirect("/admin/quizze?toast=error");
+  }
+  redirect(`/admin/quizze/${neu.id}?toast=created`);
 }
 
 export async function quizAktualisieren(

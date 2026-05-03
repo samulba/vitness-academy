@@ -9,6 +9,7 @@ export default async function LoginPage({
 }) {
   const { weiter, fehler, archived } = await searchParams;
   const istArchiviert = archived === "1";
+  const istProfilFehlt = fehler === "profil-fehlt";
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
@@ -101,7 +102,19 @@ export default async function LoginPage({
             </div>
           )}
 
-          <LoginFormular weiter={weiter} fehler={fehler} />
+          {istProfilFehlt && (
+            <div className="rounded-xl border border-[hsl(var(--destructive)/0.4)] bg-[hsl(var(--destructive)/0.06)] px-4 py-3 text-sm">
+              <p className="font-semibold text-[hsl(var(--destructive))]">
+                Konto unvollständig
+              </p>
+              <p className="mt-1 text-muted-foreground">
+                Dein Profil ist nicht vollständig angelegt. Bitte kurz die
+                Studioleitung kontaktieren — die kann das schnell korrigieren.
+              </p>
+            </div>
+          )}
+
+          <LoginFormular weiter={weiter} fehler={istProfilFehlt ? undefined : fehler} />
         </div>
       </section>
     </main>

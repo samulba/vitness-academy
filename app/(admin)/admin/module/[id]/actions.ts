@@ -22,14 +22,18 @@ export async function modulAktualisieren(
   if (!title) return;
 
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("modules")
     .update({ title, description })
     .eq("id", modulId)
     .select("learning_path_id")
-    .single();
+    .maybeSingle();
 
-  const pfadId = data?.learning_path_id as string | undefined;
+  if (error || !data) {
+    redirect(`/admin/module/${modulId}?toast=error`);
+  }
+
+  const pfadId = data.learning_path_id as string | null;
   revalidatePath(`/admin/module/${modulId}`);
   if (pfadId) {
     revalidatePath(`/admin/lernpfade/${pfadId}`);
@@ -41,13 +45,18 @@ export async function modulAktualisieren(
 export async function modulLoeschen(modulId: string): Promise<void> {
   await ensureAdmin();
   const supabase = await createClient();
-  const { data: m } = await supabase
+  const { data: m, error: leseError } = await supabase
     .from("modules")
     .select("learning_path_id")
     .eq("id", modulId)
-    .single();
+    .maybeSingle();
+
+  if (leseError || !m) {
+    redirect("/admin/lernpfade?toast=error");
+  }
+
   await supabase.from("modules").delete().eq("id", modulId);
-  const pfadId = m?.learning_path_id as string | undefined;
+  const pfadId = m.learning_path_id as string | null;
   if (pfadId) {
     revalidatePath(`/admin/lernpfade/${pfadId}`);
     revalidatePath(`/lernpfade/${pfadId}`);

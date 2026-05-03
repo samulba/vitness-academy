@@ -79,14 +79,17 @@ export async function templateAnlegen(formData: FormData): Promise<void> {
     slug = `${baseSlug}-${i}`;
   }
 
-  const { data } = await supabase
+  const { data, error: insError } = await supabase
     .from("form_templates")
     .insert({ ...payload, slug, created_by: profile.id })
     .select("id")
-    .single();
+    .maybeSingle();
   revalidatePath("/admin/formulare");
   revalidatePath("/formulare");
-  if (data?.id) redirect(`/admin/formulare/${data.id}?toast=created`);
+  if (insError || !data?.id) {
+    redirect("/admin/formulare?toast=error");
+  }
+  redirect(`/admin/formulare/${data.id}?toast=created`);
 }
 
 export async function templateAktualisieren(
