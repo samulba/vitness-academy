@@ -49,6 +49,7 @@ export type Announcement = {
   published: boolean;
   author_id: string | null;
   author_name: string | null;
+  author_avatar_path: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import {
-  AlertTriangle,
   CalendarClock,
   Check,
-  Info,
+  Eye,
   Megaphone,
   MoreHorizontal,
   Pin,
-  Siren,
   Trash2,
   Users,
   Wrench,
@@ -17,7 +15,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
-import { formatDatum } from "@/lib/format";
+import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import {
   type Announcement,
   type Importance,
@@ -29,13 +27,7 @@ import {
   infoAlsGelesenMarkieren,
 } from "@/app/(app)/infos/actions";
 
-const ICONS: Record<Importance, typeof Info> = {
-  info: Info,
-  warning: AlertTriangle,
-  critical: Siren,
-};
-
-const KATEGORIE_ICONS: Record<InfoKategorie, typeof Info> = {
+const KATEGORIE_ICONS: Record<InfoKategorie, typeof Megaphone> = {
   allgemein: Megaphone,
   geraete: Wrench,
   schicht: CalendarClock,
@@ -43,49 +35,66 @@ const KATEGORIE_ICONS: Record<InfoKategorie, typeof Info> = {
   sonstiges: MoreHorizontal,
 };
 
-const STYLES: Record<
-  Importance,
-  { border: string; bg: string; pillBg: string; pillText: string; label: string }
-> = {
-  info: {
-    border: "border-border",
-    bg: "bg-card",
-    pillBg: "bg-muted",
-    pillText: "text-muted-foreground",
-    label: "Info",
-  },
-  warning: {
-    border: "border-[hsl(var(--warning)/0.5)]",
-    bg: "bg-[hsl(var(--warning)/0.05)]",
-    pillBg: "bg-[hsl(var(--warning)/0.18)]",
-    pillText: "text-[hsl(var(--warning))]",
-    label: "Wichtig",
-  },
-  critical: {
-    border: "border-[hsl(var(--destructive)/0.6)]",
-    bg: "bg-[hsl(var(--destructive)/0.05)]",
-    pillBg: "bg-[hsl(var(--destructive)/0.15)]",
-    pillText: "text-[hsl(var(--destructive))]",
-    label: "Dringend",
-  },
+const IMPORTANCE_DOT: Record<Importance, string> = {
+  info: "bg-blue-500",
+  warning: "bg-amber-500",
+  critical: "bg-red-500",
 };
+
+const IMPORTANCE_LABEL: Record<Importance, string> = {
+  info: "Info",
+  warning: "Wichtig",
+  critical: "Dringend",
+};
+
+function relativeZeit(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(ms / 60_000);
+  if (min < 1) return "gerade eben";
+  if (min < 60) return `vor ${min} Min`;
+  const std = Math.floor(min / 60);
+  if (std < 24) return `vor ${std} Std`;
+  const tage = Math.floor(std / 24);
+  if (tage < 7) return `vor ${tage} Tg`;
+  return new Date(iso).toLocaleDateString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
 
 export function InfoCard({
   info,
   istGelesen,
   istEigene = false,
   standortName,
+  authorAvatarPath,
+  readCount,
 }: {
   info: Announcement;
   istGelesen: boolean;
   istEigene?: boolean;
   standortName?: string | null;
+  authorAvatarPath?: string | null;
+  readCount?: number;
 }) {
   const [pending, startTransition] = useTransition();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [loeschError, setLoeschError] = useState<string | null>(null);
-  const s = STYLES[info.importance];
-  const Icon = ICONS[info.importance];
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onClick(e: MouseEvent) {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [menuOpen]);
+
   const KatIcon = KATEGORIE_ICONS[info.category];
+  const istDringend = info.importance === "critical";
 
   function gelesen() {
     startTransition(async () => {
@@ -94,6 +103,7 @@ export function InfoCard({
   }
 
   function loeschen() {
+    setMenuOpen(false);
     if (!confirm("Diese Info wirklich löschen?")) return;
     setLoeschError(null);
     startTransition(async () => {
@@ -105,93 +115,153 @@ export function InfoCard({
   return (
     <article
       className={cn(
-        "relative overflow-hidden rounded-2xl border-2 p-6",
-        s.border,
-        s.bg,
-        !istGelesen && "ring-2 ring-[hsl(var(--primary)/0.15)]",
+        "relative overflow-hidden rounded-2xl border bg-card transition-shadow hover:shadow-sm",
+        istDringend
+          ? "border-red-200 bg-red-50/30"
+          : "border-border",
       )}
     >
-      <div className="flex flex-wrap items-center gap-2">
+      {istDringend && (
         <span
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
-            s.pillBg,
-            s.pillText,
-          )}
-        >
-          <Icon className="h-3 w-3" />
-          {s.label}
-        </span>
-        <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
-          <KatIcon className="h-3 w-3" />
-          {kategorieLabel(info.category)}
-        </span>
-        {standortName && (
-          <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-            {standortName}
-          </span>
-        )}
-        {info.pinned && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--primary)/0.12)] px-2 py-0.5 text-[10px] font-semibold text-[hsl(var(--primary))]">
-            <Pin className="h-3 w-3" />
-            Angeheftet
-          </span>
-        )}
-        {istEigene && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--brand-pink)/0.12)] px-2 py-0.5 text-[10px] font-semibold text-[hsl(var(--brand-pink))]">
-            Von dir
-          </span>
-        )}
-        <span className="ml-auto text-xs text-muted-foreground">
-          {formatDatum(info.created_at)}
-          {info.author_name && <> · {info.author_name}</>}
-        </span>
-      </div>
-
-      <h3 className="mt-4 text-balance text-xl font-semibold leading-tight tracking-tight sm:text-2xl">
-        {info.title}
-      </h3>
-
-      {info.body && (
-        <div className="prose-vitness mt-3 max-w-none text-sm leading-relaxed sm:text-base">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{info.body}</ReactMarkdown>
-        </div>
+          aria-hidden
+          className="absolute inset-y-0 left-0 w-[3px] bg-red-500"
+        />
       )}
 
-      <div className="mt-5 flex flex-wrap items-center gap-3">
-        {istGelesen ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[hsl(var(--success)/0.12)] px-3 py-1 text-xs font-semibold text-[hsl(var(--success))]">
-            <Check className="h-3.5 w-3.5" />
-            Gelesen
+      <div className="px-6 pt-5">
+        {/* Header: Avatar + Name + Time + Optionsmenu */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <ColoredAvatar
+              name={info.author_name}
+              avatarPath={authorAvatarPath ?? null}
+              size="md"
+            />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-baseline gap-x-1.5">
+                <span className="text-sm font-semibold text-foreground">
+                  {info.author_name ?? "Studio"}
+                </span>
+                {istEigene && (
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+                    · Du
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">
+                  · {relativeZeit(info.created_at)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {istEigene && (
+            <div ref={menuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setMenuOpen((o) => !o)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                aria-label="Optionen"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 top-full z-20 mt-1 w-44 overflow-hidden rounded-lg border border-border bg-popover py-1 shadow-lg">
+                  <button
+                    type="button"
+                    onClick={loeschen}
+                    disabled={pending}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-muted"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Info löschen
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Pills-Reihe */}
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+            <KatIcon className="h-3 w-3" />
+            {kategorieLabel(info.category)}
           </span>
-        ) : (
-          <button
-            type="button"
-            onClick={gelesen}
-            disabled={pending}
-            className="inline-flex items-center gap-1.5 rounded-full bg-[hsl(var(--primary))] px-4 py-1.5 text-xs font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.02] disabled:opacity-50"
-          >
-            <Check className="h-3.5 w-3.5" />
-            Als gelesen markieren
-          </button>
+          {standortName && (
+            <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+              {standortName}
+            </span>
+          )}
+          {info.importance !== "info" && (
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
+                info.importance === "warning"
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-red-100 text-red-700",
+              )}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${IMPORTANCE_DOT[info.importance]}`}
+              />
+              {IMPORTANCE_LABEL[info.importance]}
+            </span>
+          )}
+          {info.pinned && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--primary)/0.1)] px-2.5 py-0.5 text-[11px] font-medium text-[hsl(var(--primary))]">
+              <Pin className="h-2.5 w-2.5" />
+              Angeheftet
+            </span>
+          )}
+        </div>
+
+        {/* Title */}
+        <h3 className="mt-3 text-base font-semibold leading-snug tracking-tight text-foreground">
+          {info.title}
+        </h3>
+
+        {/* Body */}
+        {info.body && (
+          <div className="prose-vitness mt-1 max-w-none text-sm leading-relaxed text-muted-foreground">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{info.body}</ReactMarkdown>
+          </div>
         )}
-        {istEigene && (
-          <button
-            type="button"
-            onClick={loeschen}
-            disabled={pending}
-            className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive disabled:opacity-50"
-          >
-            <Trash2 className="h-3 w-3" />
-            Löschen
-          </button>
+      </div>
+
+      {/* Footer */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border px-6 py-3">
+        <div className="flex items-center gap-2">
+          {istGelesen ? (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--success))]">
+              <Check className="h-3.5 w-3.5" />
+              Gelesen
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={gelesen}
+              disabled={pending}
+              className="inline-flex items-center gap-1.5 rounded-full bg-[hsl(var(--primary))] px-3 py-1 text-xs font-semibold text-[hsl(var(--primary-foreground))] transition-colors hover:bg-[hsl(var(--primary)/0.9)] disabled:opacity-60"
+            >
+              <Check className="h-3 w-3" />
+              Als gelesen markieren
+            </button>
+          )}
+        </div>
+        {readCount !== undefined && readCount > 0 && (
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Eye className="h-3 w-3" />
+            {readCount} {readCount === 1 ? "gelesen" : "gelesen"}
+          </span>
         )}
       </div>
 
       {loeschError && (
-        <p className="mt-3 rounded-md bg-[hsl(var(--destructive)/0.1)] px-3 py-2 text-xs font-medium text-[hsl(var(--destructive))]">
-          {loeschError}
-        </p>
+        <div className="px-6 pb-4">
+          <p className="rounded-md bg-[hsl(var(--destructive)/0.1)] px-3 py-2 text-xs font-medium text-[hsl(var(--destructive))]">
+            {loeschError}
+          </p>
+        </div>
       )}
     </article>
   );

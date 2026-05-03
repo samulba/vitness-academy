@@ -1,194 +1,175 @@
-import Link from "next/link";
-import { CheckCheck, Megaphone, Sparkles } from "lucide-react";
+import { CheckCheck, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { requireProfile } from "@/lib/auth";
 import {
   INFO_KATEGORIEN,
+  type InfoKategorie,
   istValideKategorie,
   ladeAnnouncements,
+  ladeReadCounts,
   ladeReadIds,
+  infoStatsDieseWoche,
 } from "@/lib/infos";
 import { ladeStandorte } from "@/lib/standorte";
 import { InfoCard } from "@/components/infos/InfoCard";
-import { NeueInfoForm } from "./NeueInfoForm";
+import { Composer } from "./Composer";
+import { FilterSidebar } from "./FilterSidebar";
+import { StatsSidebar } from "./StatsSidebar";
 import { alleInfosAlsGelesen } from "./actions";
 
 export default async function InfosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ kategorie?: string }>;
+  searchParams: Promise<{ kategorie?: string; standort?: string }>;
 }) {
   const profile = await requireProfile();
   const sp = await searchParams;
   const aktiveKategorie = istValideKategorie(sp.kategorie ?? "")
-    ? (sp.kategorie as string)
+    ? (sp.kategorie as InfoKategorie)
     : null;
+  const aktiverStandort = sp.standort ?? null;
 
-  const [infos, gelesen, standorte] = await Promise.all([
+  const [infos, gelesen, standorte, stats] = await Promise.all([
     ladeAnnouncements({ nurPublished: true }),
     ladeReadIds(profile.id),
     ladeStandorte(),
+    infoStatsDieseWoche(),
   ]);
 
+  // Standorte filtern (nur die, die existieren — name als Lookup)
   const standortById = new Map(standorte.map((s) => [s.id, s.name]));
-  const sichtbar = aktiveKategorie
-    ? infos.filter((i) => i.category === aktiveKategorie)
+
+  // Kategorien-Counts (auf Standort-Filter berücksichtigt)
+  const standortGefiltert = aktiverStandort
+    ? infos.filter(
+        (i) => i.location_id === aktiverStandort || i.location_id === null,
+      )
     : infos;
+
+  const kategorienListe = INFO_KATEGORIEN.map((k) => ({
+    value: k.value,
+    label: k.label,
+    count: standortGefiltert.filter((i) => i.category === k.value).length,
+  }));
+
+  // Sichtbar = Standort + Kategorie gefiltert
+  const sichtbar = standortGefiltert.filter(
+    (i) => !aktiveKategorie || i.category === aktiveKategorie,
+  );
+
+  // Read-Counts laden für die sichtbaren Karten
+  const readCounts = await ladeReadCounts(sichtbar.map((s) => s.id));
   const ungelesenAnzahl = infos.filter((i) => !gelesen.has(i.id)).length;
-  const istLeer = infos.length === 0;
+
+  // Angepinnt für rechte Sidebar
+  const angepinnt = infos.filter((i) => i.pinned);
+
+  const vorname = profile.first_name ?? profile.full_name?.split(" ")[0] ?? null;
 
   return (
-    <div className="mx-auto w-full max-w-[1280px] space-y-12 py-4">
-      {/* Header */}
-      <header className="space-y-3">
-        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-          Studio
-        </p>
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="max-w-2xl space-y-3">
-            <h1 className="text-3xl font-semibold tracking-tight">
-              Wichtige Infos
-            </h1>
-            <p className="text-base leading-relaxed text-muted-foreground">
-              Pinnwand fürs Team — du kannst selbst posten. Studioleitung darf
-              zusätzlich „Dringend&ldquo;-Banner setzen.
-            </p>
+    <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6">
+      <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_300px] md:grid-cols-[minmax(0,1fr)_300px]">
+        {/* Linke Sidebar — Filter (nur lg+) */}
+        <aside className="hidden lg:block">
+          <div className="sticky top-24">
+            <FilterSidebar
+              kategorien={kategorienListe}
+              gesamt={standortGefiltert.length}
+              aktiveKategorie={aktiveKategorie}
+              standorte={standorte.map((s) => ({ id: s.id, name: s.name }))}
+              aktiverStandort={aktiverStandort}
+            />
           </div>
-          {ungelesenAnzahl > 0 && (
-            <form action={alleInfosAlsGelesen}>
-              <Button type="submit" variant="secondary" className="h-11 rounded-lg">
-                <CheckCheck className="h-4 w-4" />
-                Alle als gelesen ({ungelesenAnzahl})
-              </Button>
-            </form>
-          )}
-        </div>
-      </header>
+        </aside>
 
-      {istLeer ? (
-        // Wenn gar nichts da ist: Form zentriert + Empty-State darunter
-        <div className="mx-auto max-w-2xl space-y-8">
-          <FormCard
-            standorte={standorte.map((s) => ({ id: s.id, name: s.name }))}
-            defaultLocationId={profile.location_id}
-          />
-          <EmptyZustand aktiveKategorie={null} />
-        </div>
-      ) : (
-        // Mit Inhalt: 2-Spalten-Layout
-        <div className="grid gap-8 lg:grid-cols-12">
-          <aside className="lg:col-span-5 xl:col-span-4">
-            <div className="lg:sticky lg:top-20">
-              <FormCard
-                standorte={standorte.map((s) => ({ id: s.id, name: s.name }))}
-                defaultLocationId={profile.location_id}
-              />
+        {/* Mitte — Header, Composer, Feed */}
+        <main className="min-w-0">
+          <header className="mb-6">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h1 className="text-3xl font-semibold tracking-tight">
+                  Wichtige Infos
+                </h1>
+                <p className="mt-2 max-w-xl text-base leading-relaxed text-muted-foreground">
+                  Pinnwand fürs Team. Was läuft? Was ist los?
+                </p>
+              </div>
+              {ungelesenAnzahl > 0 && (
+                <form action={alleInfosAlsGelesen}>
+                  <Button
+                    type="submit"
+                    variant="secondary"
+                    className="h-10 rounded-lg"
+                  >
+                    <CheckCheck className="h-4 w-4" />
+                    Alle als gelesen ({ungelesenAnzahl})
+                  </Button>
+                </form>
+              )}
             </div>
-          </aside>
+          </header>
 
-          <section className="lg:col-span-7 xl:col-span-8">
-            {/* Filter-Pills */}
-            <div className="mb-6 flex flex-wrap items-center gap-1.5">
-              <FilterPill
-                href="/infos"
-                aktiv={aktiveKategorie === null}
-                label={`Alle (${infos.length})`}
-              />
-              {INFO_KATEGORIEN.map((k) => {
-                const count = infos.filter((i) => i.category === k.value).length;
-                if (count === 0 && aktiveKategorie !== k.value) return null;
-                return (
-                  <FilterPill
-                    key={k.value}
-                    href={`/infos?kategorie=${k.value}`}
-                    aktiv={aktiveKategorie === k.value}
-                    label={`${k.label} (${count})`}
-                  />
-                );
-              })}
-            </div>
+          {/* Mobile-Filter (Filter-Pills horizontal scrollbar bei < lg) */}
+          <div className="mb-5 -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 lg:hidden">
+            <MobileFilterPill
+              href="/infos"
+              aktiv={aktiveKategorie === null}
+              label={`Alle (${standortGefiltert.length})`}
+            />
+            {kategorienListe.map((k) => {
+              if (k.count === 0 && aktiveKategorie !== k.value) return null;
+              return (
+                <MobileFilterPill
+                  key={k.value}
+                  href={`/infos?kategorie=${k.value}`}
+                  aktiv={aktiveKategorie === k.value}
+                  label={`${k.label} (${k.count})`}
+                />
+              );
+            })}
+          </div>
+
+          <div className="space-y-4">
+            <Composer
+              fullName={profile.full_name}
+              avatarPath={profile.avatar_path}
+              vorname={vorname}
+              standorte={standorte.map((s) => ({ id: s.id, name: s.name }))}
+              defaultLocationId={profile.location_id}
+            />
 
             {sichtbar.length === 0 ? (
               <EmptyZustand aktiveKategorie={aktiveKategorie} />
             ) : (
-              <ul className="space-y-4">
-                {sichtbar.map((i) => (
-                  <li key={i.id}>
-                    <InfoCard
-                      info={i}
-                      istGelesen={gelesen.has(i.id)}
-                      istEigene={i.author_id === profile.id}
-                      standortName={
-                        i.location_id ? standortById.get(i.location_id) ?? null : null
-                      }
-                    />
-                  </li>
-                ))}
-              </ul>
+              sichtbar.map((i) => (
+                <InfoCard
+                  key={i.id}
+                  info={i}
+                  istGelesen={gelesen.has(i.id)}
+                  istEigene={i.author_id === profile.id}
+                  standortName={
+                    i.location_id ? standortById.get(i.location_id) ?? null : null
+                  }
+                  authorAvatarPath={i.author_avatar_path}
+                  readCount={readCounts.get(i.id) ?? 0}
+                />
+              ))
             )}
-          </section>
-        </div>
-      )}
-    </div>
-  );
-}
+          </div>
+        </main>
 
-function FormCard({
-  standorte,
-  defaultLocationId,
-}: {
-  standorte: { id: string; name: string }[];
-  defaultLocationId: string | null;
-}) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-      <div className="mb-6 flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]">
-          <Sparkles className="h-5 w-5" strokeWidth={1.75} />
-        </span>
-        <div>
-          <h2 className="text-base font-semibold tracking-tight">
-            Neue Info posten
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            Sag dem Team Bescheid.
-          </p>
-        </div>
+        {/* Rechte Sidebar — Stats (md+) */}
+        <aside className="hidden md:block">
+          <div className="sticky top-24">
+            <StatsSidebar angepinnt={angepinnt} stats={stats} />
+          </div>
+        </aside>
       </div>
-      <NeueInfoForm
-        standorte={standorte}
-        defaultLocationId={defaultLocationId}
-      />
     </div>
   );
 }
 
-function EmptyZustand({
-  aktiveKategorie,
-}: {
-  aktiveKategorie: string | null;
-}) {
-  return (
-    <div className="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 px-8 py-16 text-center">
-      <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-background text-muted-foreground">
-        <Megaphone className="h-6 w-6" strokeWidth={1.5} />
-      </span>
-      <h3 className="text-base font-semibold tracking-tight">
-        {aktiveKategorie
-          ? "Keine Infos in dieser Kategorie"
-          : "Noch keine Infos"}
-      </h3>
-      <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-        {aktiveKategorie
-          ? "Schalte den Filter aus oder poste selbst etwas."
-          : "Sei die erste Person, die etwas postet — dein Beitrag erscheint hier sofort."}
-      </p>
-    </div>
-  );
-}
-
-function FilterPill({
+function MobileFilterPill({
   href,
   aktiv,
   label,
@@ -198,16 +179,38 @@ function FilterPill({
   label: string;
 }) {
   return (
-    <Link
+    <a
       href={href}
-      className={cn(
-        "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
+      className={
         aktiv
-          ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
-          : "border-border bg-card text-muted-foreground hover:border-[hsl(var(--brand-pink)/0.4)] hover:text-foreground",
-      )}
+          ? "shrink-0 rounded-full border border-[hsl(var(--primary))] bg-[hsl(var(--primary))] px-3 py-1 text-sm font-medium text-[hsl(var(--primary-foreground))]"
+          : "shrink-0 rounded-full border border-border bg-card px-3 py-1 text-sm font-medium text-muted-foreground"
+      }
     >
       {label}
-    </Link>
+    </a>
+  );
+}
+
+function EmptyZustand({
+  aktiveKategorie,
+}: {
+  aktiveKategorie: InfoKategorie | null;
+}) {
+  return (
+    <div className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 px-8 py-16 text-center">
+      <Megaphone
+        className="mb-4 h-12 w-12 text-zinc-300 dark:text-zinc-600"
+        strokeWidth={1.5}
+      />
+      <h3 className="text-base font-semibold tracking-tight">
+        {aktiveKategorie ? "Keine Infos in dieser Kategorie" : "Noch keine Infos"}
+      </h3>
+      <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+        {aktiveKategorie
+          ? "Schalte den Filter aus oder poste selbst etwas."
+          : "Sei die erste Person, die etwas postet — der Composer oben wartet."}
+      </p>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { type Status, STATUS_LABEL } from "@/lib/maengel";
+import { type Status, STATUS_LABEL } from "@/lib/maengel-types";
 import { cn } from "@/lib/utils";
 
 const STYLES: Record<Status, string> = {
