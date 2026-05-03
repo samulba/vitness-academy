@@ -72,10 +72,10 @@ export function Topbar({ fullName, role, avatarPath, notificationSlot }: Props) 
               <AvatarFallback>{initialen(fullName)}</AvatarFallback>
             </Avatar>
           )}
-          <div className="hidden text-left sm:block">
-            <div className="text-sm font-medium leading-none">{fullName ?? "Mitarbeiter"}</div>
-            <div className="text-xs text-muted-foreground">{rolleLabel(role)}</div>
-          </div>
+          <span className="hidden text-left sm:block">
+            <span className="block text-sm font-medium leading-none">{fullName ?? "Mitarbeiter"}</span>
+            <span className="block text-xs text-muted-foreground">{rolleLabel(role)}</span>
+          </span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>
