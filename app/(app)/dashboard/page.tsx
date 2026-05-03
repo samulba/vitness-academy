@@ -17,7 +17,8 @@ import { aktivitaetsStats } from "@/lib/lektion";
 import { aktiveBannerInfo } from "@/lib/infos";
 import { ladeMeineAufgaben } from "@/lib/aufgaben";
 import { AufgabenZeile } from "@/components/aufgaben/AufgabenZeile";
-import { formatProzent, tageszeitGruss } from "@/lib/format";
+import { formatProzent } from "@/lib/format";
+import { Tageszeitgruss } from "./Tageszeitgruss";
 import { createClient } from "@/lib/supabase/server";
 
 async function ladeOffenePraxis(userId: string): Promise<number> {
@@ -108,7 +109,7 @@ export default async function DashboardPage() {
           </div>
 
           <h1 className="mt-6 text-balance font-semibold leading-[1.05] tracking-[-0.025em] text-[clamp(2rem,4vw,3.5rem)]">
-            {tageszeitGruss(profile.full_name)}.
+            <Tageszeitgruss name={profile.full_name} />.
           </h1>
           <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
             {gesamt === 0
