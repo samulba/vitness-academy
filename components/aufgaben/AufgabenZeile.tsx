@@ -1,7 +1,7 @@
 "use client";
 
-import { useOptimistic, useTransition } from "react";
-import { Check, Clock, User, Users } from "lucide-react";
+import { useOptimistic, useState, useTransition } from "react";
+import { AlertCircle, Check, Clock, User, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { aufgabeAbhaken } from "@/app/(app)/aufgaben/actions";
 import type { Aufgabe } from "@/lib/aufgaben";
@@ -20,19 +20,27 @@ const PRIO_LABEL = {
 
 export function AufgabenZeile({ a }: { a: Aufgabe }) {
   const [, startTransition] = useTransition();
+  const [fehler, setFehler] = useState<string | null>(null);
 
   // Optimistic State: Server-Daten + lokale Toggles, ohne auf Roundtrip
   // zu warten. Wenn der Server bestaetigt, ueberschreibt revalidatePath
-  // den Wert sowieso.
+  // den Wert sowieso. Bei Fehler revertet useOptimistic automatisch
+  // zurueck auf den Server-Wert.
   const [optimistischErledigt, setOptimistischErledigt] = useOptimistic(
     !!a.completed_at,
   );
 
   function toggle() {
     const naechster = !optimistischErledigt;
+    setFehler(null);
     startTransition(async () => {
       setOptimistischErledigt(naechster);
-      await aufgabeAbhaken(a.id, optimistischErledigt);
+      const res = await aufgabeAbhaken(a.id, optimistischErledigt);
+      if (!res.ok) {
+        // useOptimistic-Revert passiert automatisch nach Transition-Ende,
+        // weil setOptimistischErledigt nicht mehr "current" ist
+        setFehler(res.message);
+      }
     });
   }
 
@@ -111,6 +119,12 @@ export function AufgabenZeile({ a }: { a: Aufgabe }) {
             </span>
           )}
         </div>
+        {fehler && (
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-[hsl(var(--destructive)/0.1)] px-2.5 py-1 text-[11px] font-medium text-[hsl(var(--destructive))]">
+            <AlertCircle className="h-3 w-3" />
+            Speichern fehlgeschlagen
+          </p>
+        )}
       </div>
     </div>
   );
