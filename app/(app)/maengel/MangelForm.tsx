@@ -2,11 +2,20 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Camera, Check, X } from "lucide-react";
+import { AlertCircle, Camera, Check, Wrench, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { mangelMelden } from "./actions";
+
+const FELD = "h-11 rounded-lg";
 
 export function MangelForm() {
   const router = useRouter();
@@ -16,6 +25,7 @@ export function MangelForm() {
   const [error, setError] = useState<string | null>(null);
   const [erfolg, setErfolg] = useState(false);
   const [fotoName, setFotoName] = useState<string | null>(null);
+  const [severity, setSeverity] = useState<string>("normal");
 
   function onChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
@@ -31,12 +41,14 @@ export function MangelForm() {
     e.preventDefault();
     setError(null);
     const fd = new FormData(e.currentTarget);
+    fd.set("severity", severity);
     startTransition(async () => {
       const res = await mangelMelden(fd);
       if (res.ok) {
         setErfolg(true);
         formRef.current?.reset();
         setFotoName(null);
+        setSeverity("normal");
         setTimeout(() => {
           router.refresh();
           setErfolg(false);
@@ -48,46 +60,55 @@ export function MangelForm() {
   }
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} className="space-y-5">
+    <form ref={formRef} onSubmit={onSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="title">Was ist los?</Label>
+        <Label htmlFor="title" className="text-sm font-medium">
+          Was ist los?
+        </Label>
         <Input
           id="title"
           name="title"
           required
           minLength={3}
           maxLength={120}
-          placeholder="z.B. „Beinpresse 3 wackelt“"
+          placeholder='z.B. „Beinpresse 3 wackelt"'
+          className={FELD}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Beschreibung (optional)</Label>
+        <Label htmlFor="description" className="text-sm font-medium">
+          Beschreibung{" "}
+          <span className="font-normal text-muted-foreground">(optional)</span>
+        </Label>
         <textarea
           id="description"
           name="description"
-          rows={3}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          rows={4}
+          className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.2)]"
           placeholder="Genauer beschreiben — wo? was? wie oft?"
         />
       </div>
 
-      <div className="space-y-2 max-w-xs">
-        <Label htmlFor="severity">Wie dringend?</Label>
-        <select
-          id="severity"
-          name="severity"
-          defaultValue="normal"
-          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-        >
-          <option value="niedrig">Niedrig — kann warten</option>
-          <option value="normal">Normal — bei Gelegenheit</option>
-          <option value="kritisch">Kritisch — sofort kümmern</option>
-        </select>
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Wie dringend?</Label>
+        <Select value={severity} onValueChange={setSeverity}>
+          <SelectTrigger className={FELD}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="niedrig">Niedrig — kann warten</SelectItem>
+            <SelectItem value="normal">Normal — bei Gelegenheit</SelectItem>
+            <SelectItem value="kritisch">Kritisch — sofort kümmern</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">
-        <Label>Foto (optional)</Label>
+        <Label className="text-sm font-medium">
+          Foto{" "}
+          <span className="font-normal text-muted-foreground">(optional)</span>
+        </Label>
         <input
           ref={fileRef}
           type="file"
@@ -98,13 +119,13 @@ export function MangelForm() {
           id="mangel-foto"
         />
         {fotoName ? (
-          <div className="inline-flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-1.5 text-sm">
-            <Check className="h-3.5 w-3.5 text-[hsl(var(--success))]" />
-            <span className="truncate max-w-[180px]">{fotoName}</span>
+          <div className="inline-flex max-w-full items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
+            <Check className="h-3.5 w-3.5 shrink-0 text-[hsl(var(--success))]" />
+            <span className="truncate">{fotoName}</span>
             <button
               type="button"
               onClick={clearFile}
-              className="text-muted-foreground hover:text-destructive"
+              className="text-muted-foreground transition-colors hover:text-destructive"
               aria-label="Foto entfernen"
             >
               <X className="h-3.5 w-3.5" />
@@ -114,11 +135,10 @@ export function MangelForm() {
           <Button
             type="button"
             variant="outline"
-            size="sm"
             onClick={() => fileRef.current?.click()}
-            className="gap-1.5"
+            className="h-11 gap-2 rounded-lg"
           >
-            <Camera className="h-3.5 w-3.5" />
+            <Camera className="h-4 w-4" />
             Foto hinzufügen
           </Button>
         )}
@@ -128,27 +148,26 @@ export function MangelForm() {
       </div>
 
       {error && (
-        <p className="inline-flex items-center gap-2 rounded-md bg-[hsl(var(--destructive)/0.1)] px-3 py-2 text-xs font-medium text-[hsl(var(--destructive))]">
+        <p className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--destructive)/0.1)] px-3 py-2 text-xs font-medium text-[hsl(var(--destructive))]">
           <AlertCircle className="h-3.5 w-3.5" />
           {error}
         </p>
       )}
       {erfolg && (
-        <p className="inline-flex items-center gap-2 rounded-md bg-[hsl(var(--success)/0.12)] px-3 py-2 text-xs font-medium text-[hsl(var(--success))]">
+        <p className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--success)/0.12)] px-3 py-2 text-xs font-medium text-[hsl(var(--success))]">
           <Check className="h-3.5 w-3.5" />
           Mangel gemeldet — danke!
         </p>
       )}
 
-      <div className="flex items-center gap-3 border-t border-border pt-4">
-        <Button
-          type="submit"
-          disabled={pending}
-          className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/0.9)]"
-        >
-          {pending ? "Sende …" : "Mangel melden"}
-        </Button>
-      </div>
+      <Button
+        type="submit"
+        disabled={pending}
+        className="h-11 w-full gap-2 rounded-lg bg-[hsl(var(--primary))] font-medium text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/0.9)] sm:w-auto"
+      >
+        <Wrench className="h-4 w-4" />
+        {pending ? "Sende …" : "Mangel melden"}
+      </Button>
     </form>
   );
 }
