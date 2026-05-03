@@ -114,14 +114,19 @@ export function CmdK() {
       setTreffer({ lernpfade: [], lektionen: [], artikel: [] });
       return;
     }
+    let cancelled = false;
     const id = setTimeout(() => {
       startTransition(async () => {
         const res = await globaleSuche(query);
+        if (cancelled) return;
         setTreffer(res);
         setAktiv(0);
       });
     }, 220);
-    return () => clearTimeout(id);
+    return () => {
+      cancelled = true;
+      clearTimeout(id);
+    };
   }, [query, offen]);
 
   const liste = useMemo(() => ergebnisseZuListe(treffer), [treffer]);
