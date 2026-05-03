@@ -1,11 +1,4 @@
-import {
-  CheckCircle2,
-  Clock,
-  Inbox,
-  ShieldCheck,
-  User,
-  Wrench,
-} from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { requireProfile } from "@/lib/auth";
 import { ladeMaengel, maengelStats, type Mangel, type Status } from "@/lib/maengel";
 import { Composer } from "./Composer";
@@ -55,21 +48,31 @@ export default async function MaengelPage({
   else sichtbar = alle.filter((m) => m.status === filter);
 
   const eintraege = [
-    { value: null, label: "Alle", count: alle.length, icon: Inbox },
-    { value: "offen" as const, label: "Offen", count: offenCount, icon: Clock },
+    { value: null, label: "Alle", count: alle.length, iconKey: "inbox" as const },
+    {
+      value: "offen" as const,
+      label: "Offen",
+      count: offenCount,
+      iconKey: "clock" as const,
+    },
     {
       value: "in_bearbeitung" as const,
       label: "In Bearbeitung",
       count: inBearbeitungCount,
-      icon: Wrench,
+      iconKey: "wrench" as const,
     },
     {
       value: "behoben" as const,
       label: "Behoben",
       count: behobenCount,
-      icon: CheckCircle2,
+      iconKey: "check" as const,
     },
-    { value: "meine" as const, label: "Von mir", count: meineCount, icon: User },
+    {
+      value: "meine" as const,
+      label: "Von mir",
+      count: meineCount,
+      iconKey: "user" as const,
+    },
   ];
 
   const aktivKey = filter === "alle" ? null : filter;

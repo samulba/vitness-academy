@@ -1,15 +1,30 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle2, Clock, Inbox, Wrench } from "lucide-react";
+import { CheckCircle2, Clock, Inbox, User, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Status } from "@/lib/maengel-types";
+
+export type FilterIconKey =
+  | "inbox"
+  | "clock"
+  | "wrench"
+  | "check"
+  | "user";
+
+const ICON_MAP = {
+  inbox: Inbox,
+  clock: Clock,
+  wrench: Wrench,
+  check: CheckCircle2,
+  user: User,
+} as const;
 
 type FilterEintrag = {
   value: Status | "meine" | null;
   label: string;
   count: number;
-  icon: typeof Inbox;
+  iconKey: FilterIconKey;
 };
 
 export function FilterSidebar({
@@ -38,7 +53,7 @@ export function FilterSidebar({
       </p>
       <ul className="space-y-0.5">
         {eintraege.map((e) => {
-          const Icon = e.icon;
+          const Icon = ICON_MAP[e.iconKey];
           const istAktiv = aktiv === (e.value ?? null);
           return (
             <li key={e.value ?? "alle"}>
@@ -82,9 +97,3 @@ export function FilterSidebar({
   );
 }
 
-export const FILTER_ICONS = {
-  Inbox,
-  Clock,
-  Wrench,
-  CheckCircle2,
-};
