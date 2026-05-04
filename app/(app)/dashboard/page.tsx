@@ -3,7 +3,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   BookOpen,
-  CalendarClock,
   CheckCircle2,
   CheckSquare,
   ClipboardList,
@@ -11,13 +10,13 @@ import {
   GraduationCap,
   Heart,
   Megaphone,
+  MessageSquarePlus,
   Palmtree,
   Sparkles,
   Stethoscope,
   Wrench,
 } from "lucide-react";
 import { PfadCard } from "@/components/lernpfad/PfadCard";
-import { StatusBadge } from "@/components/StatusBadge";
 import { requireProfile } from "@/lib/auth";
 import { ladeMeineLernpfade, offeneLektionen } from "@/lib/lernpfade";
 import { aktivitaetsStats } from "@/lib/lektion";
@@ -29,6 +28,7 @@ import { getAktiverStandort } from "@/lib/standort-context";
 import { AufgabenZeile } from "@/components/aufgaben/AufgabenZeile";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { Tageszeitgruss } from "./Tageszeitgruss";
+import { Heutedatum } from "./Heutedatum";
 import { createClient } from "@/lib/supabase/server";
 
 async function ladeOffenePraxis(userId: string): Promise<number> {
@@ -60,12 +60,6 @@ const QUICK_ACTIONS: {
     tint: "bg-amber-500/10 text-amber-600",
   },
   {
-    href: "/formulare/schicht-tausch",
-    label: "Schicht tauschen",
-    icon: CalendarClock,
-    tint: "bg-sky-500/10 text-sky-600",
-  },
-  {
     href: "/maengel",
     label: "Mangel melden",
     icon: Wrench,
@@ -76,6 +70,12 @@ const QUICK_ACTIONS: {
     label: "Info posten",
     icon: Megaphone,
     tint: "bg-violet-500/10 text-violet-600",
+  },
+  {
+    href: "/feedback",
+    label: "Feedback erfassen",
+    icon: MessageSquarePlus,
+    tint: "bg-emerald-500/10 text-emerald-600",
   },
 ];
 
@@ -173,16 +173,74 @@ export default async function DashboardPage() {
       )}
 
       {/* === Hero: Tagesüberblick === */}
-      <section>
-        <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-          Mein Tag
-        </p>
-        <h1 className="mt-3 text-balance font-semibold leading-[1.05] tracking-[-0.025em] text-[clamp(2rem,4vw,3.5rem)]">
-          <Tageszeitgruss name={profile.full_name} />.
-        </h1>
-        <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-          {subline}
-        </p>
+      <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-10">
+        {/* Subtiler Magenta-Glow rechts oben */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-20 right-[-10%] h-[400px] w-[400px] rounded-full opacity-[0.10] blur-[100px]"
+          style={{
+            background:
+              "radial-gradient(closest-side, hsl(var(--primary)), transparent)",
+          }}
+        />
+
+        <div className="relative">
+          <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+            <span className="h-px w-10 bg-[hsl(var(--primary))]" />
+            <span>Mein Tag</span>
+            <span className="text-muted-foreground">· <Heutedatum /></span>
+          </div>
+
+          <h1 className="mt-6 text-balance font-semibold leading-[1.05] tracking-[-0.025em] text-[clamp(2rem,4vw,3.5rem)]">
+            <Tageszeitgruss name={profile.full_name} />.
+          </h1>
+          <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            {subline}
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-2">
+            <HeroStat
+              icon={<ClipboardList className="h-3.5 w-3.5" />}
+              label="Aufgaben heute"
+              wert={aufgabenHeute}
+              href="/aufgaben"
+            />
+            <HeroStat
+              icon={<FileText className="h-3.5 w-3.5" />}
+              label="Offene Anfragen"
+              wert={offeneAnfragen}
+              href="/formulare"
+              akzent={offeneAnfragen > 0 ? "primary" : undefined}
+            />
+            {anzOffenePraxis > 0 && (
+              <HeroStat
+                icon={<CheckSquare className="h-3.5 w-3.5" />}
+                label="Praxis offen"
+                wert={anzOffenePraxis}
+                href="/praxisfreigaben"
+                akzent="primary"
+              />
+            )}
+            {aktivitaet.tageLetzte30 > 0 && (
+              <HeroStat
+                icon={<Sparkles className="h-3.5 w-3.5" />}
+                label="Tage aktiv (30T)"
+                wert={aktivitaet.tageLetzte30}
+              />
+            )}
+            {gesamt > 0 && (
+              <HeroStat
+                icon={<GraduationCap className="h-3.5 w-3.5" />}
+                label="Lektionen"
+                wert={`${abgeschlossen}/${gesamt}`}
+                href="/lernpfade"
+                akzent={
+                  abgeschlossen === gesamt && gesamt > 0 ? "success" : undefined
+                }
+              />
+            )}
+          </div>
+        </div>
       </section>
 
       {/* === Quick-Actions === */}
@@ -404,9 +462,12 @@ export default async function DashboardPage() {
                 <h3 className="mt-3 max-w-[36ch] text-balance font-semibold leading-tight tracking-tight text-[hsl(var(--brand-cream))] text-xl sm:text-2xl">
                   {next.lesson_title}
                 </h3>
-                <div className="mt-3">
-                  <StatusBadge status={next.status} />
-                </div>
+                <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--brand-cream)/0.6)]">
+                  <Sparkles className="h-3 w-3 text-[hsl(var(--primary))]" />
+                  {next.status === "in_bearbeitung"
+                    ? "Du hast schon angefangen"
+                    : "Bereit zum Starten"}
+                </p>
               </div>
               <span className="relative flex h-12 w-12 items-center justify-center justify-self-end rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-md transition-transform group-hover:translate-x-1 group-hover:-translate-y-1">
                 <ArrowUpRight className="h-5 w-5" />
@@ -474,18 +535,48 @@ export default async function DashboardPage() {
         </Link>
       </section>
 
-      {/* Aktivitäts-Hinweis (kompakt unten) */}
-      {aktivitaet.tageLetzte30 > 0 && (
-        <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-          <Sparkles className="h-3 w-3" />
-          {aktivitaet.tageLetzte30} Tage aktiv in den letzten 30
-          {next && (
-            <>
-              {" "}· <FileText className="h-3 w-3" /> Lerne weiter
-            </>
-          )}
-        </p>
-      )}
     </div>
   );
+}
+
+/* -------------------------------------------------------------------- */
+/* Hero-Helpers                                                         */
+/* -------------------------------------------------------------------- */
+
+function HeroStat({
+  icon,
+  label,
+  wert,
+  href,
+  akzent,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  wert: number | string;
+  href?: string;
+  akzent?: "primary" | "success";
+}) {
+  const akzentBg =
+    akzent === "primary"
+      ? "border-[hsl(var(--primary)/0.3)] bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))]"
+      : akzent === "success"
+        ? "border-[hsl(var(--success)/0.3)] bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))]"
+        : "border-border bg-background text-foreground";
+
+  const inhalt = (
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${akzentBg} ${
+        href ? "hover:bg-muted" : ""
+      }`}
+    >
+      <span className="flex items-center gap-1.5 text-muted-foreground">
+        {icon}
+        {label}
+      </span>
+      <span className="font-bold tabular-nums">{wert}</span>
+    </span>
+  );
+
+  if (href) return <Link href={href}>{inhalt}</Link>;
+  return inhalt;
 }

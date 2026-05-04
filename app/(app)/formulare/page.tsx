@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  CalendarClock,
   FileText,
   Palmtree,
   Stethoscope,
@@ -30,10 +29,6 @@ const STANDARD_META: Record<
   urlaubsantrag: {
     icon: Palmtree,
     tint: "bg-amber-500/10 text-amber-600",
-  },
-  "schicht-tausch": {
-    icon: CalendarClock,
-    tint: "bg-sky-500/10 text-sky-600",
   },
 };
 
