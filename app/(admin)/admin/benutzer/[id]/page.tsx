@@ -42,6 +42,7 @@ type Profil = {
   full_name: string | null;
   role: string;
   location_id: string | null;
+  kann_provisionen: boolean;
   created_at: string;
   archived_at: string | null;
   email: string | null;
@@ -51,7 +52,9 @@ async function ladeProfil(id: string): Promise<Profil | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name, role, location_id, created_at, archived_at")
+    .select(
+      "id, full_name, role, location_id, kann_provisionen, created_at, archived_at",
+    )
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
@@ -61,6 +64,7 @@ async function ladeProfil(id: string): Promise<Profil | null> {
     full_name: data.full_name as string | null,
     role: data.role as string,
     location_id: data.location_id as string | null,
+    kann_provisionen: Boolean(data.kann_provisionen),
     created_at: data.created_at as string,
     archived_at: data.archived_at as string | null,
     email: null,
@@ -248,6 +252,24 @@ export default async function BenutzerBearbeitenPage({
                 </select>
               </div>
             </div>
+
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 transition-colors hover:border-[hsl(var(--primary))] has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--primary)/0.06)]">
+              <input
+                type="checkbox"
+                name="kann_provisionen"
+                defaultChecked={profil.kann_provisionen}
+                className="mt-1 h-4 w-4 accent-[hsl(var(--primary))]"
+              />
+              <span className="flex-1">
+                <span className="block text-sm font-semibold">
+                  Vertriebsrolle (Provisionen)
+                </span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  Mitarbeiter:in sieht die Provisionen-Section in der Sidebar
+                  und darf Abschlüsse eintragen.
+                </span>
+              </span>
+            </label>
 
             <div className="flex justify-end">
               <SpeichernButton />

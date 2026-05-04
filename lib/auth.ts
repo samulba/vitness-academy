@@ -24,16 +24,43 @@ export async function getCurrentProfile(): Promise<Profil | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data, error } = await supabase
+  // Erst mit kann_provisionen versuchen, fallback ohne falls Migration
+  // 0034 noch nicht eingespielt ist.
+  let row: Record<string, unknown> | null = null;
+  const erst = await supabase
     .from("profiles")
     .select(
-      "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path",
+      "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path, kann_provisionen",
     )
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
+  if (erst.data) {
+    row = erst.data as Record<string, unknown>;
+  } else {
+    const fb = await supabase
+      .from("profiles")
+      .select(
+        "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path",
+      )
+      .eq("id", user.id)
+      .maybeSingle();
+    if (fb.data) row = fb.data as Record<string, unknown>;
+  }
+  if (!row) return null;
 
-  if (error || !data) return null;
-  return data as Profil;
+  return {
+    id: row.id as string,
+    full_name: (row.full_name as string | null) ?? null,
+    first_name: (row.first_name as string | null) ?? null,
+    last_name: (row.last_name as string | null) ?? null,
+    phone: (row.phone as string | null) ?? null,
+    role: row.role as Rolle,
+    location_id: (row.location_id as string | null) ?? null,
+    onboarding_done: Boolean(row.onboarding_done),
+    archived_at: (row.archived_at as string | null) ?? null,
+    avatar_path: (row.avatar_path as string | null) ?? null,
+    kann_provisionen: Boolean(row.kann_provisionen),
+  };
 }
 
 export async function requireProfile(): Promise<Profil> {

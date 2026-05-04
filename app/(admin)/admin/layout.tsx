@@ -42,6 +42,7 @@ export default async function AdminLayout({
           avatarPath={profile.avatar_path}
           notificationSlot={<NotificationBellServer placement="side-right" />}
           standortSlot={switcherSidebar}
+          kannProvisionen={profile.kann_provisionen}
         />
         <main
           id="main"

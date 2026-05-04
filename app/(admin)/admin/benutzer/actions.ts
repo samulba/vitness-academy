@@ -33,15 +33,18 @@ export async function profilAktualisieren(
   if (role === "superadmin" && aktuell.role !== "superadmin") return;
   const location_id =
     String(formData.get("location_id") ?? "").trim() || null;
+  const kann_provisionen = formData.get("kann_provisionen") === "on";
 
   const supabase = await createClient();
   await supabase
     .from("profiles")
-    .update({ full_name, role, location_id })
+    .update({ full_name, role, location_id, kann_provisionen })
     .eq("id", benutzerId);
 
   revalidatePath("/admin/benutzer");
   revalidatePath(`/admin/benutzer/${benutzerId}`);
+  // Sidebar muss neu rendern (Provisionen-Sektion erscheint/verschwindet)
+  revalidatePath("/", "layout");
   redirect(`/admin/benutzer/${benutzerId}?toast=saved`);
 }
 

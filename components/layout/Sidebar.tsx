@@ -114,6 +114,7 @@ const ADMIN_GROUPS: AdminGruppe[] = [
       { href: "/admin/feedback", label: "Mitglieder-Feedback", icon: MessageCircle },
       { href: "/admin/formulare", label: "Formulare", icon: FileText },
       { href: "/admin/praxisfreigaben", label: "Praxis-Anfragen", icon: CheckSquare },
+      { href: "/admin/provisionen", label: "Provisionen", icon: TrendingUp },
     ],
   },
   {

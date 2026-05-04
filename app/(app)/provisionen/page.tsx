@@ -1,0 +1,254 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import {
+  CheckCircle2,
+  Receipt,
+  TrendingUp,
+} from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { requireProfile } from "@/lib/auth";
+import {
+  aggregiere,
+  formatEuro,
+  ladeEntries,
+  ladeRates,
+  laufzeitLabel,
+} from "@/lib/provisionen";
+import { formatDatum } from "@/lib/format";
+import { AbschlussForm } from "./AbschlussForm";
+import { LoeschenButton } from "./LoeschenButton";
+
+function aktuellerMonat(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monatsLabel(yyyymm: string): string {
+  const [y, m] = yyyymm.split("-").map(Number);
+  const monate = [
+    "Januar", "Februar", "März", "April", "Mai", "Juni",
+    "Juli", "August", "September", "Oktober", "November", "Dezember",
+  ];
+  return `${monate[m - 1]} ${y}`;
+}
+
+function letzteMonate(n: number): string[] {
+  const out: string[] = [];
+  const d = new Date();
+  for (let i = 0; i < n; i++) {
+    out.push(
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+    );
+    d.setMonth(d.getMonth() - 1);
+  }
+  return out;
+}
+
+export default async function ProvisionenPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ monat?: string }>;
+}) {
+  const profile = await requireProfile();
+  if (!profile.kann_provisionen) redirect("/dashboard");
+
+  const sp = await searchParams;
+  const monat = sp.monat?.match(/^\d{4}-\d{2}$/) ? sp.monat : aktuellerMonat();
+
+  const [entries, rates] = await Promise.all([
+    ladeEntries({ vertrieblerId: profile.id, monatYYYYMM: monat }),
+    ladeRates(),
+  ]);
+  const stats = aggregiere(entries);
+
+  // Auch aktueller Monat-Total, falls anderer Monat gewählt
+  const aktMonth = aktuellerMonat();
+  const aktEntries =
+    monat === aktMonth
+      ? entries
+      : await ladeEntries({ vertrieblerId: profile.id, monatYYYYMM: aktMonth });
+  const aktStats = aggregiere(aktEntries);
+
+  const monateOptions = letzteMonate(12);
+
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Verkauf"
+        title="Provisionen"
+        description="Abschlüsse eintragen, Provision wird automatisch aus den aktuellen Sätzen berechnet."
+      />
+
+      <StatGrid cols={3}>
+        <StatCard
+          label={`${monatsLabel(monat)} · Abschlüsse`}
+          value={stats.abschluesse}
+          icon={<Receipt />}
+        />
+        <StatCard
+          label={`${monatsLabel(monat)} · Provision`}
+          value={formatEuro(stats.provision_total)}
+          icon={<TrendingUp />}
+        />
+        <StatCard
+          label="Aktueller Monat"
+          value={formatEuro(aktStats.provision_total)}
+          icon={<CheckCircle2 />}
+        />
+      </StatGrid>
+
+      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <header className="mb-5">
+          <h2 className="text-base font-semibold tracking-tight">
+            Neuer Abschluss
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Provision wird live in der Vorschau berechnet.
+          </p>
+        </header>
+        <AbschlussForm rates={rates} />
+      </section>
+
+      <section>
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+          <h2 className="text-base font-semibold tracking-tight">
+            {monatsLabel(monat)}
+          </h2>
+          <div className="flex flex-wrap gap-1.5 text-xs">
+            {monateOptions.map((m) => {
+              const aktiv = m === monat;
+              return (
+                <Link
+                  key={m}
+                  href={`/provisionen?monat=${m}`}
+                  className={
+                    aktiv
+                      ? "rounded-full bg-[hsl(var(--primary))] px-3 py-1 font-medium text-[hsl(var(--primary-foreground))]"
+                      : "rounded-full border border-border bg-card px-3 py-1 font-medium text-muted-foreground hover:border-[hsl(var(--brand-pink)/0.4)] hover:text-foreground"
+                  }
+                >
+                  {monatsLabel(m)}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {entries.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-12 text-center">
+            <Receipt className="mx-auto h-10 w-10 text-zinc-300 dark:text-zinc-600" />
+            <p className="mt-3 text-sm font-medium">
+              Keine Abschlüsse in {monatsLabel(monat)}
+            </p>
+            <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+              Trag deinen ersten Abschluss oben ein.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40">
+                  <tr>
+                    <Th>Datum</Th>
+                    <Th>Mitglied</Th>
+                    <Th align="right">Laufzeit</Th>
+                    <Th align="right">Beitrag Netto</Th>
+                    <Th align="right">Startpaket</Th>
+                    <Th align="right">Provision</Th>
+                    <Th>Bemerkung</Th>
+                    <Th align="right" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {entries.map((e) => (
+                    <tr key={e.id} className="hover:bg-muted/30">
+                      <Td>{formatDatum(e.datum)}</Td>
+                      <Td>
+                        <span className="font-medium">{e.mitglied_name}</span>
+                        {e.mitglied_nummer && (
+                          <span className="ml-1 text-[11px] text-muted-foreground">
+                            · {e.mitglied_nummer}
+                          </span>
+                        )}
+                      </Td>
+                      <Td align="right">{laufzeitLabel(e.laufzeit)}</Td>
+                      <Td align="right">{formatEuro(e.beitrag_netto)}</Td>
+                      <Td align="right">{formatEuro(e.startpaket)}</Td>
+                      <Td align="right">
+                        <span className="font-bold text-[hsl(var(--brand-pink))]">
+                          {formatEuro(e.provision)}
+                        </span>
+                      </Td>
+                      <Td>
+                        <span className="text-xs text-muted-foreground">
+                          {e.bemerkung ?? "—"}
+                        </span>
+                      </Td>
+                      <Td align="right">
+                        <LoeschenButton id={e.id} />
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-muted/40">
+                  <tr>
+                    <Td colSpan={5}>
+                      <span className="font-bold uppercase tracking-wider text-[10px]">
+                        Total {monatsLabel(monat)}
+                      </span>
+                    </Td>
+                    <Td align="right">
+                      <span className="text-base font-bold text-[hsl(var(--brand-pink))]">
+                        {formatEuro(stats.provision_total)}
+                      </span>
+                    </Td>
+                    <Td colSpan={2} />
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function Th({
+  children,
+  align,
+}: {
+  children?: React.ReactNode;
+  align?: "right";
+}) {
+  return (
+    <th
+      className={`px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground ${
+        align === "right" ? "text-right" : "text-left"
+      }`}
+    >
+      {children}
+    </th>
+  );
+}
+
+function Td({
+  children,
+  align,
+  colSpan,
+}: {
+  children?: React.ReactNode;
+  align?: "right";
+  colSpan?: number;
+}) {
+  return (
+    <td
+      colSpan={colSpan}
+      className={`px-4 py-3 ${align === "right" ? "text-right" : "text-left"}`}
+    >
+      {children}
+    </td>
+  );
+}

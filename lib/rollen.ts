@@ -11,6 +11,7 @@ export type Profil = {
   onboarding_done: boolean;
   archived_at: string | null;
   avatar_path: string | null;
+  kann_provisionen: boolean;
 };
 
 export function istAdmin(role: Rolle | undefined | null): boolean {
