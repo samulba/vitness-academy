@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CheckCircle2, Inbox, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
@@ -6,6 +7,7 @@ import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state"
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
+import { cn } from "@/lib/utils";
 import { requireRole } from "@/lib/auth";
 import {
   ladeSubmissions,
@@ -68,15 +70,37 @@ const columns: Column<Submission>[] = [
   },
 ];
 
-export default async function EingaengePage() {
+export default async function EingaengePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ template?: string }>;
+}) {
   await requireRole(["fuehrungskraft", "admin", "superadmin"]);
-  const offen = await ladeSubmissions({
-    status: ["eingereicht", "in_bearbeitung"],
-  });
-  const erledigt = await ladeSubmissions({
-    status: ["erledigt", "abgelehnt"],
-  });
+  const sp = await searchParams;
+  const filter = sp.template ?? null;
+
+  const [offenAlle, erledigtAlle] = await Promise.all([
+    ladeSubmissions({ status: ["eingereicht", "in_bearbeitung"] }),
+    ladeSubmissions({ status: ["erledigt", "abgelehnt"] }),
+  ]);
+
+  const offen = filter
+    ? offenAlle.filter((s) => s.template_title === filter)
+    : offenAlle;
+  const erledigt = filter
+    ? erledigtAlle.filter((s) => s.template_title === filter)
+    : erledigtAlle;
   const erledigtAnzahl = erledigt.filter((e) => e.status === "erledigt").length;
+
+  // Filter-Optionen aus tatsaechlich vorhandenen Templates ableiten
+  const templateZaehlung = new Map<string, number>();
+  for (const s of [...offenAlle, ...erledigtAlle]) {
+    const k = s.template_title ?? "Sonstige";
+    templateZaehlung.set(k, (templateZaehlung.get(k) ?? 0) + 1);
+  }
+  const filterOptionen = Array.from(templateZaehlung.entries()).sort(
+    (a, b) => b[1] - a[1],
+  );
 
   return (
     <div className="space-y-6">
@@ -105,6 +129,39 @@ export default async function EingaengePage() {
           icon={<Sparkles />}
         />
       </StatGrid>
+
+      {filterOptionen.length > 1 && (
+        <div className="flex flex-wrap gap-1.5">
+          <Link
+            href="/admin/formulare/eingaenge"
+            className={cn(
+              "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+              !filter
+                ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
+                : "border-border bg-card text-muted-foreground hover:border-[hsl(var(--brand-pink)/0.4)] hover:text-foreground",
+            )}
+          >
+            Alle ({offenAlle.length + erledigtAlle.length})
+          </Link>
+          {filterOptionen.map(([titel, count]) => {
+            const aktiv = filter === titel;
+            return (
+              <Link
+                key={titel}
+                href={`/admin/formulare/eingaenge?template=${encodeURIComponent(titel)}`}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  aktiv
+                    ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
+                    : "border-border bg-card text-muted-foreground hover:border-[hsl(var(--brand-pink)/0.4)] hover:text-foreground",
+                )}
+              >
+                {titel} ({count})
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       <section className="space-y-2">
         <header>
