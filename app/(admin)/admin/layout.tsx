@@ -1,8 +1,13 @@
 import { requireRole } from "@/lib/auth";
+import {
+  getAktiverStandort,
+  ladeMeineStandorte,
+} from "@/lib/standort-context";
 import { Topbar } from "@/components/layout/Topbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { NotificationBellServer } from "@/components/notifications/NotificationBellServer";
+import { StandortSwitcher } from "@/components/layout/StandortSwitcher";
 
 export default async function AdminLayout({
   children,
@@ -11,7 +16,18 @@ export default async function AdminLayout({
 }) {
   const profile = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
 
+  const [standorte, aktiv] = await Promise.all([
+    ladeMeineStandorte(profile.id),
+    getAktiverStandort(),
+  ]);
+
   const bell = <NotificationBellServer />;
+  const switcherTopbar = (
+    <StandortSwitcher aktiv={aktiv} optionen={standorte} variant="compact" />
+  );
+  const switcherSidebar = (
+    <StandortSwitcher aktiv={aktiv} optionen={standorte} variant="row" />
+  );
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -20,6 +36,7 @@ export default async function AdminLayout({
         role={profile.role}
         avatarPath={profile.avatar_path}
         notificationSlot={bell}
+        standortSlot={switcherTopbar}
       />
       <div className="flex flex-1">
         <Sidebar
@@ -27,6 +44,7 @@ export default async function AdminLayout({
           fullName={profile.full_name}
           avatarPath={profile.avatar_path}
           notificationSlot={bell}
+          standortSlot={switcherSidebar}
         />
         <main
           id="main"

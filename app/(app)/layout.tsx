@@ -1,11 +1,16 @@
 import { requireProfile } from "@/lib/auth";
 import { generiereWiederkehrendeAufgaben } from "@/lib/aufgaben";
+import {
+  getAktiverStandort,
+  ladeMeineStandorte,
+} from "@/lib/standort-context";
 import { Topbar } from "@/components/layout/Topbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
 import { CmdK } from "@/components/search/CmdK";
 import { NotificationBellServer } from "@/components/notifications/NotificationBellServer";
+import { StandortSwitcher } from "@/components/layout/StandortSwitcher";
 
 export default async function AppLayout({
   children,
@@ -18,7 +23,18 @@ export default async function AppLayout({
   // Aufrufe sind sicher.
   await generiereWiederkehrendeAufgaben();
 
+  const [standorte, aktiv] = await Promise.all([
+    ladeMeineStandorte(profile.id),
+    getAktiverStandort(),
+  ]);
+
   const bell = <NotificationBellServer />;
+  const switcherTopbar = (
+    <StandortSwitcher aktiv={aktiv} optionen={standorte} variant="compact" />
+  );
+  const switcherSidebar = (
+    <StandortSwitcher aktiv={aktiv} optionen={standorte} variant="row" />
+  );
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -27,6 +43,7 @@ export default async function AppLayout({
         role={profile.role}
         avatarPath={profile.avatar_path}
         notificationSlot={bell}
+        standortSlot={switcherTopbar}
       />
       <div className="flex flex-1">
         <Sidebar
@@ -34,6 +51,7 @@ export default async function AppLayout({
           fullName={profile.full_name}
           avatarPath={profile.avatar_path}
           notificationSlot={bell}
+          standortSlot={switcherSidebar}
         />
         <main
           id="main"

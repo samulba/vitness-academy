@@ -137,11 +137,13 @@ export function Sidebar({
   fullName,
   avatarPath,
   notificationSlot,
+  standortSlot,
 }: {
   rolle: Rolle;
   fullName?: string | null;
   avatarPath?: string | null;
   notificationSlot?: React.ReactNode;
+  standortSlot?: React.ReactNode;
 }) {
   const pathname = usePathname();
   const showAdmin = istFuehrungskraftOderHoeher(rolle);
@@ -165,6 +167,9 @@ export function Sidebar({
           </span>
           {notificationSlot}
         </div>
+
+        {/* Standort-Switcher (nur wenn >=2 Studios) */}
+        {standortSlot && <div className="px-3 pt-3">{standortSlot}</div>}
 
         {/* Search-Trigger */}
         <div className="px-3 pt-3">
