@@ -1,0 +1,44 @@
+import { PageHeader } from "@/components/ui/page-header";
+import { requireRole } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { TemplateForm } from "../TemplateForm";
+import { templateAnlegen } from "../actions";
+
+export default async function NeuesTemplatePage() {
+  await requireRole(["admin", "superadmin"]);
+  const supabase = await createClient();
+  const { data: pfade } = await supabase
+    .from("learning_paths")
+    .select("id, title, description")
+    .eq("status", "aktiv")
+    .order("sort_order", { ascending: true });
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-6">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Verwaltung", href: "/admin" },
+          { label: "Onboarding-Templates", href: "/admin/onboarding-templates" },
+          { label: "Neu" },
+        ]}
+        eyebrow="Template"
+        title="Neues Onboarding-Template"
+        description="Definiere Rolle und Lernpfade, die beim Anlegen neuer Mitarbeiter:innen vorausgewählt werden."
+      />
+
+      <div className="overflow-hidden rounded-xl border border-border bg-card p-6 sm:p-8">
+        <TemplateForm
+          action={templateAnlegen}
+          modus="neu"
+          lernpfade={
+            (pfade ?? []) as {
+              id: string;
+              title: string;
+              description: string | null;
+            }[]
+          }
+        />
+      </div>
+    </div>
+  );
+}

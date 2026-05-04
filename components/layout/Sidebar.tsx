@@ -82,6 +82,7 @@ const ADMIN_GROUPS: AdminGruppe[] = [
     label: "Mitarbeiter",
     eintraege: [
       { href: "/admin/benutzer", label: "Benutzer", icon: Users },
+      { href: "/admin/onboarding-templates", label: "Onboarding-Templates", icon: Sparkles },
       { href: "/admin/standorte", label: "Standorte", icon: MapPin },
     ],
   },
