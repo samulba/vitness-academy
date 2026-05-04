@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, GraduationCap, ShieldCheck } from "lucide-react";
+import {
+  FileText,
+  GraduationCap,
+  Home,
+  ListTodo,
+  ShieldCheck,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { istFuehrungskraftOderHoeher, type Rolle } from "@/lib/rollen";
 
@@ -10,9 +16,12 @@ export function MobileNav({ rolle }: { rolle: Rolle }) {
   const pathname = usePathname();
   const zeigeAdmin = istFuehrungskraftOderHoeher(rolle);
 
+  // Daily-Use-Reihenfolge: Mein Tag · Aufgaben · Anfragen · Lernen (· Verwaltung)
   const links = [
-    { href: "/dashboard", label: "Dashboard", icon: Home },
-    { href: "/lernpfade", label: "Lernpfade", icon: GraduationCap },
+    { href: "/dashboard", label: "Mein Tag", icon: Home },
+    { href: "/aufgaben", label: "Aufgaben", icon: ListTodo },
+    { href: "/formulare", label: "Anfragen", icon: FileText },
+    { href: "/lernpfade", label: "Lernen", icon: GraduationCap },
     ...(zeigeAdmin
       ? [{ href: "/admin", label: "Verwaltung", icon: ShieldCheck }]
       : []),

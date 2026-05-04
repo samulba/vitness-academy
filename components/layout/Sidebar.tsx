@@ -45,19 +45,23 @@ type AdminGruppe = {
   eintraege: NavEintrag[];
 };
 
-const LERNEN_NAV: NavEintrag[] = [
-  { href: "/dashboard", label: "Dashboard", icon: Home },
-  { href: "/lernpfade", label: "Lernpfade", icon: GraduationCap },
-  { href: "/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare },
-];
+// Mein Tag = Dashboard, solo ganz oben
+const MEIN_TAG: NavEintrag = { href: "/dashboard", label: "Mein Tag", icon: Home };
 
+// Studio-Gruppe rueckt nach oben -- daily-use-Bereich
 const STUDIO_NAV: NavEintrag[] = [
   { href: "/aufgaben", label: "Aufgaben", icon: ListTodo },
-  { href: "/wissen", label: "Handbuch", icon: BookOpen },
-  { href: "/kontakte", label: "Kontakte", icon: Contact },
   { href: "/infos", label: "Wichtige Infos", icon: Megaphone },
+  { href: "/formulare", label: "Anfragen", icon: FileText },
   { href: "/maengel", label: "Mängel melden", icon: AlertTriangle },
-  { href: "/formulare", label: "Formulare", icon: FileText },
+  { href: "/kontakte", label: "Kontakte", icon: Contact },
+  { href: "/wissen", label: "Handbuch", icon: BookOpen },
+];
+
+// Lernen-Gruppe wird kleiner und rueckt ans Ende
+const LERNEN_NAV: NavEintrag[] = [
+  { href: "/lernpfade", label: "Lernpfade", icon: GraduationCap },
+  { href: "/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare },
 ];
 
 const ADMIN_OVERVIEW: NavEintrag = {
@@ -178,14 +182,20 @@ export function Sidebar({
 
         {/* Nav scrollbar */}
         <nav className="flex-1 overflow-y-auto px-2 py-4 text-sm">
-          <NavGruppe
-            label="Lernen"
-            eintraege={LERNEN_NAV}
-            pathname={pathname}
-          />
+          <ul className="space-y-0.5">
+            <li>
+              <NavLink eintrag={MEIN_TAG} pathname={pathname} />
+            </li>
+          </ul>
           <NavGruppe
             label="Studio"
             eintraege={STUDIO_NAV}
+            pathname={pathname}
+            className="mt-5"
+          />
+          <NavGruppe
+            label="Lernen"
+            eintraege={LERNEN_NAV}
             pathname={pathname}
             className="mt-5"
           />
