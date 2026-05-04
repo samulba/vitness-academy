@@ -26,7 +26,6 @@ export default async function AppLayout({
   const standorte = await ladeMeineStandorte(profile.id);
   const aktiv = await getAktiverStandort(standorte);
 
-  const bell = <NotificationBellServer />;
   const switcherTopbar = (
     <StandortSwitcher aktiv={aktiv} optionen={standorte} variant="compact" />
   );
@@ -40,7 +39,7 @@ export default async function AppLayout({
         fullName={profile.full_name}
         role={profile.role}
         avatarPath={profile.avatar_path}
-        notificationSlot={bell}
+        notificationSlot={<NotificationBellServer placement="auto" />}
         standortSlot={switcherTopbar}
       />
       <div className="flex flex-1">
@@ -48,7 +47,7 @@ export default async function AppLayout({
           rolle={profile.role}
           fullName={profile.full_name}
           avatarPath={profile.avatar_path}
-          notificationSlot={bell}
+          notificationSlot={<NotificationBellServer placement="side-right" />}
           standortSlot={switcherSidebar}
         />
         <main

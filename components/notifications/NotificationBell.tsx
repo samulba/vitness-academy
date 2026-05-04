@@ -53,9 +53,13 @@ function IconFuerType({ type }: { type: NotificationType }) {
 export function NotificationBell({
   notifications,
   ungeleseneAnzahl,
+  placement = "auto",
 }: {
   notifications: Notification[];
   ungeleseneAnzahl: number;
+  /** "side-right" = Popover oeffnet rechts neben Bell (fuer Sidebar);
+   *  "auto" = unter Bell mit right-0 (fuer Topbar mobile) */
+  placement?: "auto" | "side-right";
 }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -108,7 +112,14 @@ export function NotificationBell({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-40 mt-2 w-[380px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-border bg-popover shadow-lg">
+        <div
+          className={cn(
+            "absolute z-50 w-[380px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-border bg-popover shadow-lg",
+            placement === "side-right"
+              ? "left-full top-0 ml-2"
+              : "right-0 top-full mt-2",
+          )}
+        >
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <p className="text-[13px] font-semibold tracking-tight">
               Benachrichtigungen

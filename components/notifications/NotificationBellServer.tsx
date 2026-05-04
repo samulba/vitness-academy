@@ -5,13 +5,18 @@ import { NotificationBell } from "./NotificationBell";
 
 /**
  * Server-Component-Wrapper. Laedt Notifications + ungelesene Anzahl
- * und reicht sie an den Client-Bell weiter. Eingebunden in Topbar
- * und Sidebar.
+ * und reicht sie an den Client-Bell weiter.
  *
- * Bei jeder Server-Action mit revalidatePath('/', 'layout') wird die
- * Komponente neu gerendered und der Counter aktualisiert.
+ * `placement` steuert, wo das Popover sich oeffnet:
+ *   - "auto" (default): unter Bell, rechtsbuendig -- fuer Topbar mobile
+ *   - "side-right": rechts neben Bell -- fuer Sidebar (380px-Popover
+ *     passt sonst nicht in 240px-Sidebar)
  */
-export async function NotificationBellServer() {
+export async function NotificationBellServer({
+  placement = "auto",
+}: {
+  placement?: "auto" | "side-right";
+} = {}) {
   const profile = await getCurrentProfile();
   if (!profile) return null;
 
@@ -26,6 +31,7 @@ export async function NotificationBellServer() {
       <NotificationBell
         notifications={notifications}
         ungeleseneAnzahl={anzahl}
+        placement={placement}
       />
     </>
   );
