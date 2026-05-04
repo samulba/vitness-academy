@@ -38,6 +38,14 @@ export async function mitarbeiterAnlegen(
     .getAll("lernpfade")
     .map((v) => String(v))
     .filter(istUUID);
+  const standortIds = formData
+    .getAll("standorte")
+    .map((v) => String(v))
+    .filter(istUUID);
+  const primaryStandort = (() => {
+    const v = String(formData.get("primary_standort") ?? "").trim();
+    return istUUID(v) && standortIds.includes(v) ? v : null;
+  })();
 
   if (firstName.length === 0 && lastName.length === 0) {
     return {
@@ -75,14 +83,18 @@ export async function mitarbeiterAnlegen(
 
   // 2) Profile-Update (handle_new_user-Trigger hat schon ein Default-Profil
   // angelegt; wir aktualisieren first_name/last_name/role)
+  const profileUpdate: Record<string, unknown> = {
+    first_name: firstName.length > 0 ? firstName : null,
+    last_name: lastName.length > 0 ? lastName : null,
+    full_name: fullName,
+    role,
+  };
+  if (primaryStandort) {
+    profileUpdate.location_id = primaryStandort;
+  }
   const { error: profileError } = await admin
     .from("profiles")
-    .update({
-      first_name: firstName.length > 0 ? firstName : null,
-      last_name: lastName.length > 0 ? lastName : null,
-      full_name: fullName,
-      role,
-    })
+    .update(profileUpdate)
     .eq("id", userId);
   if (profileError) {
     return {
@@ -101,6 +113,24 @@ export async function mitarbeiterAnlegen(
       assigned_by: aktuellerAdmin.id,
     }));
     await admin.from("user_learning_path_assignments").insert(rows);
+  }
+
+  // 4) Standort-Memberships -- primary wird ueber Trigger gesetzt
+  // wenn profile.location_id gesetzt ist. Zusaetzliche werden hier
+  // hinzugefuegt.
+  const zusatzStandorte = standortIds.filter((s) => s !== primaryStandort);
+  if (zusatzStandorte.length > 0) {
+    const rows = zusatzStandorte.map((locId) => ({
+      user_id: userId,
+      location_id: locId,
+      is_primary: false,
+    }));
+    await admin
+      .from("user_locations")
+      .upsert(rows, {
+        onConflict: "user_id,location_id",
+        ignoreDuplicates: true,
+      });
   }
 
   revalidatePath("/admin/benutzer");

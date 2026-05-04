@@ -8,12 +8,16 @@ export default async function NeuerBenutzerPage() {
   await requireRole(["admin", "superadmin"]);
 
   const supabase = await createClient();
-  const [{ data: pfade }, templates] = await Promise.all([
+  const [{ data: pfade }, { data: locs }, templates] = await Promise.all([
     supabase
       .from("learning_paths")
       .select("id, title, description")
       .eq("status", "aktiv")
       .order("sort_order", { ascending: true }),
+    supabase
+      .from("locations")
+      .select("id, name")
+      .order("name", { ascending: true }),
     ladeTemplatesFuerForm(),
   ]);
 
@@ -34,6 +38,7 @@ export default async function NeuerBenutzerPage() {
         lernpfade={
           (pfade ?? []) as { id: string; title: string; description: string | null }[]
         }
+        standorte={(locs ?? []) as { id: string; name: string }[]}
         templates={templates}
       />
     </div>

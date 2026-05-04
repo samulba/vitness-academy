@@ -26,17 +26,38 @@ type Template = {
   lernpfad_ids: string[];
 };
 
+type Standort = { id: string; name: string };
+
 export function NeuerBenutzerForm({
   lernpfade,
+  standorte,
   templates,
 }: {
   lernpfade: Pfad[];
+  standorte: Standort[];
   templates: Template[];
 }) {
   const [state, action, pending] = useActionState<
     OnboardingErgebnis | null,
     FormData
   >(mitarbeiterAnlegen, null);
+
+  const [standortIds, setStandortIds] = useState<Set<string>>(new Set());
+  const [primaryStandort, setPrimaryStandort] = useState<string>("");
+
+  function toggleStandort(id: string) {
+    setStandortIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+        if (primaryStandort === id) setPrimaryStandort("");
+      } else {
+        next.add(id);
+        if (primaryStandort === "") setPrimaryStandort(id);
+      }
+      return next;
+    });
+  }
 
   const [role, setRole] = useState<string>("mitarbeiter");
   const [pfadIds, setPfadIds] = useState<Set<string>>(new Set());
@@ -173,9 +194,58 @@ export function NeuerBenutzerForm({
         </div>
       </Section>
 
+      {/* Standorte */}
+      {standorte.length > 0 && (
+        <Section
+          eyebrow="Schritt 3"
+          titel="Standorte"
+          beschreibung="In welchen Studios arbeitet die Person? Eines davon ist Heim-Studio (Standard-Sicht)."
+        >
+          <input type="hidden" name="primary_standort" value={primaryStandort} />
+          <ul className="space-y-2">
+            {standorte.map((s) => {
+              const aktiv = standortIds.has(s.id);
+              const istPrimary = primaryStandort === s.id;
+              return (
+                <li key={s.id} className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-3 transition-colors has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--primary)/0.06)]">
+                  <input
+                    type="checkbox"
+                    name="standorte"
+                    value={s.id}
+                    checked={aktiv}
+                    onChange={() => toggleStandort(s.id)}
+                    className="h-4 w-4 accent-[hsl(var(--primary))]"
+                  />
+                  <span className="flex-1 text-sm font-semibold">{s.name}</span>
+                  {aktiv && (
+                    <button
+                      type="button"
+                      onClick={() => setPrimaryStandort(s.id)}
+                      className={
+                        istPrimary
+                          ? "rounded-full bg-[hsl(var(--primary)/0.12)] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--primary))]"
+                          : "rounded-full border border-border px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:border-[hsl(var(--primary))] hover:text-[hsl(var(--primary))]"
+                      }
+                    >
+                      {istPrimary ? "Heim" : "Als Heim setzen"}
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          {standortIds.size === 0 && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Wenn nichts angekreuzt ist, wird der User keinem Studio zugeordnet —
+              er sieht alle standort-übergreifenden Inhalte.
+            </p>
+          )}
+        </Section>
+      )}
+
       {/* Lernpfade */}
       <Section
-        eyebrow="Schritt 3"
+        eyebrow={standorte.length > 0 ? "Schritt 4" : "Schritt 3"}
         titel="Lernpfade zuweisen"
         beschreibung="Mehrere möglich. Jeder zugewiesene Pfad erscheint sofort auf dem Dashboard."
       >
