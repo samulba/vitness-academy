@@ -3,11 +3,17 @@ import {
   ArrowRight,
   ArrowUpRight,
   BookOpen,
+  CalendarClock,
   CheckCircle2,
   CheckSquare,
+  ClipboardList,
+  FileText,
   GraduationCap,
+  Megaphone,
+  Palmtree,
   Sparkles,
-  Trophy,
+  Stethoscope,
+  Wrench,
 } from "lucide-react";
 import { PfadCard } from "@/components/lernpfad/PfadCard";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -16,9 +22,9 @@ import { ladeMeineLernpfade, offeneLektionen } from "@/lib/lernpfade";
 import { aktivitaetsStats } from "@/lib/lektion";
 import { aktiveBannerInfo } from "@/lib/infos";
 import { ladeMeineAufgaben } from "@/lib/aufgaben";
+import { ladeSubmissions } from "@/lib/formulare";
 import { getAktiverStandort } from "@/lib/standort-context";
 import { AufgabenZeile } from "@/components/aufgaben/AufgabenZeile";
-import { formatProzent } from "@/lib/format";
 import { Tageszeitgruss } from "./Tageszeitgruss";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,26 +38,99 @@ async function ladeOffenePraxis(userId: string): Promise<number> {
   return count ?? 0;
 }
 
+const QUICK_ACTIONS: {
+  href: string;
+  label: string;
+  icon: typeof Stethoscope;
+  tint: string;
+}[] = [
+  {
+    href: "/formulare/krankmeldung",
+    label: "Krankmeldung",
+    icon: Stethoscope,
+    tint: "bg-rose-500/10 text-rose-600",
+  },
+  {
+    href: "/formulare/urlaubsantrag",
+    label: "Urlaubsantrag",
+    icon: Palmtree,
+    tint: "bg-amber-500/10 text-amber-600",
+  },
+  {
+    href: "/formulare/schicht-tausch",
+    label: "Schicht tauschen",
+    icon: CalendarClock,
+    tint: "bg-sky-500/10 text-sky-600",
+  },
+  {
+    href: "/maengel",
+    label: "Mangel melden",
+    icon: Wrench,
+    tint: "bg-orange-500/10 text-orange-600",
+  },
+  {
+    href: "/infos",
+    label: "Info posten",
+    icon: Megaphone,
+    tint: "bg-violet-500/10 text-violet-600",
+  },
+];
+
+const SUBMISSION_LABEL: Record<string, { label: string; tint: string }> = {
+  eingereicht: { label: "Eingereicht", tint: "bg-blue-500/15 text-blue-700" },
+  in_bearbeitung: {
+    label: "In Bearbeitung",
+    tint: "bg-amber-500/15 text-amber-700",
+  },
+  erledigt: {
+    label: "Erledigt",
+    tint: "bg-emerald-500/15 text-emerald-700",
+  },
+  abgelehnt: { label: "Abgelehnt", tint: "bg-rose-500/15 text-rose-700" },
+};
+
 export default async function DashboardPage() {
   const profile = await requireProfile();
   const aktiv = await getAktiverStandort();
-  const [pfade, anzOffenePraxis, aktivitaet, banner, aufgaben] =
+  const [pfade, anzOffenePraxis, aktivitaet, banner, aufgaben, anfragen] =
     await Promise.all([
       ladeMeineLernpfade(profile.id),
       ladeOffenePraxis(profile.id),
       aktivitaetsStats(profile.id),
       aktiveBannerInfo(profile.id, aktiv?.id ?? null),
       ladeMeineAufgaben(profile.id, aktiv?.id ?? null),
+      ladeSubmissions({
+        submittedBy: profile.id,
+        status: ["eingereicht", "in_bearbeitung"],
+      }),
     ]);
 
   const gesamt = pfade.reduce((s, p) => s + p.gesamt, 0);
   const abgeschlossen = pfade.reduce((s, p) => s + p.abgeschlossen, 0);
-  const prozent = gesamt === 0 ? 0 : (abgeschlossen / gesamt) * 100;
   const offen = offeneLektionen(pfade, 5);
   const next = offen[0];
+  const aufgabenHeute = aufgaben.heute.length;
+  const offeneAnfragen = anfragen.length;
+
+  const subline =
+    aufgabenHeute === 0 && offeneAnfragen === 0
+      ? "Heute keine offenen Aufgaben — alles ruhig."
+      : [
+          aufgabenHeute > 0
+            ? `${aufgabenHeute} ${aufgabenHeute === 1 ? "Aufgabe" : "Aufgaben"} heute`
+            : null,
+          offeneAnfragen > 0
+            ? `${offeneAnfragen} ${offeneAnfragen === 1 ? "offene Anfrage" : "offene Anfragen"}`
+            : null,
+          anzOffenePraxis > 0
+            ? `${anzOffenePraxis} Praxis offen`
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" · ");
 
   return (
-    <div className="space-y-14">
+    <div className="space-y-12">
       {/* === Banner: ungelesene wichtige Info === */}
       {banner && (
         <Link
@@ -89,160 +168,49 @@ export default async function DashboardPage() {
         </Link>
       )}
 
-      {/* === Hero === */}
-      <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-10">
-        {/* Subtiler Magenta-Glow rechts oben */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-20 right-[-10%] h-[400px] w-[400px] rounded-full opacity-[0.10] blur-[100px]"
-          style={{
-            background:
-              "radial-gradient(closest-side, hsl(var(--primary)), transparent)",
-          }}
-        />
-
-        <div className="relative">
-          <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-            <span className="h-px w-10 bg-[hsl(var(--primary))]" />
-            <span>Mein Dashboard</span>
-            <span className="text-muted-foreground">
-              · {formatProzent(prozent)} Gesamtfortschritt
-            </span>
-          </div>
-
-          <h1 className="mt-6 text-balance font-semibold leading-[1.05] tracking-[-0.025em] text-[clamp(2rem,4vw,3.5rem)]">
-            <Tageszeitgruss name={profile.full_name} />.
-          </h1>
-          <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            {gesamt === 0
-              ? "Sobald dir Lernpfade zugewiesen sind, geht's hier los."
-              : abgeschlossen === gesamt
-              ? "Alle Lektionen abgeschlossen — stark!"
-              : `Du hast ${offen.length} ${
-                  offen.length === 1 ? "offene Lektion" : "offene Lektionen"
-                } — und ${abgeschlossen} schon geschafft.`}
-          </p>
-
-          {/* Progress + Stats kombiniert */}
-          {gesamt > 0 && (
-            <div className="mt-10 space-y-5">
-              <div className="space-y-2">
-                <div className="flex items-baseline justify-between text-xs">
-                  <span className="font-medium uppercase tracking-wider text-muted-foreground">
-                    Fortschritt
-                  </span>
-                  <span className="font-semibold tabular-nums">
-                    {abgeschlossen} / {gesamt} Lektionen
-                  </span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full rounded-full bg-[hsl(var(--primary))] transition-[width] duration-500"
-                    style={{ width: `${prozent}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Stat-Pills inline */}
-              <div className="flex flex-wrap gap-2">
-                <StatPill
-                  icon={<GraduationCap className="h-3.5 w-3.5" />}
-                  label="Lernpfade"
-                  wert={pfade.length}
-                  href="/lernpfade"
-                />
-                <StatPill
-                  icon={<BookOpen className="h-3.5 w-3.5" />}
-                  label="Offen"
-                  wert={offen.length}
-                />
-                <StatPill
-                  icon={<Trophy className="h-3.5 w-3.5" />}
-                  label="Abgeschlossen"
-                  wert={abgeschlossen}
-                  akzent="success"
-                />
-                <StatPill
-                  icon={<CheckSquare className="h-3.5 w-3.5" />}
-                  label="Praxis offen"
-                  wert={anzOffenePraxis}
-                  href="/praxisfreigaben"
-                  akzent={anzOffenePraxis > 0 ? "primary" : undefined}
-                />
-                {aktivitaet.tageLetzte30 > 0 && (
-                  <StatPill
-                    icon={<Sparkles className="h-3.5 w-3.5" />}
-                    label="Tage aktiv (30T)"
-                    wert={aktivitaet.tageLetzte30}
-                  />
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+      {/* === Hero: Tagesüberblick === */}
+      <section>
+        <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+          Mein Tag
+        </p>
+        <h1 className="mt-3 text-balance font-semibold leading-[1.05] tracking-[-0.025em] text-[clamp(2rem,4vw,3.5rem)]">
+          <Tageszeitgruss name={profile.full_name} />.
+        </h1>
+        <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+          {subline}
+        </p>
       </section>
 
-      {/* === Heute weitermachen (Featured Next-Up) === */}
-      {next && (
-        <section className="space-y-5">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-              Heute weitermachen
-            </h2>
-          </div>
-          <Link
-            href={`/lektionen/${next.lesson_id}`}
-            className="group relative grid gap-6 overflow-hidden rounded-3xl border border-border bg-[hsl(var(--brand-ink))] p-6 text-[hsl(var(--brand-cream))] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-25px_hsl(var(--primary)/0.45)] sm:grid-cols-[1fr_auto] sm:items-end sm:p-10"
-          >
-            {/* Magenta-Glow */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -top-32 right-[-10%] h-[450px] w-[450px] rounded-full opacity-25 blur-[100px]"
-              style={{
-                background:
-                  "radial-gradient(closest-side, hsl(var(--primary)), transparent)",
-              }}
-            />
-            <div
-              aria-hidden
-              className="absolute inset-0 opacity-[0.05]"
-              style={{
-                backgroundImage:
-                  "linear-gradient(hsl(var(--brand-cream)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--brand-cream)) 1px, transparent 1px)",
-                backgroundSize: "56px 56px",
-              }}
-            />
-
-            <div className="relative">
-              <div className="flex flex-wrap items-center gap-2 text-xs text-[hsl(var(--brand-cream)/0.55)]">
-                <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--primary))]" />
-                <span className="font-medium uppercase tracking-wider">
-                  Nächster Schritt
+      {/* === Quick-Actions === */}
+      <section>
+        <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+          Schnell-Aktionen
+        </h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {QUICK_ACTIONS.map((qa) => {
+            const Icon = qa.icon;
+            return (
+              <Link
+                key={qa.href}
+                href={qa.href}
+                className="group flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)]"
+              >
+                <span
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl ${qa.tint}`}
+                >
+                  <Icon className="h-5 w-5" strokeWidth={1.75} />
                 </span>
-                <span>·</span>
-                <span>{next.path_title}</span>
-                <span>·</span>
-                <span>{next.module_title}</span>
-              </div>
-              <h3 className="mt-4 max-w-[24ch] text-balance font-semibold leading-tight tracking-tight text-[hsl(var(--brand-cream))] text-[clamp(1.5rem,2.5vw,2.25rem)]">
-                {next.lesson_title}
-              </h3>
-              <div className="mt-4">
-                <StatusBadge status={next.status} />
-              </div>
-            </div>
-
-            <div className="relative flex items-center gap-3 self-end sm:self-auto">
-              <span className="hidden text-sm font-medium text-[hsl(var(--brand-cream)/0.7)] sm:inline">
-                Lektion öffnen
-              </span>
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-md transition-transform group-hover:translate-x-1 group-hover:-translate-y-1">
-                <ArrowUpRight className="h-5 w-5" />
-              </span>
-            </div>
-          </Link>
-        </section>
-      )}
+                <div className="flex w-full items-end justify-between">
+                  <span className="text-sm font-semibold leading-tight">
+                    {qa.label}
+                  </span>
+                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))]" />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
 
       {/* === Aufgaben heute === */}
       {aufgaben.heute.length > 0 && (
@@ -274,162 +242,197 @@ export default async function DashboardPage() {
         </section>
       )}
 
-      {/* === Lernpfade === */}
-      <section className="space-y-6">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-              Deine Kapitel
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-              Meine Lernpfade
-            </h2>
+      {/* === Meine offenen Anfragen === */}
+      {anfragen.length > 0 && (
+        <section className="space-y-5">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+                Status deiner Anträge
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                Meine Anfragen
+              </h2>
+            </div>
+            <Link
+              href="/formulare"
+              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Alle ansehen
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
-          <Link
-            href="/lernpfade"
-            className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Alle ansehen
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        {pfade.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center text-muted-foreground">
-            Dir wurden noch keine Lernpfade zugewiesen. Sprich kurz dein
-            Studio-Team an.
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {pfade.map((pfad) => (
-              <PfadCard
-                key={pfad.id}
-                id={pfad.id}
-                title={pfad.title}
-                description={pfad.description}
-                modulAnzahl={pfad.modules.length}
-                abgeschlossen={pfad.abgeschlossen}
-                gesamt={pfad.gesamt}
-                prozent={pfad.prozent}
-                heroImagePath={pfad.hero_image_path}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* === Offene Lektionen === */}
-      <section className="space-y-6">
-        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-          Offene Lektionen
-        </h2>
-
-        {offen.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card p-12 text-center">
-            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]">
-              <CheckCircle2 className="h-6 w-6" />
-            </span>
-            <p className="mt-4 text-sm font-medium">
-              Aktuell keine offenen Lektionen — stark!
-            </p>
-          </div>
-        ) : (
           <ul className="overflow-hidden rounded-2xl border border-border bg-card">
-            {offen.map((eintrag, i) => (
-              <li
-                key={eintrag.lesson_id}
-                className={i > 0 ? "border-t border-border" : ""}
-              >
-                <Link
-                  href={`/lektionen/${eintrag.lesson_id}`}
-                  className="group relative flex items-center gap-5 px-6 py-5 transition-colors hover:bg-[hsl(var(--primary)/0.04)]"
+            {anfragen.slice(0, 4).map((s, i) => {
+              const meta = SUBMISSION_LABEL[s.status] ?? {
+                label: s.status,
+                tint: "bg-muted text-muted-foreground",
+              };
+              return (
+                <li
+                  key={s.id}
+                  className={
+                    i > 0
+                      ? "flex items-center gap-4 border-t border-border px-5 py-4"
+                      : "flex items-center gap-4 px-5 py-4"
+                  }
                 >
-                  <span
-                    aria-hidden
-                    className="absolute inset-y-3 left-0 w-[3px] origin-top scale-y-0 rounded-r-full bg-[hsl(var(--primary))] transition-transform duration-200 group-hover:scale-y-100"
-                  />
-                  <span className="hidden font-mono text-xs tabular-nums text-muted-foreground sm:block">
-                    {String(i + 1).padStart(2, "0")}
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--brand-pink)/0.08)] text-[hsl(var(--brand-pink))]">
+                    <ClipboardList className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      {eintrag.path_title} · {eintrag.module_title}
-                    </span>
-                    <p className="mt-1 truncate text-base font-semibold tracking-tight">
-                      {eintrag.lesson_title}
+                    <p className="truncate text-sm font-semibold">
+                      {s.template_title ?? "Anfrage"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Eingereicht{" "}
+                      {new Date(s.submitted_at).toLocaleDateString("de-DE", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
                     </p>
                   </div>
-                  <StatusBadge status={eintrag.status} />
-                  <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-[hsl(var(--primary))]" />
-                </Link>
-              </li>
-            ))}
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${meta.tint}`}
+                  >
+                    {meta.label}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
-        )}
-      </section>
+        </section>
+      )}
+
+      {/* === Mein Lernen (kompakt) === */}
+      {(next || pfade.length > 0) && (
+        <section className="space-y-5">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+                Mein Lernen
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                {next ? "Heute weitermachen" : "Deine Lernpfade"}
+              </h2>
+            </div>
+            <Link
+              href="/lernpfade"
+              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {next
+                ? `${abgeschlossen}/${gesamt} Lektionen`
+                : "Alle ansehen"}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          {next ? (
+            <Link
+              href={`/lektionen/${next.lesson_id}`}
+              className="group relative grid gap-6 overflow-hidden rounded-2xl border border-border bg-[hsl(var(--brand-ink))] p-6 text-[hsl(var(--brand-cream))] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_60px_-25px_hsl(var(--primary)/0.4)] sm:grid-cols-[1fr_auto] sm:items-center"
+            >
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -top-32 right-[-10%] h-[400px] w-[400px] rounded-full opacity-25 blur-[100px]"
+                style={{
+                  background:
+                    "radial-gradient(closest-side, hsl(var(--primary)), transparent)",
+                }}
+              />
+              <div className="relative">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-[hsl(var(--brand-cream)/0.55)]">
+                  <GraduationCap className="h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                  <span>{next.path_title}</span>
+                  <span>·</span>
+                  <span>{next.module_title}</span>
+                </div>
+                <h3 className="mt-3 max-w-[36ch] text-balance font-semibold leading-tight tracking-tight text-[hsl(var(--brand-cream))] text-xl sm:text-2xl">
+                  {next.lesson_title}
+                </h3>
+                <div className="mt-3">
+                  <StatusBadge status={next.status} />
+                </div>
+              </div>
+              <span className="relative flex h-12 w-12 items-center justify-center justify-self-end rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-md transition-transform group-hover:translate-x-1 group-hover:-translate-y-1">
+                <ArrowUpRight className="h-5 w-5" />
+              </span>
+            </Link>
+          ) : pfade.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {pfade.slice(0, 2).map((pfad) => (
+                <PfadCard
+                  key={pfad.id}
+                  id={pfad.id}
+                  title={pfad.title}
+                  description={pfad.description}
+                  modulAnzahl={pfad.modules.length}
+                  abgeschlossen={pfad.abgeschlossen}
+                  gesamt={pfad.gesamt}
+                  prozent={pfad.prozent}
+                  heroImagePath={pfad.hero_image_path}
+                />
+              ))}
+            </div>
+          ) : null}
+        </section>
+      )}
+
+      {gesamt > 0 && abgeschlossen === gesamt && (
+        <section className="rounded-2xl border border-[hsl(var(--success)/0.3)] bg-[hsl(var(--success)/0.06)] p-8 text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[hsl(var(--success))] text-white">
+            <CheckCircle2 className="h-6 w-6" />
+          </span>
+          <p className="mt-4 text-base font-semibold">
+            Alle Lektionen abgeschlossen — stark!
+          </p>
+          {anzOffenePraxis > 0 && (
+            <Link
+              href="/praxisfreigaben"
+              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[hsl(var(--success))] hover:underline"
+            >
+              <CheckSquare className="h-4 w-4" />
+              {anzOffenePraxis}{" "}
+              {anzOffenePraxis === 1 ? "Praxisfreigabe" : "Praxisfreigaben"} offen
+            </Link>
+          )}
+        </section>
+      )}
 
       {/* === Handbuch-Promo (kompakt) === */}
       <section>
         <Link
           href="/wissen"
-          className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary))] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.3)] sm:p-8"
+          className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary))] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.3)]"
         >
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]">
             <BookOpen className="h-5 w-5" strokeWidth={1.75} />
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
               Vitness Handbuch
             </p>
-            <p className="mt-0.5 text-base font-semibold sm:text-lg">
+            <p className="mt-0.5 text-base font-semibold">
               Schnelle Antworten für den Studio-Alltag
             </p>
           </div>
           <ArrowUpRight className="h-5 w-5 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))]" />
         </Link>
       </section>
+
+      {/* Aktivitäts-Hinweis (kompakt unten) */}
+      {aktivitaet.tageLetzte30 > 0 && (
+        <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+          <Sparkles className="h-3 w-3" />
+          {aktivitaet.tageLetzte30} Tage aktiv in den letzten 30
+          {next && (
+            <>
+              {" "}· <FileText className="h-3 w-3" /> Lerne weiter
+            </>
+          )}
+        </p>
+      )}
     </div>
   );
-}
-
-/* -------------------------------------------------------------------- */
-/* Stat-Pill                                                             */
-/* -------------------------------------------------------------------- */
-
-function StatPill({
-  icon,
-  label,
-  wert,
-  href,
-  akzent,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  wert: number;
-  href?: string;
-  akzent?: "primary" | "success";
-}) {
-  const akzentBg =
-    akzent === "primary"
-      ? "border-[hsl(var(--primary)/0.3)] bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))]"
-      : akzent === "success"
-      ? "border-[hsl(var(--success)/0.3)] bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))]"
-      : "border-border bg-background text-foreground";
-
-  const inhalt = (
-    <span
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${akzentBg} ${
-        href ? "hover:bg-muted" : ""
-      }`}
-    >
-      <span className="flex items-center gap-1.5 text-muted-foreground">
-        {icon}
-        {label}
-      </span>
-      <span className="font-bold tabular-nums">{wert}</span>
-    </span>
-  );
-
-  if (href) return <Link href={href}>{inhalt}</Link>;
-  return inhalt;
 }
