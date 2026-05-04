@@ -14,15 +14,21 @@ export type Kontakt = {
   updated_at: string;
 };
 
-export async function ladeKontakte(): Promise<Kontakt[]> {
+export async function ladeKontakte(
+  locationId?: string | null,
+): Promise<Kontakt[]> {
   const supabase = await createClient();
-  const { data } = await supabase
+  let q = supabase
     .from("studio_contacts")
     .select(
       "id, location_id, first_name, last_name, role_tags, phone, email, notes, sort_order, created_at, updated_at",
     )
     .order("sort_order", { ascending: true })
     .order("last_name", { ascending: true });
+  if (locationId) {
+    q = q.or(`location_id.eq.${locationId},location_id.is.null`);
+  }
+  const { data } = await q;
   return (data ?? []) as Kontakt[];
 }
 

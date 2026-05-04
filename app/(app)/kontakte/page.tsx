@@ -10,6 +10,7 @@ import {
   vollerName,
   type Kontakt,
 } from "@/lib/kontakte";
+import { getAktiverStandort } from "@/lib/standort-context";
 
 export default async function KontaktePage({
   searchParams,
@@ -20,7 +21,8 @@ export default async function KontaktePage({
   const query = sp.q?.trim() ?? "";
   const rolle = sp.rolle?.trim() ?? "";
 
-  const alle = await ladeKontakte();
+  const aktiv = await getAktiverStandort();
+  const alle = await ladeKontakte(aktiv?.id ?? null);
   const rollen = eindeutigeRollen(alle);
 
   const gefiltert = alle.filter((k) => {

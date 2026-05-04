@@ -2,11 +2,16 @@ import { CheckCircle2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireProfile } from "@/lib/auth";
 import { ladeMeineAufgaben, type Aufgabe } from "@/lib/aufgaben";
+import { getAktiverStandort } from "@/lib/standort-context";
 import { AufgabenZeile } from "@/components/aufgaben/AufgabenZeile";
 
 export default async function AufgabenPage() {
   const profile = await requireProfile();
-  const { heute, dieseWoche, erledigt } = await ladeMeineAufgaben(profile.id);
+  const aktiv = await getAktiverStandort();
+  const { heute, dieseWoche, erledigt } = await ladeMeineAufgaben(
+    profile.id,
+    aktiv?.id ?? null,
+  );
 
   return (
     <div className="space-y-6">

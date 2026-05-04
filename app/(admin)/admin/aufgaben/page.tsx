@@ -13,6 +13,7 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { requireRole } from "@/lib/auth";
 import { ladeAlleAufgabenAdmin, type Aufgabe } from "@/lib/aufgaben";
+import { getAktiverStandort } from "@/lib/standort-context";
 import { formatDatum } from "@/lib/format";
 
 function StatusBadge({ task }: { task: Aufgabe }) {
@@ -28,7 +29,8 @@ function StatusBadge({ task }: { task: Aufgabe }) {
 
 export default async function AufgabenAdminPage() {
   await requireRole(["admin", "superadmin"]);
-  const alle = await ladeAlleAufgabenAdmin();
+  const aktiv = await getAktiverStandort();
+  const alle = await ladeAlleAufgabenAdmin(aktiv?.id ?? null);
   const templates = alle.filter((a) => a.recurrence !== "none");
   const instances = alle.filter((a) => a.recurrence === "none");
   const offen = instances.filter((i) => !i.completed_at).length;

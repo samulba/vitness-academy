@@ -72,11 +72,13 @@ export type MangelStats = {
   } | null;
 };
 
-export async function maengelStats(): Promise<MangelStats> {
+export async function maengelStats(
+  locationId?: string | null,
+): Promise<MangelStats> {
   const supabase = await createClient();
   const seit = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  const { data } = await supabase
+  let q = supabase
     .from("studio_issues")
     .select(
       `id, status, reported_by, created_at, resolved_at,
@@ -84,6 +86,10 @@ export async function maengelStats(): Promise<MangelStats> {
     )
     .order("created_at", { ascending: false })
     .limit(500);
+  if (locationId) {
+    q = q.or(`location_id.eq.${locationId},location_id.is.null`);
+  }
+  const { data } = await q;
 
   type StatRoh = {
     id: string;
@@ -139,6 +145,7 @@ export async function maengelStats(): Promise<MangelStats> {
 export async function ladeMaengel(opts?: {
   status?: Status[];
   reportedBy?: string;
+  locationId?: string | null;
 }): Promise<Mangel[]> {
   const supabase = await createClient();
   let q = supabase
@@ -150,6 +157,9 @@ export async function ladeMaengel(opts?: {
   }
   if (opts?.reportedBy) {
     q = q.eq("reported_by", opts.reportedBy);
+  }
+  if (opts?.locationId) {
+    q = q.or(`location_id.eq.${opts.locationId},location_id.is.null`);
   }
   const { data } = await q;
   return ((data ?? []) as unknown as Roh[]).map(map);

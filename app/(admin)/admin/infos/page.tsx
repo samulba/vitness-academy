@@ -19,12 +19,14 @@ import {
   type Announcement,
 } from "@/lib/infos";
 import { ladeStandorte } from "@/lib/standorte";
+import { getAktiverStandort } from "@/lib/standort-context";
 import { formatDatum } from "@/lib/format";
 
 export default async function InfosAdminPage() {
   await requireRole(["admin", "superadmin"]);
+  const aktiv = await getAktiverStandort();
   const [infos, standorte] = await Promise.all([
-    ladeAnnouncements({ nurPublished: false }),
+    ladeAnnouncements({ nurPublished: false, locationId: aktiv?.id ?? null }),
     ladeStandorte(),
   ]);
   const standortById = new Map(standorte.map((s) => [s.id, s.name]));

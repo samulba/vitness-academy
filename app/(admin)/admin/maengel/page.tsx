@@ -13,6 +13,7 @@ import { StatusPill } from "@/components/admin/StatusPill";
 import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
 import { requireRole } from "@/lib/auth";
 import { fotoUrlFuerPfad, ladeMaengel, type Mangel } from "@/lib/maengel";
+import { getAktiverStandort } from "@/lib/standort-context";
 import { formatDatum } from "@/lib/format";
 
 function StatusBadge({ status }: { status: string }) {
@@ -51,8 +52,16 @@ function SeverityBadge({ severity }: { severity: string }) {
 
 export default async function MaengelAdminPage() {
   await requireRole(["fuehrungskraft", "admin", "superadmin"]);
-  const offen = await ladeMaengel({ status: ["offen", "in_bearbeitung"] });
-  const erledigt = await ladeMaengel({ status: ["behoben", "verworfen"] });
+  const aktiv = await getAktiverStandort();
+  const locId = aktiv?.id ?? null;
+  const offen = await ladeMaengel({
+    status: ["offen", "in_bearbeitung"],
+    locationId: locId,
+  });
+  const erledigt = await ladeMaengel({
+    status: ["behoben", "verworfen"],
+    locationId: locId,
+  });
   const inBearbeitung = offen.filter((m) => m.status === "in_bearbeitung").length;
   const kritisch = offen.filter((m) => m.severity === "kritisch").length;
   const behoben = erledigt.filter((m) => m.status === "behoben").length;

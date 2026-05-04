@@ -140,8 +140,14 @@ export async function generiereWiederkehrendeAufgaben(): Promise<void> {
 /**
  * Aufgaben fuer den eingeloggten User (heute + offen + zugewiesen
  * oder team-wide). Templates werden ausgeblendet.
+ *
+ * @param locationId optional -- wenn gesetzt, nur Tasks dieses
+ *   Standorts plus standort-uebergreifende (location_id is null).
  */
-export async function ladeMeineAufgaben(userId: string): Promise<{
+export async function ladeMeineAufgaben(
+  userId: string,
+  locationId?: string | null,
+): Promise<{
   heute: Aufgabe[];
   dieseWoche: Aufgabe[];
   erledigt: Aufgabe[];
@@ -153,13 +159,17 @@ export async function ladeMeineAufgaben(userId: string): Promise<{
   wochenEnde.setDate(wochenEnde.getDate() + (6 - ((wochenEnde.getDay() + 6) % 7)));
   const wochenEndeIso = isoDate(wochenEnde);
 
-  const { data } = await supabase
+  let q = supabase
     .from("studio_tasks")
     .select(SELECT)
     .eq("recurrence", "none")
     .or(`assigned_to.is.null,assigned_to.eq.${userId}`)
     .order("priority", { ascending: false })
     .order("due_date", { ascending: true, nullsFirst: false });
+  if (locationId) {
+    q = q.or(`location_id.eq.${locationId},location_id.is.null`);
+  }
+  const { data } = await q;
 
   const alle = ((data ?? []) as unknown as Roh[]).map(map);
 
@@ -197,14 +207,22 @@ export async function ladeAufgabe(id: string): Promise<Aufgabe | null> {
 
 /**
  * Liefert alle Tasks (Templates + Instances) fuer Admin.
+ * @param locationId optional -- nur Tasks dieses Standorts plus
+ *   standort-uebergreifende.
  */
-export async function ladeAlleAufgabenAdmin(): Promise<Aufgabe[]> {
+export async function ladeAlleAufgabenAdmin(
+  locationId?: string | null,
+): Promise<Aufgabe[]> {
   const supabase = await createClient();
-  const { data } = await supabase
+  let q = supabase
     .from("studio_tasks")
     .select(SELECT)
     .order("recurrence", { ascending: false }) // templates first
     .order("due_date", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
+  if (locationId) {
+    q = q.or(`location_id.eq.${locationId},location_id.is.null`);
+  }
+  const { data } = await q;
   return ((data ?? []) as unknown as Roh[]).map(map);
 }

@@ -1,6 +1,7 @@
 import { ShieldCheck } from "lucide-react";
 import { requireProfile } from "@/lib/auth";
 import { ladeMaengel, maengelStats, type Mangel, type Status } from "@/lib/maengel";
+import { getAktiverStandort } from "@/lib/standort-context";
 import { Composer } from "./Composer";
 import { FilterSidebar } from "./FilterSidebar";
 import { StatsSidebar } from "./StatsSidebar";
@@ -27,11 +28,13 @@ export default async function MaengelPage({
   const profile = await requireProfile();
   const sp = await searchParams;
   const filter: FilterValue = istValidFilter(sp.filter) ? sp.filter : "alle";
+  const aktiv = await getAktiverStandort();
+  const locId = aktiv?.id ?? null;
 
   const [alle, meine, stats] = await Promise.all([
-    ladeMaengel(),
-    ladeMaengel({ reportedBy: profile.id }),
-    maengelStats(),
+    ladeMaengel({ locationId: locId }),
+    ladeMaengel({ reportedBy: profile.id, locationId: locId }),
+    maengelStats(locId),
   ]);
 
   // Counts pro Filter-Eintrag (auf alle Daten)

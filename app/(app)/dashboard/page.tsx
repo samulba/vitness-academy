@@ -16,6 +16,7 @@ import { ladeMeineLernpfade, offeneLektionen } from "@/lib/lernpfade";
 import { aktivitaetsStats } from "@/lib/lektion";
 import { aktiveBannerInfo } from "@/lib/infos";
 import { ladeMeineAufgaben } from "@/lib/aufgaben";
+import { getAktiverStandort } from "@/lib/standort-context";
 import { AufgabenZeile } from "@/components/aufgaben/AufgabenZeile";
 import { formatProzent } from "@/lib/format";
 import { Tageszeitgruss } from "./Tageszeitgruss";
@@ -33,13 +34,14 @@ async function ladeOffenePraxis(userId: string): Promise<number> {
 
 export default async function DashboardPage() {
   const profile = await requireProfile();
+  const aktiv = await getAktiverStandort();
   const [pfade, anzOffenePraxis, aktivitaet, banner, aufgaben] =
     await Promise.all([
       ladeMeineLernpfade(profile.id),
       ladeOffenePraxis(profile.id),
       aktivitaetsStats(profile.id),
-      aktiveBannerInfo(profile.id),
-      ladeMeineAufgaben(profile.id),
+      aktiveBannerInfo(profile.id, aktiv?.id ?? null),
+      ladeMeineAufgaben(profile.id, aktiv?.id ?? null),
     ]);
 
   const gesamt = pfade.reduce((s, p) => s + p.gesamt, 0);

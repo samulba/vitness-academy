@@ -11,6 +11,7 @@ import {
   infoStatsDieseWoche,
 } from "@/lib/infos";
 import { ladeStandorte } from "@/lib/standorte";
+import { getAktiverStandort } from "@/lib/standort-context";
 import { InfoCard } from "@/components/infos/InfoCard";
 import { Composer } from "./Composer";
 import { FilterSidebar } from "./FilterSidebar";
@@ -29,8 +30,9 @@ export default async function InfosPage({
     : null;
   const aktiverStandort = sp.standort ?? null;
 
+  const aktiv = await getAktiverStandort();
   const [infos, gelesen, standorte, stats] = await Promise.all([
-    ladeAnnouncements({ nurPublished: true }),
+    ladeAnnouncements({ nurPublished: true, locationId: aktiv?.id ?? null }),
     ladeReadIds(profile.id),
     ladeStandorte(),
     infoStatsDieseWoche(),

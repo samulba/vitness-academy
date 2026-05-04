@@ -11,10 +11,12 @@ import {
   vollerName,
   type Kontakt,
 } from "@/lib/kontakte";
+import { getAktiverStandort } from "@/lib/standort-context";
 
 export default async function KontakteAdminPage() {
   await requireRole(["admin", "superadmin"]);
-  const kontakte = await ladeKontakte();
+  const aktiv = await getAktiverStandort();
+  const kontakte = await ladeKontakte(aktiv?.id ?? null);
   const mitTel = kontakte.filter((k) => k.phone).length;
   const mitMail = kontakte.filter((k) => k.email).length;
   const tagsSet = new Set<string>();

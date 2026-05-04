@@ -59,6 +59,7 @@ const SELECT_COLS = `id, location_id, category, title, body, importance, pinned,
 
 export async function ladeAnnouncements(opts?: {
   nurPublished?: boolean;
+  locationId?: string | null;
 }): Promise<Announcement[]> {
   const supabase = await createClient();
   let q = supabase
@@ -69,6 +70,9 @@ export async function ladeAnnouncements(opts?: {
 
   if (opts?.nurPublished !== false) {
     q = q.eq("published", true);
+  }
+  if (opts?.locationId) {
+    q = q.or(`location_id.eq.${opts.locationId},location_id.is.null`);
   }
   const { data } = await q;
   return ((data ?? []) as unknown as Roh[]).map(map);
@@ -109,9 +113,10 @@ export async function ladeReadIds(userId: string): Promise<Set<string>> {
  */
 export async function aktiveBannerInfo(
   userId: string,
+  locationId?: string | null,
 ): Promise<Announcement | null> {
   const [alle, gelesen] = await Promise.all([
-    ladeAnnouncements({ nurPublished: true }),
+    ladeAnnouncements({ nurPublished: true, locationId }),
     ladeReadIds(userId),
   ]);
   const ungelesen = alle.filter(
