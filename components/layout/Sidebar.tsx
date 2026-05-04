@@ -22,6 +22,7 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
+  TrendingUp,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -50,19 +51,27 @@ type AdminGruppe = {
 // Mein Tag = Dashboard, solo ganz oben
 const MEIN_TAG: NavEintrag = { href: "/dashboard", label: "Mein Tag", icon: Home };
 
-// Studio-Gruppe rueckt nach oben -- daily-use-Bereich
+// Drei Untergruppen statt einer flachen Liste -- die Sidebar bleibt
+// uebersichtlich auch wenn Provisionen/Feedback/Kudos dazu kommen.
 const STUDIO_NAV: NavEintrag[] = [
   { href: "/aufgaben", label: "Aufgaben", icon: ListTodo },
-  { href: "/infos", label: "Wichtige Infos", icon: Megaphone },
   { href: "/formulare", label: "Anfragen", icon: FileText },
   { href: "/maengel", label: "Mängel melden", icon: AlertTriangle },
-  { href: "/feedback", label: "Mitglieder-Feedback", icon: MessageCircle },
+];
+
+// "Verkauf" wird nur fuer Vertriebler sichtbar (per profile.kann_provisionen)
+const VERKAUF_NAV: NavEintrag[] = [
+  { href: "/provisionen", label: "Provisionen", icon: TrendingUp },
+];
+
+const TEAM_NAV: NavEintrag[] = [
+  { href: "/infos", label: "Wichtige Infos", icon: Megaphone },
   { href: "/kudos", label: "Kudos", icon: Heart },
+  { href: "/feedback", label: "Mitglieder-Feedback", icon: MessageCircle },
   { href: "/kontakte", label: "Kontakte", icon: Contact },
   { href: "/wissen", label: "Handbuch", icon: BookOpen },
 ];
 
-// Lernen-Gruppe wird kleiner und rueckt ans Ende
 const LERNEN_NAV: NavEintrag[] = [
   { href: "/lernpfade", label: "Lernpfade", icon: GraduationCap },
   { href: "/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare },
@@ -147,12 +156,14 @@ export function Sidebar({
   avatarPath,
   notificationSlot,
   standortSlot,
+  kannProvisionen = false,
 }: {
   rolle: Rolle;
   fullName?: string | null;
   avatarPath?: string | null;
   notificationSlot?: React.ReactNode;
   standortSlot?: React.ReactNode;
+  kannProvisionen?: boolean;
 }) {
   const pathname = usePathname();
   const showAdmin = istFuehrungskraftOderHoeher(rolle);
@@ -195,6 +206,20 @@ export function Sidebar({
           <NavGruppe
             label="Studio"
             eintraege={STUDIO_NAV}
+            pathname={pathname}
+            className="mt-5"
+          />
+          {kannProvisionen && (
+            <NavGruppe
+              label="Verkauf"
+              eintraege={VERKAUF_NAV}
+              pathname={pathname}
+              className="mt-5"
+            />
+          )}
+          <NavGruppe
+            label="Team"
+            eintraege={TEAM_NAV}
             pathname={pathname}
             className="mt-5"
           />
