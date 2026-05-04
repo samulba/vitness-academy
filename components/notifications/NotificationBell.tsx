@@ -7,6 +7,7 @@ import {
   CheckCheck,
   CheckSquare,
   FileText,
+  Heart,
   ListTodo,
   Megaphone,
   MessageCircle,
@@ -31,6 +32,7 @@ const ICON_MAP = {
   "list-todo": ListTodo,
   megaphone: Megaphone,
   "message-circle": MessageCircle,
+  heart: Heart,
   bell: Bell,
 } as const;
 

@@ -12,7 +12,8 @@ export type NotificationType =
   | "praxis_decision"
   | "aufgabe_neu"
   | "info_neu"
-  | "lektion_q_antwort";
+  | "lektion_q_antwort"
+  | "kudos";
 
 export type Notification = {
   id: string;
@@ -32,6 +33,7 @@ const TYP_ICON: Record<NotificationType, string> = {
   aufgabe_neu: "list-todo",
   info_neu: "megaphone",
   lektion_q_antwort: "message-circle",
+  kudos: "heart",
 };
 
 export function iconKey(type: NotificationType): string {

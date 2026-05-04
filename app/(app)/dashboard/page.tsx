@@ -9,6 +9,7 @@ import {
   ClipboardList,
   FileText,
   GraduationCap,
+  Heart,
   Megaphone,
   Palmtree,
   Sparkles,
@@ -23,8 +24,10 @@ import { aktivitaetsStats } from "@/lib/lektion";
 import { aktiveBannerInfo } from "@/lib/infos";
 import { ladeMeineAufgaben } from "@/lib/aufgaben";
 import { ladeSubmissions } from "@/lib/formulare";
+import { ladeKudos } from "@/lib/kudos";
 import { getAktiverStandort } from "@/lib/standort-context";
 import { AufgabenZeile } from "@/components/aufgaben/AufgabenZeile";
+import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { Tageszeitgruss } from "./Tageszeitgruss";
 import { createClient } from "@/lib/supabase/server";
 
@@ -92,7 +95,7 @@ const SUBMISSION_LABEL: Record<string, { label: string; tint: string }> = {
 export default async function DashboardPage() {
   const profile = await requireProfile();
   const aktiv = await getAktiverStandort();
-  const [pfade, anzOffenePraxis, aktivitaet, banner, aufgaben, anfragen] =
+  const [pfade, anzOffenePraxis, aktivitaet, banner, aufgaben, anfragen, kudos] =
     await Promise.all([
       ladeMeineLernpfade(profile.id),
       ladeOffenePraxis(profile.id),
@@ -103,6 +106,7 @@ export default async function DashboardPage() {
         submittedBy: profile.id,
         status: ["eingereicht", "in_bearbeitung"],
       }),
+      ladeKudos({ limit: 3, locationId: aktiv?.id ?? null }),
     ]);
 
   const gesamt = pfade.reduce((s, p) => s + p.gesamt, 0);
@@ -301,6 +305,55 @@ export default async function DashboardPage() {
                 </li>
               );
             })}
+          </ul>
+        </section>
+      )}
+
+      {/* === Aktuelle Lobs === */}
+      {kudos.length > 0 && (
+        <section className="space-y-5">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+                Aus dem Team
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                Aktuelle Lobs
+              </h2>
+            </div>
+            <Link
+              href="/kudos"
+              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Alle ansehen
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <ul className="grid gap-3 sm:grid-cols-3">
+            {kudos.map((k) => (
+              <li
+                key={k.id}
+                className="rounded-2xl border border-border bg-card p-5"
+              >
+                <div className="flex items-center gap-2 text-xs">
+                  <ColoredAvatar
+                    name={k.from_name}
+                    avatarPath={k.from_avatar}
+                    size="sm"
+                  />
+                  <span className="font-semibold">
+                    {k.from_name ?? "Jemand"}
+                  </span>
+                  <Heart className="h-3 w-3 text-[hsl(var(--brand-pink))]" />
+                  <span className="font-semibold">
+                    {k.to_name ?? "Kollegen"}
+                  </span>
+                </div>
+                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                  „{k.message}&ldquo;
+                </p>
+              </li>
+            ))}
           </ul>
         </section>
       )}
