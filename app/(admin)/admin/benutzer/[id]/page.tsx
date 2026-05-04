@@ -1,6 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Archive, ArchiveRestore, BookOpen, GraduationCap, Plus } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  BookOpen,
+  GraduationCap,
+  MapPin,
+  Plus,
+  Star,
+  X,
+} from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,6 +32,9 @@ import {
   mitarbeiterArchivieren,
   mitarbeiterReaktivieren,
   profilAktualisieren,
+  standortAlsPrimary,
+  standortEntfernen,
+  standortHinzufuegen,
 } from "../actions";
 
 type Profil = {
@@ -62,6 +74,34 @@ async function ladeStandorte() {
     .select("id, name")
     .order("name", { ascending: true });
   return (data ?? []) as { id: string; name: string }[];
+}
+
+async function ladeMemberships(userId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("user_locations")
+    .select(
+      `is_primary, location_id,
+       locations:location_id ( id, name )`,
+    )
+    .eq("user_id", userId);
+  type Roh = {
+    is_primary: boolean;
+    location_id: string;
+    locations: { id: string; name: string } | null;
+  };
+  return ((data ?? []) as unknown as Roh[])
+    .filter((r) => r.locations)
+    .map((r) => ({
+      location_id: r.location_id,
+      name: r.locations!.name,
+      is_primary: r.is_primary,
+    }))
+    .sort((a, b) => {
+      if (a.is_primary && !b.is_primary) return -1;
+      if (!a.is_primary && b.is_primary) return 1;
+      return a.name.localeCompare(b.name, "de");
+    });
 }
 
 async function ladeAlleLernpfade() {
@@ -105,14 +145,21 @@ export default async function BenutzerBearbeitenPage({
   const { id } = await params;
   const aktuell = await requireRole(["admin", "superadmin"]);
 
-  const [profil, standorte, alleLernpfade, zuweisungen, fortschritt] =
-    await Promise.all([
-      ladeProfil(id),
-      ladeStandorte(),
-      ladeAlleLernpfade(),
-      ladeZuweisungen(id),
-      ladeMeineLernpfade(id),
-    ]);
+  const [
+    profil,
+    standorte,
+    alleLernpfade,
+    zuweisungen,
+    fortschritt,
+    memberships,
+  ] = await Promise.all([
+    ladeProfil(id),
+    ladeStandorte(),
+    ladeAlleLernpfade(),
+    ladeZuweisungen(id),
+    ladeMeineLernpfade(id),
+    ladeMemberships(id),
+  ]);
 
   const quizVerlauf = await mitarbeiterQuizVerlauf(id, 10);
   const aktivitaetsMap = await ladeAktivitaetsMap(id);
@@ -206,6 +253,119 @@ export default async function BenutzerBearbeitenPage({
               <SpeichernButton />
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Standort-Mitgliedschaften</CardTitle>
+          <CardDescription>
+            Studios in denen diese:r Mitarbeiter:in Inhalte sieht. Das mit
+            dem Stern ist das Heim-Studio.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {memberships.length === 0 ? (
+            <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+              Aktuell in keinem Studio Mitglied.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {memberships.map((m) => (
+                <li
+                  key={m.location_id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">{m.name}</span>
+                    {m.is_primary && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--primary)/0.1)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--primary))]">
+                        <Star className="h-2.5 w-2.5" />
+                        Heim
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!m.is_primary && (
+                      <form
+                        action={standortAlsPrimary.bind(
+                          null,
+                          profil.id,
+                          m.location_id,
+                        )}
+                      >
+                        <button
+                          type="submit"
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          <Star className="h-3 w-3" />
+                          Als Heim setzen
+                        </button>
+                      </form>
+                    )}
+                    <form
+                      action={standortEntfernen.bind(
+                        null,
+                        profil.id,
+                        m.location_id,
+                      )}
+                    >
+                      <button
+                        type="submit"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                        Entfernen
+                      </button>
+                    </form>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {standorte.filter(
+            (s) => !memberships.some((m) => m.location_id === s.id),
+          ).length > 0 && (
+            <form
+              action={standortHinzufuegen.bind(null, profil.id)}
+              className="flex items-end gap-2 border-t border-border pt-4"
+            >
+              <div className="flex-1 space-y-1">
+                <Label
+                  htmlFor="add_location_id"
+                  className="text-[11px] uppercase tracking-wider text-muted-foreground"
+                >
+                  Standort hinzufügen
+                </Label>
+                <select
+                  id="add_location_id"
+                  name="location_id"
+                  defaultValue=""
+                  required
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="" disabled>
+                    Standort wählen…
+                  </option>
+                  {standorte
+                    .filter(
+                      (s) => !memberships.some((m) => m.location_id === s.id),
+                    )
+                    .map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <Button type="submit" variant="outline" className="gap-1">
+                <Plus className="h-4 w-4" />
+                Hinzufügen
+              </Button>
+            </form>
+          )}
         </CardContent>
       </Card>
 

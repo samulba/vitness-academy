@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, istAdmin, istFuehrungskraftOderHoeher } from "@/lib/auth";
+import { istUUID } from "@/lib/utils";
 import type { Rolle } from "@/lib/rollen";
 
 async function ensureAdmin() {
@@ -132,4 +133,93 @@ export async function fortschrittZuruecksetzen(
     .eq("lesson_id", lessonId);
 
   revalidatePath(`/admin/benutzer/${benutzerId}`);
+}
+
+// =========================================================
+// Multi-Location-Memberships
+// =========================================================
+
+/**
+ * User wird zusaetzlich Mitglied in einem Standort. is_primary=false,
+ * weil primary ueber profiles.location_id + Trigger gesetzt wird.
+ */
+export async function standortHinzufuegen(
+  benutzerId: string,
+  formData: FormData,
+): Promise<void> {
+  await ensureAdmin();
+  const locationId = String(formData.get("location_id") ?? "").trim();
+  if (!istUUID(locationId)) return;
+
+  const supabase = await createClient();
+  await supabase
+    .from("user_locations")
+    .upsert(
+      { user_id: benutzerId, location_id: locationId, is_primary: false },
+      { onConflict: "user_id,location_id", ignoreDuplicates: true },
+    );
+
+  revalidatePath(`/admin/benutzer/${benutzerId}`);
+  redirect(`/admin/benutzer/${benutzerId}?toast=saved`);
+}
+
+/**
+ * Membership entfernen. Wenn es die primary war, faellt das Profile
+ * auf location_id=null zurueck (Sync-Trigger geht).
+ */
+export async function standortEntfernen(
+  benutzerId: string,
+  locationId: string,
+): Promise<void> {
+  await ensureAdmin();
+  if (!istUUID(locationId)) return;
+  const supabase = await createClient();
+
+  // Wenn primary entfernt wird, profile.location_id auf null setzen
+  // (Trigger spiegelt das in user_locations.is_primary).
+  const { data: profil } = await supabase
+    .from("profiles")
+    .select("location_id")
+    .eq("id", benutzerId)
+    .maybeSingle();
+  if (profil?.location_id === locationId) {
+    await supabase
+      .from("profiles")
+      .update({ location_id: null })
+      .eq("id", benutzerId);
+  }
+
+  await supabase
+    .from("user_locations")
+    .delete()
+    .eq("user_id", benutzerId)
+    .eq("location_id", locationId);
+
+  revalidatePath(`/admin/benutzer/${benutzerId}`);
+  redirect(`/admin/benutzer/${benutzerId}?toast=saved`);
+}
+
+/**
+ * Diesen Standort zum primary machen. Setzt profiles.location_id =
+ * locationId, der Sync-Trigger uebernimmt is_primary-Flags in
+ * user_locations.
+ */
+export async function standortAlsPrimary(
+  benutzerId: string,
+  locationId: string,
+): Promise<void> {
+  await ensureAdmin();
+  if (!istUUID(locationId)) return;
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ location_id: locationId })
+    .eq("id", benutzerId);
+  if (error) {
+    redirect(`/admin/benutzer/${benutzerId}?toast=error`);
+  }
+
+  revalidatePath(`/admin/benutzer/${benutzerId}`);
+  redirect(`/admin/benutzer/${benutzerId}?toast=saved`);
 }
