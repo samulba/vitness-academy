@@ -52,7 +52,13 @@ export async function infoAktualisieren(
   const payload = buildPayload(formData);
   if (!payload.title) return;
   const supabase = await createClient();
-  await supabase.from("studio_announcements").update(payload).eq("id", id);
+  const { error } = await supabase
+    .from("studio_announcements")
+    .update(payload)
+    .eq("id", id);
+  if (error) {
+    redirect(`/admin/infos/${id}?toast=error`);
+  }
   revalidatePath("/admin/infos");
   revalidatePath(`/admin/infos/${id}`);
   revalidatePath("/infos");
@@ -63,7 +69,13 @@ export async function infoAktualisieren(
 export async function infoLoeschen(id: string): Promise<void> {
   await requireRole(["admin", "superadmin"]);
   const supabase = await createClient();
-  await supabase.from("studio_announcements").delete().eq("id", id);
+  const { error } = await supabase
+    .from("studio_announcements")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    redirect(`/admin/infos/${id}?toast=error`);
+  }
   revalidatePath("/admin/infos");
   revalidatePath("/infos");
   redirect("/admin/infos?toast=deleted");

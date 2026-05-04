@@ -18,23 +18,31 @@ export async function lektionGesehen(lessonId: string) {
   const supabase = await createClient();
   const jetzt = new Date().toISOString();
 
-  const { data: existing } = await supabase
+  const { data: existing, error: leseError } = await supabase
     .from("user_lesson_progress")
     .select("id, status, started_at")
     .eq("user_id", user.id)
     .eq("lesson_id", lessonId)
     .maybeSingle();
 
+  if (leseError) {
+    console.error("[lektionGesehen] Lese-Fehler:", leseError.message);
+    return;
+  }
+
   if (!existing) {
-    await supabase.from("user_lesson_progress").insert({
+    const { error } = await supabase.from("user_lesson_progress").insert({
       user_id: user.id,
       lesson_id: lessonId,
       status: "in_bearbeitung",
       started_at: jetzt,
       last_seen_at: jetzt,
     });
+    if (error) {
+      console.error("[lektionGesehen] Insert-Fehler:", error.message);
+    }
   } else {
-    await supabase
+    const { error } = await supabase
       .from("user_lesson_progress")
       .update({
         started_at: existing.started_at ?? jetzt,
@@ -45,6 +53,9 @@ export async function lektionGesehen(lessonId: string) {
             : "in_bearbeitung",
       })
       .eq("id", existing.id);
+    if (error) {
+      console.error("[lektionGesehen] Update-Fehler:", error.message);
+    }
   }
 }
 
@@ -54,23 +65,33 @@ export async function lektionAbschliessen(lessonId: string) {
 
   const supabase = await createClient();
   const jetzt = new Date().toISOString();
-  await supabase.from("user_lesson_progress").upsert(
-    {
-      user_id: user.id,
-      lesson_id: lessonId,
-      status: "abgeschlossen",
-      completed_at: jetzt,
-      last_seen_at: jetzt,
-    },
-    { onConflict: "user_id,lesson_id" },
-  );
+  const { error: upsertError } = await supabase
+    .from("user_lesson_progress")
+    .upsert(
+      {
+        user_id: user.id,
+        lesson_id: lessonId,
+        status: "abgeschlossen",
+        completed_at: jetzt,
+        last_seen_at: jetzt,
+      },
+      { onConflict: "user_id,lesson_id" },
+    );
+
+  if (upsertError) {
+    console.error("[lektionAbschliessen] Upsert-Fehler:", upsertError.message);
+    return;
+  }
 
   // Wenn diese Lektion den Pfad komplettiert, Zertifikat erzeugen
-  const { data: lesson } = await supabase
+  const { data: lesson, error: leseError } = await supabase
     .from("lessons")
     .select("modules:module_id ( learning_path_id )")
     .eq("id", lessonId)
-    .single();
+    .maybeSingle();
+  if (leseError) {
+    console.error("[lektionAbschliessen] Lesson-Lookup-Fehler:", leseError.message);
+  }
   const pfadId = (lesson as unknown as {
     modules: { learning_path_id: string } | null;
   } | null)?.modules?.learning_path_id;
@@ -81,7 +102,7 @@ export async function lektionAbschliessen(lessonId: string) {
   revalidatePath(`/lektionen/${lessonId}`);
   revalidatePath("/dashboard");
   revalidatePath("/lernpfade");
-  revalidatePath(`/lernpfade/${pfadId}`);
+  if (pfadId) revalidatePath(`/lernpfade/${pfadId}`);
 }
 
 export async function lektionZurueckSetzen(lessonId: string) {
@@ -89,7 +110,7 @@ export async function lektionZurueckSetzen(lessonId: string) {
   if (!user) return;
 
   const supabase = await createClient();
-  await supabase.from("user_lesson_progress").upsert(
+  const { error } = await supabase.from("user_lesson_progress").upsert(
     {
       user_id: user.id,
       lesson_id: lessonId,
@@ -98,6 +119,11 @@ export async function lektionZurueckSetzen(lessonId: string) {
     },
     { onConflict: "user_id,lesson_id" },
   );
+
+  if (error) {
+    console.error("[lektionZurueckSetzen] Upsert-Fehler:", error.message);
+    return;
+  }
 
   revalidatePath(`/lektionen/${lessonId}`);
   revalidatePath("/dashboard");

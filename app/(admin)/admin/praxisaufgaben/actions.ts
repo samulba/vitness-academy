@@ -60,7 +60,7 @@ export async function aufgabeAktualisieren(
   if (!title) return;
 
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("practical_tasks")
     .update({
       title,
@@ -71,6 +71,9 @@ export async function aufgabeAktualisieren(
       status: String(formData.get("status") ?? "aktiv"),
     })
     .eq("id", id);
+  if (error) {
+    redirect(`/admin/praxisaufgaben/${id}?toast=error`);
+  }
 
   revalidatePath("/admin/praxisaufgaben");
   revalidatePath(`/admin/praxisaufgaben/${id}`);
@@ -81,7 +84,13 @@ export async function aufgabeAktualisieren(
 export async function aufgabeLoeschen(id: string): Promise<void> {
   await ensureAdmin();
   const supabase = await createClient();
-  await supabase.from("practical_tasks").delete().eq("id", id);
+  const { error } = await supabase
+    .from("practical_tasks")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    redirect(`/admin/praxisaufgaben/${id}?toast=error`);
+  }
   revalidatePath("/admin/praxisaufgaben");
   revalidatePath("/praxisfreigaben");
   redirect("/admin/praxisaufgaben?toast=deleted");

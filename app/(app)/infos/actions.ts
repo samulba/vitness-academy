@@ -93,12 +93,16 @@ export async function infoAlsGelesenMarkieren(
 ): Promise<void> {
   const profile = await requireProfile();
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("user_announcement_reads")
     .upsert(
       { user_id: profile.id, announcement_id: announcementId },
       { onConflict: "user_id,announcement_id", ignoreDuplicates: true },
     );
+  if (error) {
+    console.error("[infoAlsGelesenMarkieren]", error.message);
+    return;
+  }
   revalidatePath("/infos");
   revalidatePath("/dashboard");
 }
@@ -115,12 +119,16 @@ export async function alleInfosAlsGelesen(): Promise<void> {
     announcement_id: a.id,
   }));
   if (rows.length > 0) {
-    await supabase
+    const { error } = await supabase
       .from("user_announcement_reads")
       .upsert(rows, {
         onConflict: "user_id,announcement_id",
         ignoreDuplicates: true,
       });
+    if (error) {
+      console.error("[alleInfosAlsGelesen]", error.message);
+      return;
+    }
   }
   revalidatePath("/infos");
   revalidatePath("/dashboard");

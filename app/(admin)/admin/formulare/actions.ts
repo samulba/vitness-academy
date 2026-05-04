@@ -100,7 +100,13 @@ export async function templateAktualisieren(
   const payload = buildPayload(formData);
   if (!payload.title) return;
   const supabase = await createClient();
-  await supabase.from("form_templates").update(payload).eq("id", id);
+  const { error } = await supabase
+    .from("form_templates")
+    .update(payload)
+    .eq("id", id);
+  if (error) {
+    redirect(`/admin/formulare/${id}?toast=error`);
+  }
   revalidatePath("/admin/formulare");
   revalidatePath(`/admin/formulare/${id}`);
   revalidatePath("/formulare");
@@ -110,7 +116,13 @@ export async function templateAktualisieren(
 export async function templateLoeschen(id: string): Promise<void> {
   await requireRole(["admin", "superadmin"]);
   const supabase = await createClient();
-  await supabase.from("form_templates").delete().eq("id", id);
+  const { error } = await supabase
+    .from("form_templates")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    redirect(`/admin/formulare/${id}?toast=error`);
+  }
   revalidatePath("/admin/formulare");
   revalidatePath("/formulare");
   redirect("/admin/formulare?toast=deleted");
@@ -128,7 +140,7 @@ export async function submissionStatusSetzen(
   ]);
   const note = String(formData.get("admin_note") ?? "").trim();
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("form_submissions")
     .update({
       status,
@@ -140,6 +152,9 @@ export async function submissionStatusSetzen(
           : null,
     })
     .eq("id", id);
+  if (error) {
+    redirect(`/admin/formulare/eingaenge/${id}?toast=error`);
+  }
   revalidatePath("/admin/formulare");
   revalidatePath(`/admin/formulare/eingaenge/${id}`);
   redirect(`/admin/formulare/eingaenge/${id}?toast=saved`);

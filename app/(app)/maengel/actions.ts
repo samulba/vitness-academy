@@ -88,7 +88,7 @@ export async function mangelStatusSetzen(
   await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const note = String(formData.get("resolution_note") ?? "").trim();
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("studio_issues")
     .update({
       status,
@@ -99,6 +99,9 @@ export async function mangelStatusSetzen(
           : null,
     })
     .eq("id", id);
+  if (error) {
+    redirect(`/admin/maengel/${id}?toast=error`);
+  }
   revalidatePath("/admin/maengel");
   revalidatePath(`/admin/maengel/${id}`);
   revalidatePath("/maengel");
@@ -108,7 +111,10 @@ export async function mangelStatusSetzen(
 export async function mangelLoeschen(id: string): Promise<void> {
   await requireRole(["admin", "superadmin"]);
   const supabase = await createClient();
-  await supabase.from("studio_issues").delete().eq("id", id);
+  const { error } = await supabase.from("studio_issues").delete().eq("id", id);
+  if (error) {
+    redirect(`/admin/maengel/${id}?toast=error`);
+  }
   revalidatePath("/admin/maengel");
   revalidatePath("/maengel");
   redirect("/admin/maengel?toast=deleted");

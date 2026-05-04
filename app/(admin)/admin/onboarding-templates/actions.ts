@@ -74,7 +74,13 @@ export async function templateAktualisieren(
 export async function templateLoeschen(id: string): Promise<void> {
   await requireRole(["admin", "superadmin"]);
   const supabase = await createClient();
-  await supabase.from("onboarding_templates").delete().eq("id", id);
+  const { error } = await supabase
+    .from("onboarding_templates")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    redirect(`/admin/onboarding-templates/${id}?toast=error`);
+  }
   revalidatePath("/admin/onboarding-templates");
   revalidatePath("/admin/benutzer/neu");
   redirect("/admin/onboarding-templates?toast=deleted");
