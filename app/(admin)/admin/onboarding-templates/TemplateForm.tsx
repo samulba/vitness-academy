@@ -22,7 +22,12 @@ const ROLE_LABELS: Record<Rolle, string> = {
   superadmin: "Superadmin",
 };
 
-type Pfad = { id: string; title: string; description: string | null };
+export type PfadOption = {
+  id: string;
+  title: string;
+  description: string | null;
+  archiviert?: boolean;
+};
 
 type Initial = {
   name: string;
@@ -40,7 +45,7 @@ export function TemplateForm({
   action: (formData: FormData) => Promise<void>;
   initial?: Initial;
   modus: "neu" | "bearbeiten";
-  lernpfade: Pfad[];
+  lernpfade: PfadOption[];
 }) {
   const [role, setRole] = useState<Rolle>(initial?.role ?? "mitarbeiter");
 
@@ -116,8 +121,15 @@ export function TemplateForm({
                     className="mt-1 h-4 w-4 accent-[hsl(var(--primary))]"
                   />
                   <span className="flex-1">
-                    <span className="block text-sm font-semibold">
-                      {p.title}
+                    <span className="flex flex-wrap items-baseline gap-2">
+                      <span className="text-sm font-semibold">
+                        {p.title}
+                      </span>
+                      {p.archiviert && (
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          Archiviert
+                        </span>
+                      )}
                     </span>
                     {p.description && (
                       <span className="mt-0.5 block text-xs text-muted-foreground">

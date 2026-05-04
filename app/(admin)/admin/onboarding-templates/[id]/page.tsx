@@ -4,7 +4,7 @@ import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ladeTemplate } from "@/lib/onboarding-templates";
-import { TemplateForm } from "../TemplateForm";
+import { TemplateForm, type PfadOption } from "../TemplateForm";
 import { templateAktualisieren, templateLoeschen } from "../actions";
 
 export default async function TemplateBearbeitenPage({
@@ -18,11 +18,48 @@ export default async function TemplateBearbeitenPage({
   if (!template) notFound();
 
   const supabase = await createClient();
-  const { data: pfade } = await supabase
-    .from("learning_paths")
-    .select("id, title, description")
-    .eq("status", "aktiv")
-    .order("sort_order", { ascending: true });
+  // Aktive Lernpfade fuer Auswahl + alle vom Template referenzierten
+  // (auch archivierte!), damit beim Speichern keine versteckte
+  // Datenloeschung passiert.
+  const [{ data: aktive }, { data: referenziert }] = await Promise.all([
+    supabase
+      .from("learning_paths")
+      .select("id, title, description, status")
+      .eq("status", "aktiv")
+      .order("sort_order", { ascending: true }),
+    template.lernpfad_ids.length > 0
+      ? supabase
+          .from("learning_paths")
+          .select("id, title, description, status")
+          .in("id", template.lernpfad_ids)
+      : Promise.resolve({ data: [] as unknown[] }),
+  ]);
+
+  type Roh = {
+    id: string;
+    title: string;
+    description: string | null;
+    status: string;
+  };
+  const aktiveRows = (aktive ?? []) as Roh[];
+  const refRows = (referenziert ?? []) as Roh[];
+  const seen = new Set(aktiveRows.map((p) => p.id));
+  const archivierte = refRows.filter((p) => !seen.has(p.id));
+
+  const lernpfade: PfadOption[] = [
+    ...aktiveRows.map((p) => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      archiviert: false,
+    })),
+    ...archivierte.map((p) => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      archiviert: true,
+    })),
+  ];
 
   const aktualisieren = templateAktualisieren.bind(null, id);
   const loeschen = templateLoeschen.bind(null, id);
@@ -53,13 +90,7 @@ export default async function TemplateBearbeitenPage({
             role: template.role,
             lernpfad_ids: template.lernpfad_ids,
           }}
-          lernpfade={
-            (pfade ?? []) as {
-              id: string;
-              title: string;
-              description: string | null;
-            }[]
-          }
+          lernpfade={lernpfade}
         />
       </div>
 

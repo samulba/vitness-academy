@@ -23,10 +23,8 @@ export default async function AppLayout({
   // Aufrufe sind sicher.
   await generiereWiederkehrendeAufgaben();
 
-  const [standorte, aktiv] = await Promise.all([
-    ladeMeineStandorte(profile.id),
-    getAktiverStandort(),
-  ]);
+  const standorte = await ladeMeineStandorte(profile.id);
+  const aktiv = await getAktiverStandort(standorte);
 
   const bell = <NotificationBellServer />;
   const switcherTopbar = (

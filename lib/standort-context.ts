@@ -55,10 +55,15 @@ export async function ladeMeineStandorte(
  *   2. Primary-Location aus user_locations
  *   3. profiles.location_id (Legacy-Fallback)
  *   4. null wenn der User in keinem Studio Mitglied ist
+ *
+ * Optional: bereits geladene Standorte mitgeben, um Doppel-Query
+ * im Layout zu vermeiden (Layout laedt sie ohnehin fuer den Switcher).
  */
-export async function getAktiverStandort(): Promise<StandortMembership | null> {
-  const profile = await requireProfile();
-  const verfuegbar = await ladeMeineStandorte(profile.id);
+export async function getAktiverStandort(
+  vorgeladen?: StandortMembership[],
+): Promise<StandortMembership | null> {
+  const verfuegbar =
+    vorgeladen ?? (await ladeMeineStandorte((await requireProfile()).id));
   if (verfuegbar.length === 0) return null;
 
   const jar = await cookies();

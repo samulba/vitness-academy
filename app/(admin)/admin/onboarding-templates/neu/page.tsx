@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { TemplateForm } from "../TemplateForm";
+import { TemplateForm, type PfadOption } from "../TemplateForm";
 import { templateAnlegen } from "../actions";
 
 export default async function NeuesTemplatePage() {
@@ -12,6 +12,10 @@ export default async function NeuesTemplatePage() {
     .select("id, title, description")
     .eq("status", "aktiv")
     .order("sort_order", { ascending: true });
+
+  const lernpfade: PfadOption[] = (
+    (pfade ?? []) as { id: string; title: string; description: string | null }[]
+  ).map((p) => ({ ...p, archiviert: false }));
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -30,13 +34,7 @@ export default async function NeuesTemplatePage() {
         <TemplateForm
           action={templateAnlegen}
           modus="neu"
-          lernpfade={
-            (pfade ?? []) as {
-              id: string;
-              title: string;
-              description: string | null;
-            }[]
-          }
+          lernpfade={lernpfade}
         />
       </div>
     </div>
