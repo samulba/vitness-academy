@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { istUUID } from "@/lib/utils";
 import type { Rolle } from "@/lib/rollen";
 
 const VALIDE_ROLLEN: Rolle[] = [
@@ -21,7 +22,7 @@ function payload(formData: FormData) {
   const lernpfad_ids = formData
     .getAll("lernpfade")
     .map((v) => String(v))
-    .filter(Boolean);
+    .filter(istUUID);
   return { name, beschreibung, role, lernpfad_ids };
 }
 

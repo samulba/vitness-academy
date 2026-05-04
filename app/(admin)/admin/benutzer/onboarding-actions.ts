@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { istUUID } from "@/lib/utils";
 import type { Rolle } from "@/lib/rollen";
 
 export type OnboardingErgebnis = {
@@ -33,7 +34,10 @@ export async function mitarbeiterAnlegen(
     .trim()
     .toLowerCase();
   const role = String(formData.get("role") ?? "mitarbeiter") as Rolle;
-  const lernpfadIds = formData.getAll("lernpfade").map((v) => String(v));
+  const lernpfadIds = formData
+    .getAll("lernpfade")
+    .map((v) => String(v))
+    .filter(istUUID);
 
   if (firstName.length === 0 && lastName.length === 0) {
     return {

@@ -1,8 +1,11 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { startseiteFuerRolle, type Rolle } from "@/lib/auth";
+
+const STANDORT_COOKIE = "vitness_active_location";
 
 export async function anmelden(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
@@ -49,5 +52,9 @@ export async function anmelden(formData: FormData) {
 export async function abmelden() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  // Standort-Cookie loeschen, damit auf gemeinsam genutzten Geraeten
+  // der naechste User nicht den alten aktiven Standort erbt.
+  const jar = await cookies();
+  jar.delete(STANDORT_COOKIE);
   redirect("/login");
 }
