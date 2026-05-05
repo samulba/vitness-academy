@@ -149,6 +149,24 @@ function FieldRenderer({
         placeholder={f.placeholder}
       />
     );
+  } else if (f.type === "file") {
+    const accept = f.accept ?? "application/pdf,image/jpeg,image/png,image/webp";
+    const maxMb = f.max_size_mb ?? 5;
+    input = (
+      <div className="space-y-1">
+        <input
+          id={f.name}
+          name={f.name}
+          type="file"
+          required={required}
+          accept={accept}
+          className="block w-full cursor-pointer rounded-md border border-input bg-background text-sm shadow-sm file:mr-3 file:cursor-pointer file:rounded-l-md file:border-0 file:border-r file:border-input file:bg-muted/40 file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-muted"
+        />
+        <p className="text-[11px] text-muted-foreground">
+          Max. {maxMb} MB · Erlaubt: {accept.replace(/application\//g, "")}
+        </p>
+      </div>
+    );
   } else {
     input = (
       <Input

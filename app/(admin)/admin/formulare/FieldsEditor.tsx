@@ -15,6 +15,7 @@ const TYP_LABEL: Record<FieldType, string> = {
   select: "Dropdown",
   radio: "Radio (Single Choice)",
   checkbox: "Checkbox (Ja/Nein)",
+  file: "Datei-Upload (PDF / Bild)",
 };
 
 function leeresFeld(): FormField {
@@ -182,6 +183,47 @@ export function FieldsEditor({
                         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       />
                     </div>
+                  )}
+                  {f.type === "file" && (
+                    <>
+                      <div className="space-y-1.5">
+                        <Label htmlFor={`f-${i}-accept`} className="text-xs">
+                          Erlaubte Dateitypen
+                        </Label>
+                        <Input
+                          id={`f-${i}-accept`}
+                          value={f.accept ?? ""}
+                          onChange={(e) =>
+                            update(i, { accept: e.target.value })
+                          }
+                          placeholder="application/pdf,image/*"
+                        />
+                        <p className="text-[11px] text-muted-foreground">
+                          Komma-getrennt. Leer = PDF + Bilder.
+                        </p>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label
+                          htmlFor={`f-${i}-max-size`}
+                          className="text-xs"
+                        >
+                          Max. Größe (MB)
+                        </Label>
+                        <Input
+                          id={`f-${i}-max-size`}
+                          type="number"
+                          min={1}
+                          max={20}
+                          value={f.max_size_mb ?? 5}
+                          onChange={(e) => {
+                            const n = Number(e.target.value);
+                            update(i, {
+                              max_size_mb: Number.isNaN(n) ? 5 : n,
+                            });
+                          }}
+                        />
+                      </div>
+                    </>
                   )}
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label htmlFor={`f-${i}-help`} className="text-xs">

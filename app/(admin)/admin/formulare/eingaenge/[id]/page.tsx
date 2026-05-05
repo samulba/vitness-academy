@@ -4,12 +4,14 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { requireRole } from "@/lib/auth";
 import {
+  istFileWert,
   ladeSubmission,
   ladeTemplate,
   STATUS_LABEL,
   type SubmissionStatus,
 } from "@/lib/formulare";
 import { formatDatum } from "@/lib/format";
+import { DownloadLink } from "@/components/formulare/DownloadLink";
 import { submissionStatusSetzen } from "../../actions";
 
 function StatusBadge({ status }: { status: SubmissionStatus }) {
@@ -68,19 +70,28 @@ export default async function EingangsDetailPage({
         <dl className="grid gap-x-6 gap-y-4 p-5 sm:grid-cols-2">
           {(tpl?.fields ?? []).map((f) => {
             const wert = s.data[f.name];
+            const istDatei = f.type === "file" || istFileWert(wert);
             return (
               <div key={f.name}>
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   {f.label}
                 </dt>
                 <dd className="mt-1 break-words text-[13px] font-medium">
-                  {wert === null || wert === undefined || wert === ""
-                    ? "—"
-                    : wert === true
-                      ? "Ja"
-                      : wert === false
-                        ? "Nein"
-                        : String(wert)}
+                  {istDatei ? (
+                    istFileWert(wert) ? (
+                      <DownloadLink wert={wert} />
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )
+                  ) : wert === null || wert === undefined || wert === "" ? (
+                    "—"
+                  ) : wert === true ? (
+                    "Ja"
+                  ) : wert === false ? (
+                    "Nein"
+                  ) : (
+                    String(wert)
+                  )}
                 </dd>
               </div>
             );

@@ -7,7 +7,8 @@ export type FieldType =
   | "number"
   | "select"
   | "checkbox"
-  | "radio";
+  | "radio"
+  | "file";
 
 export type FormField = {
   /** Eindeutiger Feld-Schlüssel (snake_case, ohne Sonderzeichen) */
@@ -22,7 +23,31 @@ export type FormField = {
   placeholder?: string;
   /** Optionen für select/radio (eine pro Zeile bei der Eingabe) */
   options?: string[];
+  /** Erlaubte MIME-/Erweiterungs-Liste für file (default: PDF + Bilder) */
+  accept?: string;
+  /** Max. Dateigröße in MB für file (default 5) */
+  max_size_mb?: number;
 };
+
+/**
+ * Daten-Form für File-Uploads in form_submissions.data jsonb.
+ * Statt String wird ein Objekt mit Storage-Pfad + Metadaten gespeichert.
+ */
+export type FileWert = {
+  path: string;
+  name: string;
+  size: number;
+  type: string;
+};
+
+export function istFileWert(v: unknown): v is FileWert {
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    "path" in v &&
+    typeof (v as FileWert).path === "string"
+  );
+}
 
 export type Status = "entwurf" | "aktiv" | "archiviert";
 export type SubmissionStatus =
@@ -219,6 +244,19 @@ export function validiereSubmission(
   for (const f of fields) {
     if (f.type === "checkbox") {
       data[f.name] = formData.get(f.name) === "on";
+      continue;
+    }
+    if (f.type === "file") {
+      // Datei-Upload wird separat in der Server-Action verarbeitet,
+      // hier nur Required-Check.
+      const raw = formData.get(f.name);
+      const istLeer =
+        !raw ||
+        (typeof raw === "string" && raw.trim().length === 0) ||
+        (raw instanceof File && raw.size === 0);
+      if (f.required && istLeer) {
+        errors[f.name] = `${f.label} ist Pflicht.`;
+      }
       continue;
     }
     const raw = formData.get(f.name);
