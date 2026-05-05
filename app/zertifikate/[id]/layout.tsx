@@ -1,5 +1,5 @@
 /**
- * Standalone-Layout fuer die Zertifikate-Druckseite.
+ * Standalone-Layout für die Zertifikate-Druckseite.
  * Keine Sidebar, keine Topbar, eigenes Body-Styling.
  */
 export default function ZertifikatLayout({

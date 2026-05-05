@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
  * Tauscht die sort_order zweier Datensaetze in einer Tabelle.
  * Die Tabellen muessen ein numerisches Feld "sort_order" haben.
  *
- * Hinweis: keine echte Transaktion, aber idempotent genug fuer Admin-Reorder.
+ * Hinweis: keine echte Transaktion, aber idempotent genug für Admin-Reorder.
  */
 export async function reorderSwap(opts: {
   tabelle:
@@ -64,7 +64,7 @@ export async function reorderSwap(opts: {
   const nachbarSort = nachbar.sort_order as number;
   const nachbarId = nachbar.id as string;
 
-  // Tausch (nicht atomar, ok fuer MVP)
+  // Tausch (nicht atomar, ok für MVP)
   await supabase
     .from(opts.tabelle)
     .update({ sort_order: -1 })

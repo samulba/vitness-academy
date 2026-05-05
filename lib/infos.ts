@@ -5,7 +5,7 @@ import {
   type Importance,
 } from "@/lib/infos-types";
 
-// Re-export client-safe Types fuer Server-Code-Convenience
+// Re-export client-safe Types für Server-Code-Convenience
 export type {
   Announcement,
   Importance,
@@ -105,10 +105,10 @@ export async function ladeReadIds(userId: string): Promise<Set<string>> {
 }
 
 /**
- * Erste ungelesene + critical Announcement (fuer Dashboard-Banner).
+ * Erste ungelesene + critical Announcement (für Dashboard-Banner).
  *
  * Bewusst NUR critical, nicht mehr warning -- seitdem Mitarbeiter
- * selbst Infos posten duerfen, wuerde 'warning' jeden Mitarbeiter-
+ * selbst Infos posten duerfen, würde 'warning' jeden Mitarbeiter-
  * Hinweis als Banner auf jedem Dashboard zeigen.
  */
 export async function aktiveBannerInfo(
@@ -144,7 +144,7 @@ export type InfoStats = {
 };
 
 /**
- * Stats fuer rechte Sidebar auf /infos.
+ * Stats für rechte Sidebar auf /infos.
  * Diese Woche = letzte 7 Tage rollierend.
  */
 export async function infoStatsDieseWoche(): Promise<InfoStats> {

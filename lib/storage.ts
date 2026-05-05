@@ -1,5 +1,5 @@
 /**
- * Liefert die public URL fuer einen Storage-Pfad im
+ * Liefert die public URL für einen Storage-Pfad im
  * lesson-images-Bucket. Falls der Bucket nicht public ist,
  * muss hier auf signed URLs umgestellt werden.
  */
@@ -13,7 +13,7 @@ export function bildUrlFuerPfad(
 }
 
 /**
- * Public URL fuer einen Avatar im 'avatars'-Bucket. Pfad-Konvention:
+ * Public URL für einen Avatar im 'avatars'-Bucket. Pfad-Konvention:
  * <user_id>/<timestamp>.<ext>, RLS sorgt dafuer, dass nur der
  * Eigentuemer schreiben darf.
  */

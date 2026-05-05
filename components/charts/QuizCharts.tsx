@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 /**
- * Pie-Chart fuer Quiz-Auswertung: Bestanden vs Nicht bestanden.
+ * Pie-Chart für Quiz-Auswertung: Bestanden vs Nicht bestanden.
  * Brand-Magenta-Sättigung als Farben.
  */
 export function QuizBestehensquoteChart({
@@ -92,7 +92,7 @@ export function QuizFragenChart({
     .sort((a, b) => a.korrektquote - b.korrektquote)
     .slice(0, 8)
     .map((f, i) => ({
-      // Kurzer Label fuer YAxis: max ~32 Zeichen
+      // Kurzer Label für YAxis: max ~32 Zeichen
       label: `${i + 1}. ${f.prompt.length > 32 ? f.prompt.slice(0, 30) + "…" : f.prompt}`,
       korrekt: f.korrektquote,
       versuche: f.versuche,

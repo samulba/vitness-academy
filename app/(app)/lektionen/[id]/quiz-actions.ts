@@ -11,7 +11,7 @@ export type QuizErgebnis = {
 };
 
 /**
- * Prueft serverseitig die Auswahl gegen den Block-Content
+ * Prüft serverseitig die Auswahl gegen den Block-Content
  * (Client darf nicht entscheiden was richtig ist).
  * Wenn alles richtig: persistierter Eintrag in
  * user_inline_quiz_attempts -> Lektion kann abgeschlossen werden.

@@ -6,7 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { zertifikatErzeugenWennFertig } from "@/lib/zertifikat";
 
 /**
- * Wird beim Oeffnen einer Lektion aufgerufen.
+ * Wird beim Öffnen einer Lektion aufgerufen.
  * Setzt started_at beim ersten Mal, last_seen_at jedes Mal.
  * Status wird nur auf "in_bearbeitung" gesetzt, wenn die Lektion
  * noch nicht abgeschlossen ist.

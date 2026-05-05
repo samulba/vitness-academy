@@ -143,7 +143,7 @@ export async function ladeEntry(id: string): Promise<CommissionEntry | null> {
   return mapEntry(data as unknown as EntryRoh, rates);
 }
 
-/** Aggregate fuer Header-Stats (Monat oder Gesamt-Range). */
+/** Aggregate für Header-Stats (Monat oder Gesamt-Range). */
 export function aggregiere(entries: CommissionEntry[]): {
   abschluesse: number;
   provision_total: number;

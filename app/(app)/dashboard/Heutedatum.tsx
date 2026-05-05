@@ -27,7 +27,7 @@ const MONATE = [
 ];
 
 /**
- * Datum mit User-Timezone (Browser). Server-Render in UTC wuerde am
+ * Datum mit User-Timezone (Browser). Server-Render in UTC würde am
  * spaeten Abend einen Tag voraus zeigen -> Hydration-Mismatch. Daher
  * client-only mit useEffect.
  */

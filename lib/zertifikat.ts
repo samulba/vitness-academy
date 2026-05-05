@@ -16,7 +16,7 @@ export type ZertifikatDetail = Zertifikat & {
 };
 
 /**
- * Holt das (max. eine) Zertifikat fuer User × Pfad.
+ * Holt das (max. eine) Zertifikat für User × Pfad.
  */
 export async function ladeZertifikat(
   userId: string,
@@ -33,8 +33,8 @@ export async function ladeZertifikat(
 }
 
 /**
- * Zertifikats-Detail mit User-Name + Pfad-Titel fuer die Druck-Seite.
- * Liest auch zugaenglich fuer fremde User-IDs IF auth.uid() === userId
+ * Zertifikats-Detail mit User-Name + Pfad-Titel für die Druck-Seite.
+ * Liest auch zugaenglich für fremde User-IDs IF auth.uid() === userId
  * (durch RLS abgesichert).
  */
 export async function ladeZertifikatDetail(

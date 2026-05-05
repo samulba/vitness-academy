@@ -192,7 +192,7 @@ export default async function FortschrittPage() {
     return { abgeschlossen, gesamt, prozent };
   }
 
-  // KPIs fuer StatGrid
+  // KPIs für StatGrid
   const totalProzent = (() => {
     let abge = 0;
     let ges = 0;

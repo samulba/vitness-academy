@@ -1,5 +1,5 @@
 /**
- * Hilfen fuer defensiv-robuste Admin-Loader. Verhindern, dass eine
+ * Hilfen für defensiv-robuste Admin-Loader. Verhindern, dass eine
  * einzelne Bad-Data-Zeile (z.B. unerwartet null oder ein Array-Join
  * statt Object) die ganze Listen-Page mit Application-Error crasht.
  */
@@ -34,14 +34,14 @@ export function joinFeld<K extends string>(
 }
 
 /**
- * Verkuerzung fuer joinFeld(j, "title").
+ * Verkuerzung für joinFeld(j, "title").
  */
 export function joinTitel(j: unknown): string | null {
   return joinFeld(j, "title");
 }
 
 /**
- * Verkuerzung fuer joinFeld(j, "full_name").
+ * Verkuerzung für joinFeld(j, "full_name").
  */
 export function joinName(j: unknown): string | null {
   return joinFeld(j, "full_name");
@@ -81,7 +81,7 @@ export function istNextJsControlFlow(e: unknown): boolean {
 }
 
 /**
- * Wrapper fuer alle defensiven Loader: faengt nur "echte" Fehler ab,
+ * Wrapper für alle defensiven Loader: faengt nur "echte" Fehler ab,
  * laesst Next.js-interne Errors (redirect, notFound, dynamic-usage)
  * durch.
  *

@@ -1,7 +1,7 @@
 import { Skeleton, SkeletonStatCard, SkeletonTableRow } from "@/components/ui/skeleton";
 
 /**
- * Loading-Skeleton fuer den Admin-Bereich. Wird automatisch via Next.js
+ * Loading-Skeleton für den Admin-Bereich. Wird automatisch via Next.js
  * Suspense angezeigt, waehrend die echte Page-Component die Daten laedt.
  */
 export default function AdminLoading() {

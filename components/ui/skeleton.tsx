@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Loading-Placeholder. Subtile Pulse-Animation, verwende fuer alles was
+ * Loading-Placeholder. Subtile Pulse-Animation, verwende für alles was
  * gerade laedt -- Cards, Table-Rows, Avatare, Text-Lines. Kein Spinner mehr.
  *
  * @example
@@ -30,7 +30,7 @@ export function Skeleton({
 }
 
 /**
- * Vorgebauter Skeleton fuer eine typische Admin-Tabellen-Zeile.
+ * Vorgebauter Skeleton für eine typische Admin-Tabellen-Zeile.
  * 5 Spalten, Avatar links optional.
  */
 export function SkeletonTableRow({ avatar = true }: { avatar?: boolean }) {

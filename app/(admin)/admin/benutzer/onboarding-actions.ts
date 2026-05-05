@@ -115,7 +115,7 @@ export async function mitarbeiterAnlegen(
     await admin.from("user_learning_path_assignments").insert(rows);
   }
 
-  // 4) Standort-Memberships -- primary wird ueber Trigger gesetzt
+  // 4) Standort-Memberships -- primary wird über Trigger gesetzt
   // wenn profile.location_id gesetzt ist. Zusaetzliche werden hier
   // hinzugefuegt.
   const zusatzStandorte = standortIds.filter((s) => s !== primaryStandort);

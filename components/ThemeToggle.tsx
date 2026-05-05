@@ -28,7 +28,7 @@ function readTheme(): Mode {
 export function ThemeToggle({
   variant = "icon",
 }: {
-  /** "icon" = nur Icon, "row" = Icon + Label fuer Sidebar */
+  /** "icon" = nur Icon, "row" = Icon + Label für Sidebar */
   variant?: "icon" | "row";
 }) {
   const [mode, setMode] = useState<Mode | null>(null);

@@ -58,7 +58,7 @@ export async function GET(request: Request) {
     ].map(csvEscape).join(";"),
   );
 
-  // BOM fuer Excel-UTF8-Erkennung
+  // BOM für Excel-UTF8-Erkennung
   const csv = "﻿" + [header.join(";"), ...rows].join("\r\n");
   const filename = `provisionen-${monatSafe ?? "alle"}.csv`;
 

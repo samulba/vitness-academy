@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { istNextJsControlFlow } from "@/lib/admin/safe-loader";
 import type { Kontakt } from "@/lib/kontakte-types";
 
-// Re-exports fuer Server-Convenience -- Server-Code kann weiter
+// Re-exports für Server-Convenience -- Server-Code kann weiter
 // aus @/lib/kontakte importieren.
 export { vollerName, type Kontakt } from "@/lib/kontakte-types";
 
@@ -88,8 +88,8 @@ export async function ladeKontakt(id: string): Promise<Kontakt | null> {
 
 /**
  * Sammelt alle einzigartigen role_tags aus allen Kontakten —
- * fuer den Filter-Pill-Bereich auf /kontakte. Defensiv: ueberspringt
- * Eintraege ohne Array.
+ * für den Filter-Pill-Bereich auf /kontakte. Defensiv: ueberspringt
+ * Einträge ohne Array.
  */
 export function eindeutigeRollen(kontakte: Kontakt[]): string[] {
   const set = new Set<string>();

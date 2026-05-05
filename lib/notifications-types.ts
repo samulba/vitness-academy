@@ -1,5 +1,5 @@
 /**
- * Client-safe Types und Helpers fuer Notifications. Hat KEINE
+ * Client-safe Types und Helpers für Notifications. Hat KEINE
  * Supabase-Imports und kann von Client-Components genutzt werden.
  *
  * Server-Loaders (ladeNotifications, ungeleseneAnzahl) liegen in

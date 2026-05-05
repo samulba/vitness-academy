@@ -10,19 +10,19 @@ import { toast } from "@/components/ui/toast";
  * passenden Toast an. Danach wird der Param entfernt (replace, kein
  * History-Eintrag).
  *
- * Server-Actions koennen so User-Feedback geben:
+ * Server-Actions können so User-Feedback geben:
  *   redirect("/admin/standorte?toast=created");
  *
  * Bekannte Keys:
  *   - "created"    -> Erfolgreich angelegt
  *   - "saved"      -> Erfolgreich gespeichert
- *   - "deleted"    -> Erfolgreich geloescht
+ *   - "deleted"    -> Erfolgreich gelöscht
  *   - "archived"   -> Erfolgreich archiviert
  *   - "restored"   -> Reaktiviert
  *   - "submitted"  -> Eingereicht
  *   - "approved"   -> Freigegeben
  *   - "rejected"   -> Abgelehnt
- *   - "imported:N" -> N Eintraege importiert
+ *   - "imported:N" -> N Einträge importiert
  *   - "error"      -> Generischer Fehler (zeigt error-toast)
  *
  * Eingebunden ist die Komponente einmalig im Root-Layout.

@@ -10,7 +10,7 @@ export type InfoErgebnis = { ok: true } | { ok: false; message: string };
 /**
  * Mitarbeiter postet selbst eine Wichtige Info.
  * RLS erlaubt nur importance in (info, warning) und pinned = false
- * fuer Nicht-Admins -- wir validieren hier zusaetzlich, damit der
+ * für Nicht-Admins -- wir validieren hier zusätzlich, damit der
  * Fehlerfall freundlich abgefangen wird.
  */
 export async function infoPosten(formData: FormData): Promise<InfoErgebnis> {
@@ -65,9 +65,9 @@ export async function infoPosten(formData: FormData): Promise<InfoErgebnis> {
 }
 
 /**
- * Mitarbeiter loescht eigene Info. RLS-Policy "infos_user_delete_own"
- * erzwingt author_id = auth.uid(). Admins koennen ueber /admin/infos
- * weiterhin alles loeschen.
+ * Mitarbeiter löscht eigene Info. RLS-Policy "infos_user_delete_own"
+ * erzwingt author_id = auth.uid(). Admins können über /admin/infos
+ * weiterhin alles löschen.
  */
 export async function eigeneInfoLoeschen(id: string): Promise<InfoErgebnis> {
   const profile = await requireProfile();

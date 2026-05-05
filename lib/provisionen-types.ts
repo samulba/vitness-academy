@@ -1,5 +1,5 @@
 /**
- * Client-safe Types und Konstanten fuer Provisionen.
+ * Client-safe Types und Konstanten für Provisionen.
  * Server-Loaders + Berechnung liegen in lib/provisionen.ts.
  */
 
@@ -47,12 +47,12 @@ export type CommissionRate = {
 };
 
 /**
- * Provisions-Berechnung. Beide Saetze werden auf den Eintrag
+ * Provisions-Berechnung. Beide Sätze werden auf den Eintrag
  * angewendet:
  *   provision = (beitrag_netto * prozent_beitrag/100)
  *             + (startpaket    * prozent_startpaket/100)
  *
- * Wenn fuer die Laufzeit kein Satz mit valid_from <= entry.datum
+ * Wenn für die Laufzeit kein Satz mit valid_from <= entry.datum
  * existiert, ist die Provision 0 (sollte nicht passieren bei
  * korrekt geseedet).
  */

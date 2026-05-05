@@ -109,7 +109,7 @@ export async function ladeQuizFuerLektion(
 }
 
 /**
- * Letzter abgeschlossener Versuch eines Nutzers fuer ein Quiz.
+ * Letzter abgeschlossener Versuch eines Nutzers für ein Quiz.
  */
 export async function ladeLetztenVersuch(
   quizId: string,

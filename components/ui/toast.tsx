@@ -4,7 +4,7 @@ import { Toaster as SonnerToaster, toast as sonnerToast } from "sonner";
 
 /**
  * Toast-Notifications via sonner. Slide-in von oben rechts, dezentes Design,
- * Magenta-Akzent fuer Success.
+ * Magenta-Akzent für Success.
  *
  * Setup: einmalig in app/layout.tsx den <Toaster /> einbinden:
  *

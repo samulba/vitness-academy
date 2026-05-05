@@ -90,7 +90,7 @@ export async function mitarbeiterArchivieren(benutzerId: string): Promise<void> 
   // Sich selbst nicht archivieren
   if (benutzerId === aktuell.id) return;
   const supabase = await createClient();
-  // Pruefen ob Ziel ein Superadmin ist -- den darf nur ein Superadmin archivieren
+  // Prüfen ob Ziel ein Superadmin ist -- den darf nur ein Superadmin archivieren
   const { data: ziel } = await supabase
     .from("profiles")
     .select("role")
@@ -143,8 +143,8 @@ export async function fortschrittZuruecksetzen(
 // =========================================================
 
 /**
- * User wird zusaetzlich Mitglied in einem Standort. is_primary=false,
- * weil primary ueber profiles.location_id + Trigger gesetzt wird.
+ * User wird zusätzlich Mitglied in einem Standort. is_primary=false,
+ * weil primary über profiles.location_id + Trigger gesetzt wird.
  */
 export async function standortHinzufuegen(
   benutzerId: string,
@@ -204,7 +204,7 @@ export async function standortEntfernen(
 
 /**
  * Diesen Standort zum primary machen. Setzt profiles.location_id =
- * locationId, der Sync-Trigger uebernimmt is_primary-Flags in
+ * locationId, der Sync-Trigger übernimmt is_primary-Flags in
  * user_locations.
  */
 export async function standortAlsPrimary(

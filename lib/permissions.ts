@@ -1,5 +1,5 @@
 /**
- * Permissions-Matrix fuer custom Rollen.
+ * Permissions-Matrix für custom Rollen.
  *
  * Im DB-Schema (Migration 0025):
  *   - public.roles: System-Rollen + Custom-Rollen
@@ -8,9 +8,9 @@
  *
  * Im App-Layer:
  *   - getCurrentProfile() laedt das Permission-Set einmal pro Request
- *   - hasPermission(profil, modul, aktion) prueft im Code
+ *   - hasPermission(profil, modul, aktion) prüft im Code
  *   - requireRole / istAdmin sind Wrapper, die intern auf Permissions
- *     mappen -- bestehende Aufrufer bleiben unveraendert.
+ *     mappen -- bestehende Aufrufer bleiben unverändert.
  *
  * RLS bleibt vorerst auf der enum-Logik; Custom Rollen mit Basis-Level
  * "admin" erben dadurch automatisch alle DB-Rechte ihrer Basis-Rolle.
@@ -81,7 +81,7 @@ export function permissionKey(modul: Modul, aktion: Aktion): string {
 }
 
 /**
- * Prueft ob eine Permission im Set vorhanden ist.
+ * Prüft ob eine Permission im Set vorhanden ist.
  * permissions ist die Liste der erteilten "modul:aktion"-Strings.
  */
 export function hasPermission(
@@ -94,7 +94,7 @@ export function hasPermission(
 }
 
 /**
- * Prueft ob _irgendeine_ Permission auf das Modul existiert (z.B. fuer
+ * Prüft ob _irgendeine_ Permission auf das Modul existiert (z.B. für
  * Sidebar-Sichtbarkeit).
  */
 export function hatModulZugriff(

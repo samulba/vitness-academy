@@ -43,8 +43,8 @@ function IconFuerType({ type }: { type: NotificationType }) {
 }
 
 /**
- * Bell-Icon mit Counter-Badge fuer ungelesene Notifications.
- * Bei Klick oeffnet sich ein Popover-Sheet rechts mit der Liste.
+ * Bell-Icon mit Counter-Badge für ungelesene Notifications.
+ * Bei Klick öffnet sich ein Popover-Sheet rechts mit der Liste.
  *
  * Wird in Topbar (mobile) + Sidebar (desktop, optional) eingebunden.
  * Erhaelt initiale Daten als Server-Component-Render-Result, der
@@ -57,8 +57,8 @@ export function NotificationBell({
 }: {
   notifications: Notification[];
   ungeleseneAnzahl: number;
-  /** "side-right" = Popover oeffnet rechts neben Bell (fuer Sidebar);
-   *  "auto" = unter Bell mit right-0 (fuer Topbar mobile) */
+  /** "side-right" = Popover öffnet rechts neben Bell (für Sidebar);
+   *  "auto" = unter Bell mit right-0 (für Topbar mobile) */
   placement?: "auto" | "side-right";
 }) {
   const [open, setOpen] = useState(false);

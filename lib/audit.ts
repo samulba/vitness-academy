@@ -112,7 +112,7 @@ export function actionLabel(action: AuditAction): string {
 }
 
 /**
- * Liefert die Felder, die sich zwischen before und after geaendert haben.
+ * Liefert die Felder, die sich zwischen before und after geändert haben.
  * Liefert leeres Array bei insert/delete.
  */
 export function geaenderteFelder(

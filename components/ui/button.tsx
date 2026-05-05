@@ -5,18 +5,18 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 /**
- * Konsistenter Button fuer das gesamte Admin-Panel.
+ * Konsistenter Button für das gesamte Admin-Panel.
  *
  * Varianten:
- *  - primary   Magenta-Fill, fuer die Haupt-Action der Page
- *  - secondary Border-Only, fuer alle nicht-primaeren Aktionen
- *  - ghost     Nur Hover-Tint, fuer subtile Aktionen in Toolbars
+ *  - primary   Magenta-Fill, für die Haupt-Action der Page
+ *  - secondary Border-Only, für alle nicht-primaeren Aktionen
+ *  - ghost     Nur Hover-Tint, für subtile Aktionen in Toolbars
  *  - icon      Quadratischer Icon-Button (h=w=8)
  *
  * Alte shadcn-Varianten (default/outline/destructive/success/link) bleiben
- * fuer Backwards-Compat erhalten -- werden in der Migration weggebaut.
+ * für Backwards-Compat erhalten -- werden in der Migration weggebaut.
  *
- * Alle Buttons haben transition + active:scale-[0.98] fuer das taktile
+ * Alle Buttons haben transition + active:scale-[0.98] für das taktile
  * Linear/Vercel-Feeling.
  *
  * @example
@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
  *   <Button variant="secondary" asChild>
  *     <Link href="/foo">Zu Foo</Link>
  *   </Button>
- *   <Button variant="icon" aria-label="Loeschen">
+ *   <Button variant="icon" aria-label="Löschen">
  *     <Trash2 />
  *   </Button>
  */
@@ -81,7 +81,7 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    // size="icon" + variant="icon": auto-set fuer Convenience
+    // size="icon" + variant="icon": auto-set für Convenience
     const finalSize = variant === "icon" && !size ? "icon" : size;
     return (
       <Comp

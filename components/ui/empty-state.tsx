@@ -16,7 +16,7 @@ export type EmptyAction = {
  * zentriert".
  *
  * Layout:
- *  - Custom illustration ODER skeleton-Preview (was die Page spaeter zeigt,
+ *  - Custom illustration ODER skeleton-Preview (was die Page später zeigt,
  *    auf 30% Opacity, dahinter mit Mask-Gradient)
  *  - Titel (16px / 600)
  *  - Description (14px muted, max-w-md)
@@ -143,7 +143,7 @@ function ActionCard({ action }: { action: EmptyAction }) {
 }
 
 /**
- * Generischer "Skeleton-Preview" der Komponente die spaeter hier stehen wird.
+ * Generischer "Skeleton-Preview" der Komponente die später hier stehen wird.
  * Default rendert ein Tabellen-Skeleton mit 4 Zeilen -- benutze als
  * `illustration={<EmptyStateTablePreview />}` wenn die Page eine Tabelle
  * werden soll.

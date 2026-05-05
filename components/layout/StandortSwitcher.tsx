@@ -12,7 +12,7 @@ type Standort = { id: string; name: string; is_primary: boolean };
  * zum Wechseln. Sichtbar nur wenn der User >=2 Studios hat -- single-
  * location User sehen ihn nicht (waere stumpf).
  *
- * Variant "compact" fuer Topbar (mobile), "row" fuer Sidebar (desktop).
+ * Variant "compact" für Topbar (mobile), "row" für Sidebar (desktop).
  */
 export function StandortSwitcher({
   aktiv,

@@ -27,9 +27,9 @@ export type SuchTreffer = {
 const LEER: SuchTreffer = { lernpfade: [], lektionen: [], artikel: [] };
 
 /**
- * Globale Suche ueber Lernpfade, Lektionen und Handbuch-Artikel.
+ * Globale Suche über Lernpfade, Lektionen und Handbuch-Artikel.
  * Lernpfade/Lektionen werden auf die zugewiesenen Pfade des Users
- * eingeschraenkt. Artikel sind oeffentlich fuer alle eingeloggten User.
+ * eingeschraenkt. Artikel sind oeffentlich für alle eingeloggten User.
  */
 export async function globaleSuche(query: string): Promise<SuchTreffer> {
   const trimmed = query.trim();

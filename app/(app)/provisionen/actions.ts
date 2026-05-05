@@ -21,7 +21,7 @@ export async function abschlussAnlegen(
 ): Promise<ProvisionsErgebnis> {
   const profile = await requireProfile();
   if (!profile.kann_provisionen) {
-    return { ok: false, message: "Keine Berechtigung für Provisions-Eintraege." };
+    return { ok: false, message: "Keine Berechtigung für Provisions-Einträge." };
   }
 
   const datum = String(formData.get("datum") ?? "").trim();
@@ -89,7 +89,7 @@ export async function abschlussLoeschen(
 
 export async function abschlussLoeschenAdmin(id: string): Promise<void> {
   await requireProfile();
-  // Admin-RLS in der Tabelle prueft is_admin() -> Admin darf alles
+  // Admin-RLS in der Tabelle prüft is_admin() -> Admin darf alles
   const supabase = await createClient();
   await supabase.from("commission_entries").delete().eq("id", id);
   revalidatePath("/provisionen");

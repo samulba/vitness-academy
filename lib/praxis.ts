@@ -35,7 +35,7 @@ type RohTask = {
 };
 
 /**
- * Alle aktiven Praxisaufgaben + Status fuer den aktuellen User.
+ * Alle aktiven Praxisaufgaben + Status für den aktuellen User.
  * Aufgaben ohne Signoff bekommen Status "offen".
  */
 export async function ladeMeinePraxisaufgaben(
@@ -116,7 +116,7 @@ export async function ladeMeinePraxisaufgaben(
 }
 
 /**
- * Inbox fuer Fuehrungskraft/Admin: Alle Signoffs im Status "bereit".
+ * Inbox für Fuehrungskraft/Admin: Alle Signoffs im Status "bereit".
  * Optional auch andere Stati per filter.
  */
 export async function ladePraxisInbox(

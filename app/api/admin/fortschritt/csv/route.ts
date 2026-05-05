@@ -25,14 +25,14 @@ export async function GET() {
   };
   const profile = (profileData ?? []) as ProfilRoh[];
 
-  // Auth-User fuer Email-Lookup (via getUser geht hier nicht --
+  // Auth-User für Email-Lookup (via getUser geht hier nicht --
   // wir nutzen die Anwesenheits-Tabelle profiles + getrennten
   // Lookup falls noetig). Email steht NICHT in profiles; wir
-  // greifen via service-role auf auth.users zu -- hier ueber
+  // greifen via service-role auf auth.users zu -- hier über
   // den public.profiles join. Vereinfacht: kein Email-Lookup
-  // (wuerde admin API erfordern). Email aus auth.users via
+  // (würde admin API erfordern). Email aus auth.users via
   // direct SELECT geht via authenticated supabase nicht.
-  // -> Spalte "Mail" bleibt leer wenn nicht verfuegbar.
+  // -> Spalte "Mail" bleibt leer wenn nicht verfügbar.
 
   // Lernpfade mit Lesson-Counts
   const { data: pfadData } = await supabase
@@ -130,7 +130,7 @@ export async function GET() {
     }
   }
 
-  // BOM fuer Excel-UTF8-Kompatibilitaet
+  // BOM für Excel-UTF8-Kompatibilitaet
   const bom = "﻿";
   const body = bom + zeilen.join("\n");
 

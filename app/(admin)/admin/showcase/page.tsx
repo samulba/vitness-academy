@@ -131,7 +131,7 @@ export default function ShowcasePage() {
       <Section
         nummer="3"
         titel="StatCard mit Sparkline"
-        beschreibung="Label oben · grosse Zahl · Trend-Badge · Recharts AreaChart als Sparkline."
+        beschreibung="Label oben · große Zahl · Trend-Badge · Recharts AreaChart als Sparkline."
       >
         <StatGrid cols={4}>
           <StatCard
@@ -176,7 +176,7 @@ export default function ShowcasePage() {
       <Section
         nummer="4"
         titel="EmptyState mit Quick-Action-Cards"
-        beschreibung="Skeleton-Preview ueber dem Headline-Block (auf 30% Opacity), 3 Action-Cards horizontal, Hover translateY(-2px)."
+        beschreibung="Skeleton-Preview über dem Headline-Block (auf 30% Opacity), 3 Action-Cards horizontal, Hover translateY(-2px)."
       >
         <div className="rounded-xl border border-border bg-card">
           <EmptyState
@@ -306,7 +306,7 @@ export default function ShowcasePage() {
       <Section
         nummer="6"
         titel="Skeleton-Loader"
-        beschreibung="Pulse-Animation, kein Spinner. Vorgebaute Varianten fuer typische Patterns (StatCard, TableRow)."
+        beschreibung="Pulse-Animation, kein Spinner. Vorgebaute Varianten für typische Patterns (StatCard, TableRow)."
       >
         <div className="space-y-3">
           <StatGrid cols={4}>

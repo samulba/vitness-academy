@@ -23,7 +23,7 @@ export function AufgabenZeile({ a }: { a: Aufgabe }) {
   const [fehler, setFehler] = useState<string | null>(null);
 
   // Optimistic State: Server-Daten + lokale Toggles, ohne auf Roundtrip
-  // zu warten. Wenn der Server bestaetigt, ueberschreibt revalidatePath
+  // zu warten. Wenn der Server bestätigt, ueberschreibt revalidatePath
   // den Wert sowieso. Bei Fehler revertet useOptimistic automatisch
   // zurueck auf den Server-Wert.
   const [optimistischErledigt, setOptimistischErledigt] = useOptimistic(

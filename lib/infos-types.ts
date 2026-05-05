@@ -1,9 +1,9 @@
 /**
- * Client-safe Types und Konstanten fuer Wichtige Infos. Hat KEINE
+ * Client-safe Types und Konstanten für Wichtige Infos. Hat KEINE
  * Supabase-Imports und kann von Client-Components genutzt werden.
  *
  * Server-Loaders (ladeAnnouncements, ladeReadIds, aktiveBannerInfo)
- * liegen in lib/infos.ts und re-exportieren diese Types fuer
+ * liegen in lib/infos.ts und re-exportieren diese Types für
  * Server-Code-Convenience.
  */
 

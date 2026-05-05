@@ -28,7 +28,7 @@ const DOT: Record<PillTon, string> = {
 };
 
 /**
- * Einheitliche Pille fuer Status, Severity, Counts. Klein und subtil.
+ * Einheitliche Pille für Status, Severity, Counts. Klein und subtil.
  * Mit `dot` bekommst du einen klassischen Status-Indicator-Punkt davor --
  * sieht moderner aus als nur Text.
  */
@@ -42,7 +42,7 @@ export function StatusPill({
   ton?: PillTon;
   /** Statuspunkt vor dem Label */
   dot?: boolean;
-  /** Wenn der Dot pulsieren soll (z.B. fuer "Live") */
+  /** Wenn der Dot pulsieren soll (z.B. für "Live") */
   pulse?: boolean;
   children: React.ReactNode;
   className?: string;

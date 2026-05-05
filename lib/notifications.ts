@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Notification } from "@/lib/notifications-types";
 
-// Re-export der Types fuer Server-Code-Convenience
+// Re-export der Types für Server-Code-Convenience
 export type { Notification, NotificationType } from "@/lib/notifications-types";
 
 /**

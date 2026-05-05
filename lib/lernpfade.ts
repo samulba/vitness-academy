@@ -194,7 +194,7 @@ export type OffeneLektion = {
 };
 
 /**
- * Liefert die ersten max. n offenen Lektionen (nicht abgeschlossen) ueber
+ * Liefert die ersten max. n offenen Lektionen (nicht abgeschlossen) über
  * alle zugewiesenen Lernpfade des Nutzers.
  */
 export function offeneLektionen(

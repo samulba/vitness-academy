@@ -58,7 +58,7 @@ async function ladeProfil(id: string): Promise<Profil | null> {
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
-  // Email kommt aus auth.users (per RLS nicht verfuegbar) -> ohne Email
+  // Email kommt aus auth.users (per RLS nicht verfügbar) -> ohne Email
   return {
     id: data.id as string,
     full_name: data.full_name as string | null,
@@ -564,7 +564,7 @@ export default async function BenutzerBearbeitenPage({
           <CardDescription>
             {profil.archived_at
               ? "Login wird wieder erlaubt, der Mitarbeiter taucht wieder in der Standard-Liste auf."
-              : "Der Mitarbeiter kann sich nicht mehr einloggen, alle Daten (Audit, Quizversuche, Praxis) bleiben aber erhalten. Statt loeschen empfohlen."}
+              : "Der Mitarbeiter kann sich nicht mehr einloggen, alle Daten (Audit, Quizversuche, Praxis) bleiben aber erhalten. Statt löschen empfohlen."}
           </CardDescription>
         </CardHeader>
         <CardContent>

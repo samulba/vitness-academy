@@ -28,7 +28,7 @@ export default async function ProvisionsSaetzePage() {
         ]}
         eyebrow="Verkauf"
         title="Provisions-Sätze"
-        description="Versioniert: neue Sätze gelten ab valid_from. Alte Eintraege werden mit den damals gueltigen Saetzen berechnet — historische Provisionen bleiben unveraendert."
+        description="Versioniert: neue Sätze gelten ab valid_from. Alte Einträge werden mit den damals gueltigen Saetzen berechnet — historische Provisionen bleiben unverändert."
       />
 
       <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">

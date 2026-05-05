@@ -1,10 +1,10 @@
 /**
- * Minimaler CSV-Parser fuer Mitarbeiter-Bulk-Import.
+ * Minimaler CSV-Parser für Mitarbeiter-Bulk-Import.
  * Unterstuetzt:
  * - Header-Row (erste Zeile = Spaltennamen)
  * - Komma als Trenner (oder Semikolon, autodetect)
  * - Doppelte Anfuehrungszeichen zum Quoten von Werten mit Trennzeichen
- *   ("...""...") fuer escaped Quote
+ *   ("...""...") für escaped Quote
  * - Leere Zeilen werden ignoriert
  */
 export type Row = Record<string, string>;
@@ -69,7 +69,7 @@ export type BulkRow = {
   rolle: "mitarbeiter" | "fuehrungskraft";
   /** Slugs / Titel der Lernpfade, semikolon-separiert */
   lernpfade: string[];
-  /** Validation-Errors fuer diese Zeile, leer = OK */
+  /** Validation-Errors für diese Zeile, leer = OK */
   fehler: string[];
 };
 
@@ -98,7 +98,7 @@ export function buildBulkRows(
 
     if (!vorname && !nachname) fehler.push("Vor- oder Nachname fehlt");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      fehler.push("E-Mail ungueltig");
+      fehler.push("E-Mail ungültig");
     if (!["mitarbeiter", "fuehrungskraft"].includes(rolleRaw))
       fehler.push("Rolle muss 'mitarbeiter' oder 'fuehrungskraft' sein");
 

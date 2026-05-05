@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Helper fuer Auswahl-Listen in Admin-Formularen.
+ * Helper für Auswahl-Listen in Admin-Formularen.
  */
 export async function ladePfadOptionen() {
   const supabase = await createClient();

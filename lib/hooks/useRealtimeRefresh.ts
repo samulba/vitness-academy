@@ -10,11 +10,11 @@ import { createClient } from "@/lib/supabase/client";
  * laedt die Liste neu, alle Skeleton-Wechsel passieren automatisch.
  *
  * Pragmatisch: kein Manual State-Sync, kein Optimistic Merge --
- * einfach refresh wenn was passiert. Reicht fuer das Use-Case
+ * einfach refresh wenn was passiert. Reicht für das Use-Case
  * "Admin sieht neuen Mangel ohne Reload".
  *
  * Channel-Name enthaelt useId(), damit mehrere Instances derselben
- * Subscription nebeneinander leben koennen (z.B. Bell in Topbar + Sidebar).
+ * Subscription nebeneinander leben können (z.B. Bell in Topbar + Sidebar).
  *
  * @example
  *   <RealtimeRefresh table="studio_issues" />
@@ -51,7 +51,7 @@ export function useRealtimeRefresh(
 }
 
 /**
- * Drop-in Client-Component fuer Server-Pages: macht intern
+ * Drop-in Client-Component für Server-Pages: macht intern
  * useRealtimeRefresh und rendert nichts. Damit bleibt die
  * eigentliche Page Server-Component.
  *

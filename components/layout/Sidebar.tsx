@@ -52,14 +52,14 @@ type AdminGruppe = {
 const MEIN_TAG: NavEintrag = { href: "/dashboard", label: "Mein Tag", icon: Home };
 
 // Drei Untergruppen statt einer flachen Liste -- die Sidebar bleibt
-// uebersichtlich auch wenn Provisionen/Feedback/Kudos dazu kommen.
+// übersichtlich auch wenn Provisionen/Feedback/Kudos dazu kommen.
 const STUDIO_NAV: NavEintrag[] = [
   { href: "/aufgaben", label: "Aufgaben", icon: ListTodo },
   { href: "/formulare", label: "Anfragen", icon: FileText },
   { href: "/maengel", label: "Mängel melden", icon: AlertTriangle },
 ];
 
-// "Verkauf" wird nur fuer Vertriebler sichtbar (per profile.kann_provisionen)
+// "Verkauf" wird nur für Vertriebler sichtbar (per profile.kann_provisionen)
 const VERKAUF_NAV: NavEintrag[] = [
   { href: "/provisionen", label: "Provisionen", icon: TrendingUp },
 ];

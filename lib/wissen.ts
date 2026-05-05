@@ -104,7 +104,7 @@ export async function ladeArtikel(opts: {
     updated_at: a.updated_at,
   }));
 
-  // Wenn ein kategorieSlug gesetzt ist, ueber die Beziehung filtern
+  // Wenn ein kategorieSlug gesetzt ist, über die Beziehung filtern
   if (opts.kategorieSlug) {
     zeilen = zeilen.filter((z) => z.category_slug === opts.kategorieSlug);
   }
@@ -114,7 +114,7 @@ export async function ladeArtikel(opts: {
 
 /**
  * IDs aller Artikel, die der angegebene User als Favorit markiert hat.
- * Nutzt RLS — daher reicht die uebergebene userId fuer die Filterung.
+ * Nutzt RLS — daher reicht die uebergebene userId für die Filterung.
  */
 export async function ladeBookmarkIds(userId: string): Promise<Set<string>> {
   const supabase = await createClient();
@@ -126,7 +126,7 @@ export async function ladeBookmarkIds(userId: string): Promise<Set<string>> {
 }
 
 /**
- * Vollstaendige Bookmarks-Liste mit Artikel-Daten -- fuer die
+ * Vollstaendige Bookmarks-Liste mit Artikel-Daten -- für die
  * "Meine Favoriten"-Section oben im Handbuch.
  */
 export async function ladeBookmarks(userId: string): Promise<ArtikelKurz[]> {

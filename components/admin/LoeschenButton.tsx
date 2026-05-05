@@ -15,7 +15,7 @@ function Submit({ label }: { label: string }) {
 }
 
 /**
- * Zwei-Klick-Loeschen mit Bestaetigung.
+ * Zwei-Klick-Löschen mit Bestätigung.
  * action: Server-Action (bereits gebunden mit der ID).
  */
 export function LoeschenButton({

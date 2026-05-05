@@ -93,7 +93,7 @@ export function Composer({
     setError(null);
     const fd = new FormData(e.currentTarget);
     fd.set("severity", severity);
-    // Fotos aus State (FormData-Eintraege aus dem leeren Input ueberschreiben)
+    // Fotos aus State (FormData-Einträge aus dem leeren Input ueberschreiben)
     fd.delete("foto");
     for (const f of fotos) {
       fd.append("foto", f);

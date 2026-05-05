@@ -1,5 +1,5 @@
 /**
- * Client-safe Types und Konstanten fuer Mitglieder-Feedback.
+ * Client-safe Types und Konstanten für Mitglieder-Feedback.
  * Hat KEINE Supabase-Imports und kann von Client-Components genutzt
  * werden. Server-Loaders liegen in lib/feedback.ts und re-exportieren
  * diese Types.

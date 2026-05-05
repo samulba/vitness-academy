@@ -18,7 +18,7 @@ export default async function TemplateBearbeitenPage({
   if (!template) notFound();
 
   const supabase = await createClient();
-  // Aktive Lernpfade fuer Auswahl + alle vom Template referenzierten
+  // Aktive Lernpfade für Auswahl + alle vom Template referenzierten
   // (auch archivierte!), damit beim Speichern keine versteckte
   // Datenloeschung passiert.
   const [{ data: aktive }, { data: referenziert }] = await Promise.all([

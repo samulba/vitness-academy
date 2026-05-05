@@ -94,7 +94,7 @@ export default async function ProvisionenAdminPage({
         primaryAction={{
           label: "Sätze konfigurieren",
           icon: <Settings />,
-          href: "/admin/provisionen/saetze",
+          href: "/admin/provisionen/sätze",
         }}
       />
 

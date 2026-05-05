@@ -39,7 +39,7 @@ export async function kudosSenden(formData: FormData): Promise<KudosErgebnis> {
 
   revalidatePath("/kudos");
   revalidatePath("/dashboard");
-  // Notification fuer Empfaenger -- Layout muss sich neu rendern, damit Bell-
+  // Notification für Empfaenger -- Layout muss sich neu rendern, damit Bell-
   // Counter aktualisiert.
   revalidatePath("/", "layout");
   return { ok: true };

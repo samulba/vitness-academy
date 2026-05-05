@@ -22,10 +22,10 @@ export async function satzAnlegen(formData: FormData): Promise<void> {
   const valid_from = String(formData.get("valid_from") ?? "").trim();
 
   if (!VALID_LAUFZEITEN.includes(laufzeit)) {
-    redirect("/admin/provisionen/saetze?toast=error");
+    redirect("/admin/provisionen/sätze?toast=error");
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(valid_from)) {
-    redirect("/admin/provisionen/saetze?toast=error");
+    redirect("/admin/provisionen/sätze?toast=error");
   }
 
   const supabase = await createClient();
@@ -36,19 +36,19 @@ export async function satzAnlegen(formData: FormData): Promise<void> {
     valid_from,
   });
   if (error) {
-    redirect("/admin/provisionen/saetze?toast=error");
+    redirect("/admin/provisionen/sätze?toast=error");
   }
   revalidatePath("/admin/provisionen");
-  revalidatePath("/admin/provisionen/saetze");
+  revalidatePath("/admin/provisionen/sätze");
   revalidatePath("/provisionen");
-  redirect("/admin/provisionen/saetze?toast=saved");
+  redirect("/admin/provisionen/sätze?toast=saved");
 }
 
 export async function satzLoeschen(id: string): Promise<void> {
   await requireRole(["admin", "superadmin"]);
   const supabase = await createClient();
   await supabase.from("commission_rates").delete().eq("id", id);
-  revalidatePath("/admin/provisionen/saetze");
+  revalidatePath("/admin/provisionen/sätze");
   revalidatePath("/provisionen");
-  redirect("/admin/provisionen/saetze?toast=deleted");
+  redirect("/admin/provisionen/sätze?toast=deleted");
 }

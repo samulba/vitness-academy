@@ -82,15 +82,15 @@ export async function ladeMeineStandorte(
 }
 
 /**
- * Aktiver Standort fuer den aktuellen Request.
+ * Aktiver Standort für den aktuellen Request.
  * Reihenfolge:
- *   1. Cookie-Wert wenn der User Mitglied dort ist (sonst ungueltig)
+ *   1. Cookie-Wert wenn der User Mitglied dort ist (sonst ungültig)
  *   2. Primary-Location aus user_locations
  *   3. profiles.location_id (Legacy-Fallback)
  *   4. null wenn der User in keinem Studio Mitglied ist
  *
  * Optional: bereits geladene Standorte mitgeben, um Doppel-Query
- * im Layout zu vermeiden (Layout laedt sie ohnehin fuer den Switcher).
+ * im Layout zu vermeiden (Layout laedt sie ohnehin für den Switcher).
  */
 export async function getAktiverStandort(
   vorgeladen?: StandortMembership[],

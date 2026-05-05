@@ -1,5 +1,5 @@
 /**
- * Client-safe Types und Helpers fuer Kontakte. Hat KEINE
+ * Client-safe Types und Helpers für Kontakte. Hat KEINE
  * Supabase-Imports und kann von Client-Components genutzt werden.
  * Server-Loaders liegen in lib/kontakte.ts und re-exportieren diese.
  */

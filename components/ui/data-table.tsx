@@ -20,7 +20,7 @@ export type Column<T> = {
   align?: "left" | "right" | "center";
   /** CSS-width oder Tailwind-Klassen, z.B. "w-[200px]" */
   width?: string;
-  /** Custom Renderer fuer die Zelle. Default: row[key] als String. */
+  /** Custom Renderer für die Zelle. Default: row[key] als String. */
   render?: (row: T) => React.ReactNode;
   /** Wenn nicht selber rendert: Property zum Lesen. Standard ist `key`. */
   accessor?: (row: T) => unknown;
@@ -40,7 +40,7 @@ export type Filter = {
 export type RowAction<T> = {
   icon: React.ReactNode;
   label: string;
-  /** Klick auf das Action-Icon -- z.B. Modal oeffnen, loeschen. */
+  /** Klick auf das Action-Icon -- z.B. Modal öffnen, löschen. */
   onClick?: (row: T) => void;
   /** Wenn `href` gesetzt, wird der Action-Button zum Link */
   href?: (row: T) => string;
@@ -56,7 +56,7 @@ export type RowAction<T> = {
  *    Sort-Dropdown.
  *  - Header-Zellen mit Sort-Icons (sortable: true).
  *  - Zeilen: Hover bekommt Magenta-Tint, Action-Icons fade rechts ein.
- *  - Eine Zeile kann optional ueber rowHref komplett zum Link werden
+ *  - Eine Zeile kann optional über rowHref komplett zum Link werden
  *    (z.B. Detail-Page).
  *  - Empty: nutzt den uebergebenen <EmptyState/> oder zeigt Default-Text.
  *
@@ -87,7 +87,7 @@ export type RowAction<T> = {
  *     rowHref={(r) => `/admin/benutzer/${r.id}`}
  *     rowActions={[
  *       { icon: <Pencil />, label: "Bearbeiten", href: (r) => `/admin/benutzer/${r.id}` },
- *       { icon: <Trash2 />, label: "Loeschen", onClick: (r) => deleteRow(r), variant: "danger" },
+ *       { icon: <Trash2 />, label: "Löschen", onClick: (r) => deleteRow(r), variant: "danger" },
  *     ]}
  *     emptyState={<EmptyState ... />}
  *   />
@@ -105,7 +105,7 @@ export function DataTable<T extends { id: string | number }>({
 }: {
   columns: Column<T>[];
   data: T[];
-  /** Wenn `true`: Standard-Search ueber alle string-cols. Object: customizable. */
+  /** Wenn `true`: Standard-Search über alle string-cols. Object: customizable. */
   searchable?: boolean | { placeholder?: string; keys?: (keyof T)[] };
   filters?: Filter[];
   rowActions?: RowAction<T>[];

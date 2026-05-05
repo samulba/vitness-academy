@@ -32,7 +32,7 @@ export type SecondaryAction = {
 };
 
 /**
- * Einheitlicher Page-Header fuer ALLE Admin-Seiten.
+ * Einheitlicher Page-Header für ALLE Admin-Seiten.
  *
  * Layout (top -> bottom):
  *  - Breadcrumbs (klickbar, Chevron-getrennt) -- optional

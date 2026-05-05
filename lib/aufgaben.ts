@@ -88,10 +88,10 @@ function montagDieserWoche(d: Date): Date {
 }
 
 /**
- * Generiert fehlende Recurring-Task-Instances fuer heute (daily)
+ * Generiert fehlende Recurring-Task-Instances für heute (daily)
  * und diese Woche (weekly). Idempotent via Unique-Constraint
  * (recurrence_template_id, due_date). Wird beim App-Layout-Render
- * fuer jeden eingeloggten User aufgerufen.
+ * für jeden eingeloggten User aufgerufen.
  */
 export async function generiereWiederkehrendeAufgaben(): Promise<void> {
   const supabase = await createClient();
@@ -139,7 +139,7 @@ export async function generiereWiederkehrendeAufgaben(): Promise<void> {
 }
 
 /**
- * Aufgaben fuer den eingeloggten User (heute + offen + zugewiesen
+ * Aufgaben für den eingeloggten User (heute + offen + zugewiesen
  * oder team-wide). Templates werden ausgeblendet.
  *
  * @param locationId optional -- wenn gesetzt, nur Tasks dieses
@@ -227,7 +227,7 @@ export async function ladeAufgabe(id: string): Promise<Aufgabe | null> {
 }
 
 /**
- * Liefert alle Tasks (Templates + Instances) fuer Admin.
+ * Liefert alle Tasks (Templates + Instances) für Admin.
  * @param locationId optional -- nur Tasks dieses Standorts plus
  *   standort-uebergreifende.
  */

@@ -19,7 +19,7 @@ function buildPayload(formData: FormData): {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const notes = String(formData.get("notes") ?? "").trim();
 
-  // Multi-Select: Rollen kommen als wiederholte FormData-Eintraege.
+  // Multi-Select: Rollen kommen als wiederholte FormData-Einträge.
   const rohRollen = formData.getAll("role_tags");
   const role_tags = Array.from(
     new Set(

@@ -99,8 +99,8 @@ export async function bildHochladen(
 }
 
 /**
- * Entfernt das Hero-Bild eines Moduls/Lektion/Lernpfads (loescht
- * die DB-Referenz, das File im Bucket bleibt fuer Audit-Zwecke).
+ * Entfernt das Hero-Bild eines Moduls/Lektion/Lernpfads (löscht
+ * die DB-Referenz, das File im Bucket bleibt für Audit-Zwecke).
  */
 export async function bildEntfernen(
   scope: Scope,

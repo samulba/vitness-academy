@@ -1,5 +1,5 @@
 /**
- * Client-safe Types und Helpers fuer Mängel.
+ * Client-safe Types und Helpers für Mängel.
  * Server-Loaders liegen in lib/maengel.ts und re-exportieren diese.
  */
 
@@ -40,7 +40,7 @@ export const SEVERITY_LABEL: Record<Severity, string> = {
 
 /**
  * Pure function -- liefert public URL zu einem Storage-Pfad im
- * 'issue-photos'-Bucket. Sicher fuer Client-Komponenten, da kein
+ * 'issue-photos'-Bucket. Sicher für Client-Komponenten, da kein
  * Supabase-Client-Import noetig ist (env-Var reicht).
  */
 export function fotoUrlFuerPfad(

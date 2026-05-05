@@ -10,7 +10,7 @@ function bytesLabel(bytes: number): string {
 
 /**
  * Server-Component: rendert einen Download-Link mit signed URL
- * (1h gueltig). Wird im Admin-Submission-Detail genutzt.
+ * (1h gültig). Wird im Admin-Submission-Detail genutzt.
  */
 export async function DownloadLink({ wert }: { wert: unknown }) {
   if (!istFileWert(wert)) {

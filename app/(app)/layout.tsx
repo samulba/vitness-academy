@@ -26,7 +26,7 @@ export default async function AppLayout({
   const profile = await requireProfile();
 
   // Recurring-Tasks generieren -- darf bei Fehler das Layout nicht
-  // crashen (Tabelle koennte fehlen, RLS-Block etc).
+  // crashen (Tabelle könnte fehlen, RLS-Block etc).
   try {
     await generiereWiederkehrendeAufgaben();
   } catch (e) {

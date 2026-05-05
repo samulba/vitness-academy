@@ -11,7 +11,7 @@ type Props = {
   scope: "module" | "lesson" | "path";
   id: string;
   aktuellerPfad: string | null;
-  /** Anzeigename ("Modul"/"Lektion"/"Lernpfad") fuer Texte */
+  /** Anzeigename ("Modul"/"Lektion"/"Lernpfad") für Texte */
   label?: string;
 };
 

@@ -62,8 +62,8 @@ export async function ladeBestandeneQuizIds(
 }
 
 /**
- * Liefert eine Tagesaktivitaets-Map ueber 365 Tage fuer die Heatmap.
- * Map-Schluessel ist YYYY-MM-DD, Wert ist Anzahl abgeschlossener
+ * Liefert eine Tagesaktivitaets-Map über 365 Tage für die Heatmap.
+ * Map-Schlüssel ist YYYY-MM-DD, Wert ist Anzahl abgeschlossener
  * Lektionen an dem Tag.
  */
 export async function ladeAktivitaetsMap(
@@ -88,7 +88,7 @@ export async function ladeAktivitaetsMap(
 }
 
 /**
- * Aktivitaets-Stats fuer das Mitarbeiter-Dashboard.
+ * Aktivitaets-Stats für das Mitarbeiter-Dashboard.
  * Zaehlt die Anzahl distinkter Tage in den letzten 30 Tagen,
  * an denen mindestens eine Lektion gesehen oder abgeschlossen
  * wurde.

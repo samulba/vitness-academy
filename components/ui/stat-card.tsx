@@ -15,7 +15,7 @@ export type StatTrend = {
 };
 
 /**
- * KPI-Karte fuer Stats-Strips. Linear/Vercel-Style:
+ * KPI-Karte für Stats-Strips. Linear/Vercel-Style:
  * label oben (12px uppercase muted) -> grosser Wert (32px/600) ->
  * Trend-Badge in einer Reihe -> Sparkline (40px hoch, kein Achs/Grid).
  *
@@ -165,7 +165,7 @@ function Sparkline({
 }
 
 /**
- * Container fuer eine Reihe von StatCards. Nimmt auf 1/2/4 Spalten
+ * Container für eine Reihe von StatCards. Nimmt auf 1/2/4 Spalten
  * verteilen, je nach Breite. Verwende, wenn du mehrere KPIs hintereinander
  * zeigst -- alleinstehende Karte braucht keinen Wrapper.
  */

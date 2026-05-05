@@ -1,9 +1,9 @@
 /**
- * Client-safe types und Konstanten fuer den Form-Builder.
+ * Client-safe types und Konstanten für den Form-Builder.
  * Werden von Client-Components (RenderForm, EingaengeTable, etc.)
  * importiert -- duerfen daher KEIN createClient/cookies enthalten.
  *
- * lib/formulare.ts re-exportiert diese fuer Server-Convenience.
+ * lib/formulare.ts re-exportiert diese für Server-Convenience.
  */
 
 export type FieldType =
