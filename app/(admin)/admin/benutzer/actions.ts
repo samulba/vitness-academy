@@ -20,41 +20,122 @@ const VALIDE_ROLLEN: Rolle[] = [
   "superadmin",
 ];
 
+const VALIDE_VERTRAGSARTEN = [
+  "vollzeit",
+  "teilzeit",
+  "minijob",
+  "aushilfe",
+  "selbstaendig",
+  "praktikant",
+  "sonstiges",
+];
+
+function nullbarString(raw: FormDataEntryValue | null): string | null {
+  const t = String(raw ?? "").trim();
+  return t.length > 0 ? t : null;
+}
+
+function nullbarDate(raw: FormDataEntryValue | null): string | null {
+  const s = String(raw ?? "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+}
+
+function nullbarNumber(raw: FormDataEntryValue | null): number | null {
+  const s = String(raw ?? "").trim().replace(",", ".");
+  if (s.length === 0) return null;
+  const n = parseFloat(s);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+function tagsParsen(raw: FormDataEntryValue | null): string[] {
+  const s = String(raw ?? "").trim();
+  if (s.length === 0) return [];
+  return Array.from(
+    new Set(
+      s
+        .split(",")
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0 && t.length <= 32),
+    ),
+  ).slice(0, 12);
+}
+
 export async function profilAktualisieren(
   benutzerId: string,
   formData: FormData,
 ): Promise<void> {
   const aktuell = await ensureAdmin();
-  const full_name =
-    String(formData.get("full_name") ?? "").trim() || null;
+  const full_name = nullbarString(formData.get("full_name"));
+  const first_name = nullbarString(formData.get("first_name"));
+  const last_name = nullbarString(formData.get("last_name"));
+  const phone = nullbarString(formData.get("phone"));
   const role = String(formData.get("role") ?? "mitarbeiter") as Rolle;
   if (!VALIDE_ROLLEN.includes(role)) return;
   // Superadmin-Rolle nur durch Superadmin vergeben
   if (role === "superadmin" && aktuell.role !== "superadmin") return;
-  const location_id =
-    String(formData.get("location_id") ?? "").trim() || null;
+  const location_id = nullbarString(formData.get("location_id"));
   const kann_provisionen = formData.get("kann_provisionen") === "on";
-  const personalnummer =
-    String(formData.get("personalnummer") ?? "").trim() || null;
+  const personalnummer = nullbarString(formData.get("personalnummer"));
+
+  // Stammdaten (0044)
+  const geburtsdatum = nullbarDate(formData.get("geburtsdatum"));
+  const eintritt_am = nullbarDate(formData.get("eintritt_am"));
+  const austritt_am = nullbarDate(formData.get("austritt_am"));
+  const vertragsartRaw = nullbarString(formData.get("vertragsart"));
+  const vertragsart =
+    vertragsartRaw && VALIDE_VERTRAGSARTEN.includes(vertragsartRaw)
+      ? vertragsartRaw
+      : null;
+  const wochenstunden = nullbarNumber(formData.get("wochenstunden"));
+  const tags = tagsParsen(formData.get("tags"));
+  const interne_notiz = nullbarString(formData.get("interne_notiz"));
 
   const supabase = await createClient();
-  // Versuch mit personalnummer (Migration 0042); wenn die Spalte fehlt
-  // → Fallback ohne, damit Speichern auch ohne 0042 funktioniert.
+  // 3-Stufen-Fallback: erst alles (0044), dann ohne 0044, dann basis.
+  const voll = {
+    full_name,
+    first_name,
+    last_name,
+    phone,
+    role,
+    location_id,
+    kann_provisionen,
+    personalnummer,
+    geburtsdatum,
+    eintritt_am,
+    austritt_am,
+    vertragsart,
+    wochenstunden,
+    tags,
+    interne_notiz,
+  };
+  const ohneNeu = {
+    full_name,
+    first_name,
+    last_name,
+    phone,
+    role,
+    location_id,
+    kann_provisionen,
+    personalnummer,
+  };
+  const basis = { full_name, role, location_id, kann_provisionen };
+
   const erst = await supabase
     .from("profiles")
-    .update({
-      full_name,
-      role,
-      location_id,
-      kann_provisionen,
-      personalnummer,
-    })
+    .update(voll)
     .eq("id", benutzerId);
   if (erst.error) {
-    await supabase
+    const zweit = await supabase
       .from("profiles")
-      .update({ full_name, role, location_id, kann_provisionen })
+      .update(ohneNeu)
       .eq("id", benutzerId);
+    if (zweit.error) {
+      await supabase
+        .from("profiles")
+        .update(basis)
+        .eq("id", benutzerId);
+    }
   }
 
   revalidatePath("/admin/benutzer");

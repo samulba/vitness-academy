@@ -40,46 +40,87 @@ import {
 type Profil = {
   id: string;
   full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
   role: string;
   location_id: string | null;
   kann_provisionen: boolean;
   personalnummer: string | null;
+  geburtsdatum: string | null;
+  eintritt_am: string | null;
+  austritt_am: string | null;
+  vertragsart: string | null;
+  wochenstunden: number | null;
+  tags: string[];
+  interne_notiz: string | null;
   created_at: string;
   archived_at: string | null;
+  avatar_path: string | null;
   email: string | null;
 };
 
+const FELDER_VOLL =
+  "id, full_name, first_name, last_name, phone, role, location_id, kann_provisionen, personalnummer, geburtsdatum, eintritt_am, austritt_am, vertragsart, wochenstunden, tags, interne_notiz, created_at, archived_at, avatar_path";
+const FELDER_OHNE_NEU =
+  "id, full_name, first_name, last_name, phone, role, location_id, kann_provisionen, personalnummer, created_at, archived_at, avatar_path";
+const FELDER_BASIS =
+  "id, full_name, role, location_id, kann_provisionen, created_at, archived_at";
+
 async function ladeProfil(id: string): Promise<Profil | null> {
   const supabase = await createClient();
-  // Erst mit personalnummer versuchen (Migration 0042). Fallback ohne.
+  // 3-Stufen-Fallback: erst alle neuen Felder (0044), dann ohne, dann
+  // basis (vor 0042). Damit funktioniert die Page auch wenn nicht alle
+  // Migrationen gerade in Cloud sind.
   const erst = await supabase
     .from("profiles")
-    .select(
-      "id, full_name, role, location_id, kann_provisionen, personalnummer, created_at, archived_at",
-    )
+    .select(FELDER_VOLL)
     .eq("id", id)
     .maybeSingle();
   let row = erst.data as Record<string, unknown> | null;
   if (!row) {
-    const fb = await supabase
+    const zweit = await supabase
       .from("profiles")
-      .select(
-        "id, full_name, role, location_id, kann_provisionen, created_at, archived_at",
-      )
+      .select(FELDER_OHNE_NEU)
       .eq("id", id)
       .maybeSingle();
-    row = fb.data as Record<string, unknown> | null;
+    row = zweit.data as Record<string, unknown> | null;
+    if (!row) {
+      const fb = await supabase
+        .from("profiles")
+        .select(FELDER_BASIS)
+        .eq("id", id)
+        .maybeSingle();
+      row = fb.data as Record<string, unknown> | null;
+    }
   }
   if (!row) return null;
+  const wsRaw = row.wochenstunden;
   return {
     id: row.id as string,
     full_name: (row.full_name as string | null) ?? null,
+    first_name: (row.first_name as string | null) ?? null,
+    last_name: (row.last_name as string | null) ?? null,
+    phone: (row.phone as string | null) ?? null,
     role: row.role as string,
     location_id: (row.location_id as string | null) ?? null,
     kann_provisionen: Boolean(row.kann_provisionen),
     personalnummer: (row.personalnummer as string | null) ?? null,
+    geburtsdatum: (row.geburtsdatum as string | null) ?? null,
+    eintritt_am: (row.eintritt_am as string | null) ?? null,
+    austritt_am: (row.austritt_am as string | null) ?? null,
+    vertragsart: (row.vertragsart as string | null) ?? null,
+    wochenstunden:
+      typeof wsRaw === "number"
+        ? wsRaw
+        : typeof wsRaw === "string"
+          ? Number(wsRaw)
+          : null,
+    tags: Array.isArray(row.tags) ? (row.tags as string[]) : [],
+    interne_notiz: (row.interne_notiz as string | null) ?? null,
     created_at: row.created_at as string,
     archived_at: (row.archived_at as string | null) ?? null,
+    avatar_path: (row.avatar_path as string | null) ?? null,
     email: null,
   };
 }
@@ -213,92 +254,251 @@ export default async function BenutzerBearbeitenPage({
         <CardHeader>
           <CardTitle>Stammdaten</CardTitle>
           <CardDescription>
-            Anzeigename, Rolle und Standort.
+            Persönliche Daten, Rolle, Standort, Vertragsangaben.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form
             action={profilAktualisieren.bind(null, profil.id)}
-            className="space-y-4"
+            className="space-y-6"
           >
-            <div className="space-y-2">
-              <Label htmlFor="full_name">Anzeigename</Label>
-              <Input
-                id="full_name"
-                name="full_name"
-                defaultValue={profil.full_name ?? ""}
-                placeholder="Vor- und Nachname"
-              />
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
+            {/* Persönliche Daten */}
+            <fieldset className="space-y-4">
+              <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Persönliche Daten
+              </legend>
               <div className="space-y-2">
-                <Label htmlFor="role">Rolle</Label>
-                <select
-                  id="role"
-                  name="role"
-                  defaultValue={profil.role}
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="mitarbeiter">Mitarbeiter</option>
-                  <option value="fuehrungskraft">Führungskraft</option>
-                  <option value="admin">Admin</option>
-                  {aktuell.role === "superadmin" ? (
-                    <option value="superadmin">Superadmin</option>
-                  ) : null}
-                </select>
+                <Label htmlFor="full_name">Anzeigename</Label>
+                <Input
+                  id="full_name"
+                  name="full_name"
+                  defaultValue={profil.full_name ?? ""}
+                  placeholder="Vor- und Nachname"
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="first_name">Vorname</Label>
+                  <Input
+                    id="first_name"
+                    name="first_name"
+                    defaultValue={profil.first_name ?? ""}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="last_name">Nachname</Label>
+                  <Input
+                    id="last_name"
+                    name="last_name"
+                    defaultValue={profil.last_name ?? ""}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Telefon</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    defaultValue={profil.phone ?? ""}
+                    placeholder="+49 …"
+                    autoComplete="tel"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="geburtsdatum">Geburtsdatum</Label>
+                  <Input
+                    id="geburtsdatum"
+                    name="geburtsdatum"
+                    type="date"
+                    defaultValue={profil.geburtsdatum ?? ""}
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            {/* Rolle + Standort + Provisionen */}
+            <fieldset className="space-y-4 border-t border-border pt-5">
+              <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Rolle & Berechtigung
+              </legend>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="role">Rolle</Label>
+                  <select
+                    id="role"
+                    name="role"
+                    defaultValue={profil.role}
+                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="mitarbeiter">Mitarbeiter</option>
+                    <option value="fuehrungskraft">Führungskraft</option>
+                    <option value="admin">Admin</option>
+                    {aktuell.role === "superadmin" ? (
+                      <option value="superadmin">Superadmin</option>
+                    ) : null}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="location_id">Heim-Standort</Label>
+                  <select
+                    id="location_id"
+                    name="location_id"
+                    defaultValue={profil.location_id ?? ""}
+                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">— ohne —</option>
+                    {standorte.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 transition-colors hover:border-[hsl(var(--primary))] has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--primary)/0.06)]">
+                <input
+                  type="checkbox"
+                  name="kann_provisionen"
+                  defaultChecked={profil.kann_provisionen}
+                  className="mt-1 h-4 w-4 accent-[hsl(var(--primary))]"
+                />
+                <span className="flex-1">
+                  <span className="block text-sm font-semibold">
+                    Vertriebsrolle (Provisionen)
+                  </span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                    Mitarbeiter:in sieht die Provisionen-Section in der Sidebar
+                    und darf Abschlüsse eintragen.
+                  </span>
+                </span>
+              </label>
+            </fieldset>
+
+            {/* Vertragsdaten */}
+            <fieldset className="space-y-4 border-t border-border pt-5">
+              <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Vertrag
+              </legend>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="eintritt_am">Eintritt am</Label>
+                  <Input
+                    id="eintritt_am"
+                    name="eintritt_am"
+                    type="date"
+                    defaultValue={profil.eintritt_am ?? ""}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="austritt_am">
+                    Austritt am
+                    <span className="ml-1 text-xs font-normal text-muted-foreground">
+                      (optional)
+                    </span>
+                  </Label>
+                  <Input
+                    id="austritt_am"
+                    name="austritt_am"
+                    type="date"
+                    defaultValue={profil.austritt_am ?? ""}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="vertragsart">Vertragsart</Label>
+                  <select
+                    id="vertragsart"
+                    name="vertragsart"
+                    defaultValue={profil.vertragsart ?? ""}
+                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">— nicht gesetzt —</option>
+                    <option value="vollzeit">Vollzeit</option>
+                    <option value="teilzeit">Teilzeit</option>
+                    <option value="minijob">Minijob</option>
+                    <option value="aushilfe">Aushilfe</option>
+                    <option value="selbstaendig">Selbstständig</option>
+                    <option value="praktikant">Praktikant:in</option>
+                    <option value="sonstiges">Sonstiges</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="wochenstunden">
+                    Wochenstunden
+                    <span className="ml-1 text-xs font-normal text-muted-foreground">
+                      (z.B. 38,5)
+                    </span>
+                  </Label>
+                  <Input
+                    id="wochenstunden"
+                    name="wochenstunden"
+                    inputMode="decimal"
+                    defaultValue={
+                      profil.wochenstunden !== null
+                        ? String(profil.wochenstunden).replace(".", ",")
+                        : ""
+                    }
+                    placeholder="z.B. 20"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="location_id">Standort</Label>
-                <select
-                  id="location_id"
-                  name="location_id"
-                  defaultValue={profil.location_id ?? ""}
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="">— ohne —</option>
-                  {standorte.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
+                <Label htmlFor="personalnummer">
+                  Personalnummer
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">
+                    (für Lohn-CSV)
+                  </span>
+                </Label>
+                <Input
+                  id="personalnummer"
+                  name="personalnummer"
+                  defaultValue={profil.personalnummer ?? ""}
+                  placeholder="z.B. 1042"
+                  maxLength={32}
+                />
               </div>
-            </div>
+            </fieldset>
 
-            <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 transition-colors hover:border-[hsl(var(--primary))] has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--primary)/0.06)]">
-              <input
-                type="checkbox"
-                name="kann_provisionen"
-                defaultChecked={profil.kann_provisionen}
-                className="mt-1 h-4 w-4 accent-[hsl(var(--primary))]"
-              />
-              <span className="flex-1">
-                <span className="block text-sm font-semibold">
-                  Vertriebsrolle (Provisionen)
-                </span>
-                <span className="mt-0.5 block text-xs text-muted-foreground">
-                  Mitarbeiter:in sieht die Provisionen-Section in der Sidebar
-                  und darf Abschlüsse eintragen.
-                </span>
-              </span>
-            </label>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="personalnummer">
-                Personalnummer
-                <span className="ml-1 text-xs font-normal text-muted-foreground">
-                  (für Lohn-CSV)
-                </span>
-              </Label>
-              <Input
-                id="personalnummer"
-                name="personalnummer"
-                defaultValue={profil.personalnummer ?? ""}
-                placeholder="z.B. 1042"
-                maxLength={32}
-              />
-            </div>
+            {/* Tags + interne Notiz */}
+            <fieldset className="space-y-4 border-t border-border pt-5">
+              <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Tags & interne Notiz
+              </legend>
+              <div className="space-y-2">
+                <Label htmlFor="tags">
+                  Tags
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">
+                    (Komma-getrennt, max. 12)
+                  </span>
+                </Label>
+                <Input
+                  id="tags"
+                  name="tags"
+                  defaultValue={(profil.tags ?? []).join(", ")}
+                  placeholder='z.B. "Theke-Profi, Personal Trainer, Reha-Coach"'
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="interne_notiz">
+                  Interne Notiz
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">
+                    (nur Admin sichtbar)
+                  </span>
+                </Label>
+                <textarea
+                  id="interne_notiz"
+                  name="interne_notiz"
+                  rows={3}
+                  defaultValue={profil.interne_notiz ?? ""}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  placeholder="Quick-Memo für die Studioleitung. Längere Diskussionen → Notizen-Tab."
+                />
+              </div>
+            </fieldset>
 
             <div className="flex justify-end">
               <SpeichernButton />
