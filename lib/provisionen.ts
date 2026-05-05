@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { joinName } from "@/lib/admin/safe-loader";
 import {
   berechneProvision,
+  type BonusStufe,
   type CommissionEntry,
   type CommissionRate,
   type EntryStatus,
@@ -10,6 +11,7 @@ import {
 
 // Re-exports for server convenience
 export type {
+  BonusStufe,
   CommissionEntry,
   CommissionRate,
   EntryStatus,
@@ -18,7 +20,10 @@ export type {
 export {
   LAUFZEIT_OPTIONS,
   STATUS_LABEL,
+  berechneMonatsTotal,
   berechneProvision,
+  findeBonusStufe,
+  findeRate,
   formatEuro,
   laufzeitLabel,
 } from "@/lib/provisionen-types";
@@ -100,18 +105,33 @@ function mapEntry(r: EntryRoh, rates: CommissionRate[]): CommissionEntry {
     provision: berechneProvision(
       { laufzeit: lf, datum: r.datum, beitrag_netto, startpaket },
       rates,
+      r.vertriebler_id,
     ),
     created_at: r.created_at,
   };
 }
 
+/**
+ * Lädt alle Sätze: Default (vertriebler_id=null) + persönliche Sätze
+ * aller Vertriebler. App-Layer entscheidet pro Eintrag, welcher Satz
+ * greift (siehe findeRate).
+ */
 export async function ladeRates(): Promise<CommissionRate[]> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("commission_rates")
-    .select("id, laufzeit, prozent_beitrag, prozent_startpaket, valid_from")
-    .order("valid_from", { ascending: false });
-  return ((data ?? []) as {
+  const [defRes, personalRes] = await Promise.all([
+    supabase
+      .from("commission_rates")
+      .select("id, laufzeit, prozent_beitrag, prozent_startpaket, valid_from")
+      .order("valid_from", { ascending: false }),
+    supabase
+      .from("commission_rates_personal")
+      .select(
+        "id, vertriebler_id, laufzeit, prozent_beitrag, prozent_startpaket, valid_from, notiz",
+      )
+      .order("valid_from", { ascending: false }),
+  ]);
+
+  const defaults = ((defRes.data ?? []) as {
     id: string;
     laufzeit: string;
     prozent_beitrag: number | string;
@@ -125,6 +145,64 @@ export async function ladeRates(): Promise<CommissionRate[]> {
     prozent_beitrag: num(r.prozent_beitrag),
     prozent_startpaket: num(r.prozent_startpaket),
     valid_from: r.valid_from,
+    vertriebler_id: null,
+    notiz: null,
+  }));
+
+  // Persönliche Sätze -- bei Fehler (Migration noch nicht eingespielt)
+  // einfach leer zurück.
+  const personal: CommissionRate[] = personalRes.error
+    ? []
+    : ((personalRes.data ?? []) as {
+        id: string;
+        vertriebler_id: string;
+        laufzeit: string;
+        prozent_beitrag: number | string;
+        prozent_startpaket: number | string;
+        valid_from: string;
+        notiz: string | null;
+      }[]).map((r) => ({
+        id: r.id,
+        vertriebler_id: r.vertriebler_id,
+        laufzeit: (["26", "52", "104"].includes(r.laufzeit)
+          ? r.laufzeit
+          : "sonst") as Laufzeit,
+        prozent_beitrag: num(r.prozent_beitrag),
+        prozent_startpaket: num(r.prozent_startpaket),
+        valid_from: r.valid_from,
+        notiz: r.notiz,
+      }));
+
+  return [...defaults, ...personal];
+}
+
+/**
+ * Lädt Bonus-Stufen: Default (vertriebler_id=null) + persönliche.
+ * Bei fehlender Migration → leere Liste.
+ */
+export async function ladeBonusStufen(): Promise<BonusStufe[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("commission_bonus_stufen")
+    .select("id, vertriebler_id, ab_abschluessen, bonus_prozent, valid_from, notiz")
+    .order("ab_abschluessen", { ascending: true });
+  if (error) return [];
+  return ((data ?? []) as {
+    id: string;
+    vertriebler_id: string | null;
+    ab_abschluessen: number | string;
+    bonus_prozent: number | string;
+    valid_from: string;
+    notiz: string | null;
+  }[]).map((r) => ({
+    id: r.id,
+    vertriebler_id: r.vertriebler_id,
+    ab_abschluessen: typeof r.ab_abschluessen === "number"
+      ? r.ab_abschluessen
+      : parseInt(r.ab_abschluessen, 10) || 0,
+    bonus_prozent: num(r.bonus_prozent),
+    valid_from: r.valid_from,
+    notiz: r.notiz,
   }));
 }
 

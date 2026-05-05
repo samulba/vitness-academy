@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { ArrowRight, Plus, Sparkles, Trash2, User } from "lucide-react";
+import { notFound } from "next/navigation";
+import { ArrowLeft, Plus, Sparkles, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
-import { StatusPill } from "@/components/admin/StatusPill";
+import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { requireRole } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import {
   LAUFZEIT_OPTIONS,
   ladeBonusStufen,
@@ -18,62 +20,139 @@ import { formatDatum } from "@/lib/format";
 import {
   bonusStufeAnlegen,
   bonusStufeLoeschen,
-  satzAnlegen,
-  satzLoeschen,
-} from "./actions";
-import { LoeschenButton } from "./LoeschenButton";
+  personalSatzAnlegen,
+  personalSatzLoeschen,
+} from "../actions";
 
-export default async function ProvisionsSaetzePage() {
+export default async function PersoenlicheSaetzePage({
+  params,
+}: {
+  params: Promise<{ vertrieblerId: string }>;
+}) {
   await requireRole(["admin", "superadmin"]);
-  const [allRates, vertriebler, bonusStufen] = await Promise.all([
-    ladeRates(),
+  const { vertrieblerId } = await params;
+
+  const [vertriebler, rates, bonusStufen] = await Promise.all([
     ladeVertriebler(),
+    ladeRates(),
     ladeBonusStufen(),
   ]);
-  // Default-Sätze: vertriebler_id null
-  const rates = allRates.filter(
+  const v = vertriebler.find((x) => x.id === vertrieblerId);
+  if (!v) notFound();
+
+  // Hole personalnummer optional
+  const supabase = await createClient();
+  const { data: profilExtra } = await supabase
+    .from("profiles")
+    .select("first_name, last_name")
+    .eq("id", vertrieblerId)
+    .maybeSingle();
+
+  const personalSaetze = rates.filter(
+    (r) => r.vertriebler_id === vertrieblerId,
+  );
+  const defaultSaetze = rates.filter(
     (r) => r.vertriebler_id === null || r.vertriebler_id === undefined,
   );
-  // Pro-Vertriebler: zähle Anzahl persönlicher Sätze
-  const personalProVertriebler = new Map<string, number>();
-  for (const r of allRates) {
-    if (r.vertriebler_id) {
-      personalProVertriebler.set(
-        r.vertriebler_id,
-        (personalProVertriebler.get(r.vertriebler_id) ?? 0) + 1,
-      );
-    }
-  }
-  const defaultBonusStufen = bonusStufen.filter(
-    (s) => s.vertriebler_id === null,
+  const persoenlicheStufen = bonusStufen.filter(
+    (s) => s.vertriebler_id === vertrieblerId,
   );
+  const defaultStufen = bonusStufen.filter((s) => s.vertriebler_id === null);
   const heute = new Date().toISOString().slice(0, 10);
 
+  // Aktive Default-Sätze pro Laufzeit zur Anzeige
+  const aktiverDefaultProLaufzeit = new Map<
+    string,
+    { prozent_beitrag: number; prozent_startpaket: number; valid_from: string }
+  >();
+  for (const r of defaultSaetze) {
+    const cur = aktiverDefaultProLaufzeit.get(r.laufzeit);
+    if (!cur || r.valid_from > cur.valid_from) {
+      aktiverDefaultProLaufzeit.set(r.laufzeit, {
+        prozent_beitrag: r.prozent_beitrag,
+        prozent_startpaket: r.prozent_startpaket,
+        valid_from: r.valid_from,
+      });
+    }
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         breadcrumbs={[
           { label: "Verwaltung", href: "/admin" },
           { label: "Provisionen", href: "/admin/provisionen" },
-          { label: "Sätze" },
+          { label: "Sätze", href: "/admin/provisionen/saetze" },
+          { label: v.full_name ?? "Vertriebler:in" },
         ]}
         eyebrow="Verkauf"
-        title="Provisions-Sätze"
-        description="Versioniert: neue Sätze gelten ab valid_from. Alte Einträge werden mit den damals gueltigen Saetzen berechnet — historische Provisionen bleiben unverändert."
+        title={
+          v.full_name ??
+          (`${profilExtra?.first_name ?? ""} ${profilExtra?.last_name ?? ""}`.trim() ||
+            "Vertriebler:in")
+        }
+        description="Persönliche Provisions-Sätze + Bonus-Stufen. Persönliche Sätze gewinnen gegen den Default."
       />
 
+      <Link
+        href="/admin/provisionen/saetze"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Zurück zur Übersicht
+      </Link>
+
+      {/* Avatar-Header */}
+      <div className="flex items-center gap-4 rounded-xl border border-border bg-card px-5 py-4">
+        <ColoredAvatar name={v.full_name} size="lg" />
+        <div className="min-w-0 flex-1">
+          <p className="text-base font-semibold">{v.full_name ?? "—"}</p>
+          <p className="text-xs text-muted-foreground">
+            {personalSaetze.length === 0
+              ? "Verwendet Default-Sätze"
+              : `${personalSaetze.length} persönliche Sätze · ${persoenlicheStufen.length} eigene Bonus-Stufen`}
+          </p>
+        </div>
+      </div>
+
+      {/* Default-Sätze zur Referenz */}
+      <section className="rounded-xl border border-dashed border-border bg-muted/30 p-5">
+        <h2 className="text-sm font-semibold tracking-tight">
+          Aktive Default-Sätze (zur Referenz)
+        </h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Sobald hier ein persönlicher Satz angelegt ist, gewinnt er gegen
+          diesen Default.
+        </p>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+          {LAUFZEIT_OPTIONS.map((opt) => {
+            const def = aktiverDefaultProLaufzeit.get(opt.value);
+            return (
+              <li
+                key={opt.value}
+                className="rounded-lg bg-background px-3 py-2 text-sm"
+              >
+                <span className="font-medium">{opt.label}</span>
+                <span className="ml-2 text-muted-foreground">
+                  {def
+                    ? `${def.prozent_beitrag.toLocaleString("de-DE")} % auf Beitrag · ${def.prozent_startpaket.toLocaleString("de-DE")} % auf Startpaket`
+                    : "kein Default-Satz"}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      {/* Persönlicher Satz anlegen */}
       <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
         <header className="mb-5">
           <h2 className="text-base font-semibold tracking-tight">
-            Neuer Satz
+            Persönlichen Satz anlegen
           </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Pro Laufzeit ein Satz. „Prozent Beitrag&ldquo; wird auf Beitrag Netto
-            angewendet, „Prozent Startpaket&ldquo; auf Startpaket-Wert.
-          </p>
         </header>
         <form
-          action={satzAnlegen}
+          action={personalSatzAnlegen.bind(null, vertrieblerId)}
           className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] sm:items-end"
         >
           <div className="space-y-1.5">
@@ -99,7 +178,7 @@ export default async function ProvisionsSaetzePage() {
               name="prozent_beitrag"
               required
               inputMode="decimal"
-              placeholder="z.B. 50"
+              placeholder="z.B. 55"
               className="h-10 rounded-lg"
             />
           </div>
@@ -135,17 +214,14 @@ export default async function ProvisionsSaetzePage() {
         </form>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-border bg-card">
-        <header className="border-b border-border px-5 py-3">
-          <h2 className="text-sm font-semibold tracking-tight">
-            Default-Sätze (für alle Vertriebler ohne Override)
-          </h2>
-        </header>
-        {rates.length === 0 ? (
-          <div className="px-5 py-8 text-center text-sm text-muted-foreground">
-            Noch keine Sätze definiert.
-          </div>
-        ) : (
+      {/* Persönliche Sätze Tabelle */}
+      {personalSaetze.length > 0 && (
+        <section className="overflow-hidden rounded-2xl border border-border bg-card">
+          <header className="border-b border-border px-5 py-3">
+            <h2 className="text-sm font-semibold tracking-tight">
+              Persönliche Sätze ({personalSaetze.length})
+            </h2>
+          </header>
           <table className="w-full text-sm">
             <thead className="bg-muted/40">
               <tr>
@@ -165,7 +241,7 @@ export default async function ProvisionsSaetzePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {rates.map((r) => (
+              {personalSaetze.map((r) => (
                 <tr key={r.id}>
                   <td className="px-4 py-3 font-medium">
                     {laufzeitLabel(r.laufzeit)}
@@ -189,86 +265,37 @@ export default async function ProvisionsSaetzePage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <LoeschenButton
-                      action={satzLoeschen.bind(null, r.id)}
+                      action={personalSatzLoeschen.bind(
+                        null,
+                        r.id,
+                        vertrieblerId,
+                      )}
                     />
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </section>
+        </section>
+      )}
 
-      {/* Pro-Vertriebler-Sätze */}
-      <section className="overflow-hidden rounded-2xl border border-border bg-card">
-        <header className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-5 py-4">
-          <div>
-            <h2 className="text-sm font-semibold tracking-tight">
-              Persönliche Sätze pro Vertriebler:in
-            </h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Override für einzelne Vertriebler:innen. Wenn ein persönlicher Satz
-              gilt, ignoriert die App den Default für diesen Eintrag.
-            </p>
-          </div>
-        </header>
-        {vertriebler.length === 0 ? (
-          <div className="px-5 py-8 text-center text-sm text-muted-foreground">
-            Noch keine Vertriebler:innen mit Provisions-Berechtigung.
-          </div>
-        ) : (
-          <ul className="divide-y divide-border">
-            {vertriebler.map((v) => {
-              const count = personalProVertriebler.get(v.id) ?? 0;
-              return (
-                <li key={v.id}>
-                  <Link
-                    href={`/admin/provisionen/saetze/${v.id}`}
-                    className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-muted/40"
-                  >
-                    <ColoredAvatar name={v.full_name} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium">
-                        {v.full_name ?? "—"}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {count === 0
-                          ? "Standard-Sätze"
-                          : `${count} persönliche Sätze + Bonus-Stufen`}
-                      </p>
-                    </div>
-                    {count > 0 && (
-                      <StatusPill ton="primary">
-                        <User className="h-3 w-3" />
-                        Personalisiert
-                      </StatusPill>
-                    )}
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-
-      {/* Default-Bonus-Stufen */}
+      {/* Persönliche Bonus-Stufen */}
       <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
         <header className="mb-5">
           <h2 className="text-base font-semibold tracking-tight">
             <Sparkles className="mr-2 inline h-4 w-4 text-[hsl(var(--brand-pink))]" />
-            Default-Bonus-Stufen
+            Persönliche Bonus-Stufen
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Gilt für alle Vertriebler:innen ohne eigene Stufen. „Ab N
-            Abschlüssen pro Monat zahlen wir X&nbsp;% extra auf die
-            Provisions-Summe des Monats.&ldquo;
+            Zusätzlich zu den Default-Stufen ({defaultStufen.length} aktiv).
+            Persönliche Stufen gewinnen, wenn beide passen.
           </p>
         </header>
         <form
           action={bonusStufeAnlegen}
           className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end"
         >
+          <input type="hidden" name="vertriebler_id" value={vertrieblerId} />
           <div className="space-y-1.5">
             <Label htmlFor="ab_abschluessen">Ab Abschlüssen</Label>
             <Input
@@ -276,7 +303,7 @@ export default async function ProvisionsSaetzePage() {
               name="ab_abschluessen"
               required
               inputMode="numeric"
-              placeholder="z.B. 10"
+              placeholder="z.B. 8"
               className="h-10 rounded-lg"
             />
           </div>
@@ -287,7 +314,7 @@ export default async function ProvisionsSaetzePage() {
               name="bonus_prozent"
               required
               inputMode="decimal"
-              placeholder="z.B. 5"
+              placeholder="z.B. 7"
               className="h-10 rounded-lg"
             />
           </div>
@@ -311,9 +338,9 @@ export default async function ProvisionsSaetzePage() {
           </Button>
         </form>
 
-        {defaultBonusStufen.length > 0 && (
+        {persoenlicheStufen.length > 0 && (
           <ul className="mt-5 divide-y divide-border rounded-xl border border-border">
-            {defaultBonusStufen.map((s) => (
+            {persoenlicheStufen.map((s) => (
               <li
                 key={s.id}
                 className="flex items-center justify-between gap-3 px-4 py-2 text-sm"

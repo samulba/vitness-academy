@@ -64,7 +64,52 @@ export type CommissionRate = {
   prozent_beitrag: number;
   prozent_startpaket: number;
   valid_from: string;
+  /** null = Default-Satz, sonst persönlicher Satz für diesen Vertriebler */
+  vertriebler_id?: string | null;
+  notiz?: string | null;
 };
+
+export type BonusStufe = {
+  id: string;
+  vertriebler_id: string | null;
+  ab_abschluessen: number;
+  bonus_prozent: number;
+  valid_from: string;
+  notiz: string | null;
+};
+
+/**
+ * Findet den passenden Satz für einen Eintrag. Persönliche Sätze des
+ * Vertrieblers gewinnen gegen den Default. Innerhalb der gleichen
+ * Kategorie gewinnt der jüngste valid_from <= entry.datum.
+ */
+export function findeRate(
+  entry: {
+    laufzeit: Laufzeit;
+    datum: string;
+  },
+  rates: CommissionRate[],
+  vertrieblerId?: string | null,
+): CommissionRate | null {
+  const passende = rates.filter(
+    (r) => r.laufzeit === entry.laufzeit && r.valid_from <= entry.datum,
+  );
+  // 1) Persönlicher Satz für den Vertriebler
+  if (vertrieblerId) {
+    const personal = passende
+      .filter((r) => r.vertriebler_id === vertrieblerId)
+      .sort((a, b) => b.valid_from.localeCompare(a.valid_from));
+    if (personal[0]) return personal[0];
+  }
+  // 2) Default
+  const defaults = passende
+    .filter(
+      (r) =>
+        r.vertriebler_id === null || r.vertriebler_id === undefined,
+    )
+    .sort((a, b) => b.valid_from.localeCompare(a.valid_from));
+  return defaults[0] ?? null;
+}
 
 /**
  * Provisions-Berechnung. Beide Sätze werden auf den Eintrag
@@ -84,16 +129,72 @@ export function berechneProvision(
     startpaket: number;
   },
   rates: CommissionRate[],
+  vertrieblerId?: string | null,
 ): number {
-  const passende = rates
-    .filter((r) => r.laufzeit === entry.laufzeit && r.valid_from <= entry.datum)
-    .sort((a, b) => b.valid_from.localeCompare(a.valid_from));
-  const rate = passende[0];
+  const rate = findeRate(entry, rates, vertrieblerId);
   if (!rate) return 0;
   return (
     (entry.beitrag_netto * rate.prozent_beitrag) / 100 +
     (entry.startpaket * rate.prozent_startpaket) / 100
   );
+}
+
+/**
+ * Findet die passende Bonus-Stufe für einen Vertriebler bei N
+ * Abschlüssen. Persönliche Stufen gewinnen gegen Default. Höchste
+ * passende Stufe gewinnt (z.B. ab 5: +3% UND ab 10: +5% → bei 12
+ * Abschlüssen gilt +5%).
+ */
+export function findeBonusStufe(
+  abschluesse: number,
+  monatYYYYMM: string,
+  stufen: BonusStufe[],
+  vertrieblerId: string,
+): BonusStufe | null {
+  const monatsEnde = `${monatYYYYMM}-31`;
+  const passend = stufen
+    .filter(
+      (s) =>
+        s.valid_from <= monatsEnde &&
+        s.ab_abschluessen <= abschluesse &&
+        (s.vertriebler_id === vertrieblerId || s.vertriebler_id === null),
+    )
+    .sort((a, b) => {
+      // Persönlich vor Default, dann nach ab_abschluessen desc
+      if (a.vertriebler_id && !b.vertriebler_id) return -1;
+      if (!a.vertriebler_id && b.vertriebler_id) return 1;
+      return b.ab_abschluessen - a.ab_abschluessen;
+    });
+  return passend[0] ?? null;
+}
+
+/**
+ * Berechnet die Monats-Provision inklusive Bonus-Stufe für einen
+ * Vertriebler. Eingabe: nur 'genehmigt'-Einträge des Monats (Storno
+ * mit Negativ-Beträgen sind dabei).
+ */
+export function berechneMonatsTotal(
+  abschluesseProvision: number,
+  abschluesseAnzahl: number,
+  monatYYYYMM: string,
+  stufen: BonusStufe[],
+  vertrieblerId: string,
+): { provision: number; bonus: number; total: number; stufe: BonusStufe | null } {
+  const stufe = findeBonusStufe(
+    abschluesseAnzahl,
+    monatYYYYMM,
+    stufen,
+    vertrieblerId,
+  );
+  const bonus = stufe
+    ? (abschluesseProvision * stufe.bonus_prozent) / 100
+    : 0;
+  return {
+    provision: abschluesseProvision,
+    bonus,
+    total: abschluesseProvision + bonus,
+    stufe,
+  };
 }
 
 export function formatEuro(n: number): string {
