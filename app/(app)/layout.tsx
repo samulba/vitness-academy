@@ -3,7 +3,9 @@ import { generiereWiederkehrendeAufgaben } from "@/lib/aufgaben";
 import {
   getAktiverStandort,
   ladeMeineStandorte,
+  type StandortMembership,
 } from "@/lib/standort-context";
+import { istNextJsControlFlow } from "@/lib/admin/safe-loader";
 import { Topbar } from "@/components/layout/Topbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
@@ -22,13 +24,26 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const profile = await requireProfile();
-  // Idempotent: generiert fehlende Recurring-Task-Instances fuer
-  // heute / diese Woche. Hat einen unique-Constraint, doppelte
-  // Aufrufe sind sicher.
-  await generiereWiederkehrendeAufgaben();
 
-  const standorte = await ladeMeineStandorte(profile.id);
-  const aktiv = await getAktiverStandort(standorte);
+  // Recurring-Tasks generieren -- darf bei Fehler das Layout nicht
+  // crashen (Tabelle koennte fehlen, RLS-Block etc).
+  try {
+    await generiereWiederkehrendeAufgaben();
+  } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
+    console.error("[AppLayout] generiereWiederkehrendeAufgaben failed:", e);
+  }
+
+  // Standort-Loading defensiv: bei Fehler einfach ohne Switcher.
+  let standorte: StandortMembership[] = [];
+  let aktiv: StandortMembership | null = null;
+  try {
+    standorte = await ladeMeineStandorte(profile.id);
+    aktiv = await getAktiverStandort(standorte);
+  } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
+    console.error("[AppLayout] standort load failed:", e);
+  }
 
   const switcherTopbar = (
     <StandortSwitcher aktiv={aktiv} optionen={standorte} variant="compact" />

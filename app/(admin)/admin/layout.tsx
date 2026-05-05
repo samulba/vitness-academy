@@ -2,7 +2,9 @@ import { requireRole } from "@/lib/auth";
 import {
   getAktiverStandort,
   ladeMeineStandorte,
+  type StandortMembership,
 } from "@/lib/standort-context";
+import { istNextJsControlFlow } from "@/lib/admin/safe-loader";
 import { Topbar } from "@/components/layout/Topbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
@@ -21,8 +23,18 @@ export default async function AdminLayout({
 }) {
   const profile = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
 
-  const standorte = await ladeMeineStandorte(profile.id);
-  const aktiv = await getAktiverStandort(standorte);
+  // Standort-Loading darf das Layout NICHT crashen lassen. Faellt aus
+  // (z.B. RLS-Block oder Migration-Lag), wird einfach kein Switcher
+  // gezeigt -- Sidebar/Topbar bleiben funktional.
+  let standorte: StandortMembership[] = [];
+  let aktiv: StandortMembership | null = null;
+  try {
+    standorte = await ladeMeineStandorte(profile.id);
+    aktiv = await getAktiverStandort(standorte);
+  } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
+    console.error("[AdminLayout] standort load failed:", e);
+  }
 
   const switcherTopbar = (
     <StandortSwitcher aktiv={aktiv} optionen={standorte} variant="compact" />

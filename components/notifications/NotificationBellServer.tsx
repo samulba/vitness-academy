@@ -1,5 +1,6 @@
 import { ladeNotifications, ungeleseneAnzahl } from "@/lib/notifications";
 import { getCurrentProfile } from "@/lib/auth";
+import { istNextJsControlFlow } from "@/lib/admin/safe-loader";
 import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
 import { NotificationBell } from "./NotificationBell";
 
@@ -11,28 +12,39 @@ import { NotificationBell } from "./NotificationBell";
  *   - "auto" (default): unter Bell, rechtsbuendig -- fuer Topbar mobile
  *   - "side-right": rechts neben Bell -- fuer Sidebar (380px-Popover
  *     passt sonst nicht in 240px-Sidebar)
+ *
+ * Defensiv: faellt der Notification-Loader aus (z.B. Migration noch
+ * nicht eingespielt, RLS-Block, Network-Hiccup), darf das NIEMALS die
+ * ganze Layout-Render zum Crashen bringen. Stattdessen wird die Bell
+ * still nicht gerendert.
  */
 export async function NotificationBellServer({
   placement = "auto",
 }: {
   placement?: "auto" | "side-right";
 } = {}) {
-  const profile = await getCurrentProfile();
-  if (!profile) return null;
+  try {
+    const profile = await getCurrentProfile();
+    if (!profile) return null;
 
-  const [notifications, anzahl] = await Promise.all([
-    ladeNotifications(profile.id, 30),
-    ungeleseneAnzahl(profile.id),
-  ]);
+    const [notifications, anzahl] = await Promise.all([
+      ladeNotifications(profile.id, 30),
+      ungeleseneAnzahl(profile.id),
+    ]);
 
-  return (
-    <>
-      <RealtimeRefresh table="notifications" event="INSERT" />
-      <NotificationBell
-        notifications={notifications}
-        ungeleseneAnzahl={anzahl}
-        placement={placement}
-      />
-    </>
-  );
+    return (
+      <>
+        <RealtimeRefresh table="notifications" event="INSERT" />
+        <NotificationBell
+          notifications={notifications}
+          ungeleseneAnzahl={anzahl}
+          placement={placement}
+        />
+      </>
+    );
+  } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
+    console.error("[NotificationBellServer] failed:", e);
+    return null;
+  }
 }
