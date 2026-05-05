@@ -14,10 +14,31 @@ import {
   ladeEntries,
   ladeRates,
   laufzeitLabel,
+  STATUS_LABEL,
+  type EntryStatus,
 } from "@/lib/provisionen";
+import { StatusPill } from "@/components/admin/StatusPill";
 import { formatDatum } from "@/lib/format";
 import { AbschlussForm } from "./AbschlussForm";
 import { LoeschenButton } from "./LoeschenButton";
+
+function StatusBadge({ status }: { status: EntryStatus }) {
+  if (status === "eingereicht")
+    return (
+      <StatusPill ton="warn" dot>
+        {STATUS_LABEL[status]}
+      </StatusPill>
+    );
+  if (status === "genehmigt")
+    return (
+      <StatusPill ton="success" dot>
+        {STATUS_LABEL[status]}
+      </StatusPill>
+    );
+  if (status === "abgelehnt")
+    return <StatusPill ton="danger">{STATUS_LABEL[status]}</StatusPill>;
+  return <StatusPill ton="neutral">{STATUS_LABEL[status]}</StatusPill>;
+}
 
 function aktuellerMonat(): string {
   const d = new Date();
@@ -153,17 +174,24 @@ export default async function ProvisionenPage({
                   <tr>
                     <Th>Datum</Th>
                     <Th>Mitglied</Th>
+                    <Th>Status</Th>
                     <Th align="right">Laufzeit</Th>
                     <Th align="right">Beitrag Netto</Th>
                     <Th align="right">Startpaket</Th>
                     <Th align="right">Provision</Th>
-                    <Th>Bemerkung</Th>
                     <Th align="right" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {entries.map((e) => (
-                    <tr key={e.id} className="hover:bg-muted/30">
+                    <tr
+                      key={e.id}
+                      className={
+                        e.status === "abgelehnt" || e.status === "storniert"
+                          ? "bg-muted/20 hover:bg-muted/30"
+                          : "hover:bg-muted/30"
+                      }
+                    >
                       <Td>{formatDatum(e.datum)}</Td>
                       <Td>
                         <span className="font-medium">{e.mitglied_name}</span>
@@ -172,31 +200,51 @@ export default async function ProvisionenPage({
                             · {e.mitglied_nummer}
                           </span>
                         )}
+                        {e.review_note && (
+                          <span
+                            title={e.review_note}
+                            className="ml-1 cursor-help text-[11px] text-muted-foreground underline decoration-dotted"
+                          >
+                            · Notiz
+                          </span>
+                        )}
+                      </Td>
+                      <Td>
+                        <StatusBadge status={e.status} />
                       </Td>
                       <Td align="right">{laufzeitLabel(e.laufzeit)}</Td>
                       <Td align="right">{formatEuro(e.beitrag_netto)}</Td>
                       <Td align="right">{formatEuro(e.startpaket)}</Td>
                       <Td align="right">
-                        <span className="font-bold text-[hsl(var(--brand-pink))]">
+                        <span
+                          className={
+                            e.status === "genehmigt"
+                              ? "font-bold text-[hsl(var(--brand-pink))]"
+                              : e.status === "abgelehnt"
+                                ? "text-muted-foreground line-through"
+                                : "text-muted-foreground"
+                          }
+                        >
                           {formatEuro(e.provision)}
                         </span>
                       </Td>
-                      <Td>
-                        <span className="text-xs text-muted-foreground">
-                          {e.bemerkung ?? "—"}
-                        </span>
-                      </Td>
                       <Td align="right">
-                        <LoeschenButton id={e.id} />
+                        {e.status === "eingereicht" ? (
+                          <LoeschenButton id={e.id} />
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground/50">
+                            —
+                          </span>
+                        )}
                       </Td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot className="bg-muted/40">
                   <tr>
-                    <Td colSpan={5}>
+                    <Td colSpan={6}>
                       <span className="font-bold uppercase tracking-wider text-[10px]">
-                        Total {monatsLabel(monat)}
+                        Total {monatsLabel(monat)} · genehmigt
                       </span>
                     </Td>
                     <Td align="right">
@@ -204,7 +252,7 @@ export default async function ProvisionenPage({
                         {formatEuro(stats.provision_total)}
                       </span>
                     </Td>
-                    <Td colSpan={2} />
+                    <Td />
                   </tr>
                 </tfoot>
               </table>

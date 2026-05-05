@@ -5,6 +5,19 @@
 
 export type Laufzeit = "26" | "52" | "104" | "sonst";
 
+export type EntryStatus =
+  | "eingereicht"
+  | "genehmigt"
+  | "abgelehnt"
+  | "storniert";
+
+export const STATUS_LABEL: Record<EntryStatus, string> = {
+  eingereicht: "Eingereicht",
+  genehmigt: "Genehmigt",
+  abgelehnt: "Abgelehnt",
+  storniert: "Storniert",
+};
+
 export const LAUFZEIT_OPTIONS: ReadonlyArray<{
   value: Laufzeit;
   label: string;
@@ -33,6 +46,13 @@ export type CommissionEntry = {
   startpaket: number;
   getraenke_soli: number;
   bemerkung: string | null;
+  status: EntryStatus;
+  reviewed_by: string | null;
+  reviewed_by_name: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  storno_von_id: string | null;
+  storno_grund: string | null;
   /** Berechnet im App-Layer, nicht persistiert. */
   provision: number;
   created_at: string;

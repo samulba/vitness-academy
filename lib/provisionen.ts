@@ -1,8 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { joinName } from "@/lib/admin/safe-loader";
 import {
   berechneProvision,
   type CommissionEntry,
   type CommissionRate,
+  type EntryStatus,
   type Laufzeit,
 } from "@/lib/provisionen-types";
 
@@ -10,10 +12,12 @@ import {
 export type {
   CommissionEntry,
   CommissionRate,
+  EntryStatus,
   Laufzeit,
 } from "@/lib/provisionen-types";
 export {
   LAUFZEIT_OPTIONS,
+  STATUS_LABEL,
   berechneProvision,
   formatEuro,
   laufzeitLabel,
@@ -23,8 +27,10 @@ const ENTRY_SELECT = `
   id, vertriebler_id, location_id, datum,
   mitglied_name, mitglied_nummer, laufzeit,
   beitrag_14taegig, beitrag_netto, startpaket, getraenke_soli,
-  bemerkung, created_at,
-  vertriebler:vertriebler_id ( full_name )
+  bemerkung, status, reviewed_by, reviewed_at, review_note,
+  storno_von_id, storno_grund, created_at,
+  vertriebler:vertriebler_id ( full_name ),
+  reviewer:reviewed_by ( full_name )
 `;
 
 type EntryRoh = {
@@ -40,8 +46,15 @@ type EntryRoh = {
   startpaket: number | string;
   getraenke_soli: number | string;
   bemerkung: string | null;
+  status: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  storno_von_id: string | null;
+  storno_grund: string | null;
   created_at: string;
   vertriebler: { full_name: string | null } | null;
+  reviewer: unknown;
 };
 
 function num(v: number | string | null | undefined): number {
@@ -56,6 +69,13 @@ function mapEntry(r: EntryRoh, rates: CommissionRate[]): CommissionEntry {
     : "sonst") as Laufzeit;
   const beitrag_netto = num(r.beitrag_netto);
   const startpaket = num(r.startpaket);
+  const status = (
+    ["eingereicht", "genehmigt", "abgelehnt", "storniert"].includes(
+      r.status ?? "",
+    )
+      ? r.status
+      : "genehmigt"
+  ) as EntryStatus;
   return {
     id: r.id,
     vertriebler_id: r.vertriebler_id,
@@ -70,6 +90,13 @@ function mapEntry(r: EntryRoh, rates: CommissionRate[]): CommissionEntry {
     startpaket,
     getraenke_soli: num(r.getraenke_soli),
     bemerkung: r.bemerkung,
+    status,
+    reviewed_by: r.reviewed_by,
+    reviewed_by_name: joinName(r.reviewer),
+    reviewed_at: r.reviewed_at,
+    review_note: r.review_note,
+    storno_von_id: r.storno_von_id,
+    storno_grund: r.storno_grund,
     provision: berechneProvision(
       { laufzeit: lf, datum: r.datum, beitrag_netto, startpaket },
       rates,
@@ -106,6 +133,7 @@ export async function ladeEntries(opts?: {
   locationId?: string | null;
   monatYYYYMM?: string;
   limit?: number;
+  status?: EntryStatus[];
 }): Promise<CommissionEntry[]> {
   const supabase = await createClient();
   let q = supabase
@@ -116,6 +144,7 @@ export async function ladeEntries(opts?: {
   if (opts?.vertrieblerId) q = q.eq("vertriebler_id", opts.vertrieblerId);
   if (opts?.locationId)
     q = q.or(`location_id.eq.${opts.locationId},location_id.is.null`);
+  if (opts?.status && opts.status.length > 0) q = q.in("status", opts.status);
   if (opts?.monatYYYYMM) {
     const [yyyy, mm] = opts.monatYYYYMM.split("-");
     const start = `${yyyy}-${mm}-01`;
@@ -125,6 +154,27 @@ export async function ladeEntries(opts?: {
     q = q.gte("datum", start).lt("datum", ende);
   }
   if (opts?.limit) q = q.limit(opts.limit);
+  const { data } = await q;
+  const rows = (data ?? []) as unknown as EntryRoh[];
+  const rates = await ladeRates();
+  return rows.map((r) => mapEntry(r, rates));
+}
+
+/**
+ * Ausstehende (status='eingereicht') Einträge für die Admin-Inbox.
+ * Sortiert: älteste zuerst (FIFO).
+ */
+export async function ladeAusstehend(opts?: {
+  locationId?: string | null;
+}): Promise<CommissionEntry[]> {
+  const supabase = await createClient();
+  let q = supabase
+    .from("commission_entries")
+    .select(ENTRY_SELECT)
+    .eq("status", "eingereicht")
+    .order("created_at", { ascending: true });
+  if (opts?.locationId)
+    q = q.or(`location_id.eq.${opts.locationId},location_id.is.null`);
   const { data } = await q;
   const rows = (data ?? []) as unknown as EntryRoh[];
   const rates = await ladeRates();
@@ -143,14 +193,26 @@ export async function ladeEntry(id: string): Promise<CommissionEntry | null> {
   return mapEntry(data as unknown as EntryRoh, rates);
 }
 
-/** Aggregate für Header-Stats (Monat oder Gesamt-Range). */
+/**
+ * Aggregate für Header-Stats. Zählt nur 'genehmigt'-Einträge (inkl.
+ * Storno-Einträge mit Negativ-Beträgen → automatisches Netting in der
+ * Summe). 'eingereicht' und 'abgelehnt' fließen NICHT in die Auszahlung.
+ *
+ * Storno-Einträge zählen als negative Abschlüsse (z.B. -1) damit der
+ * Counter im Ranking nicht "doppelt" zählt.
+ */
 export function aggregiere(entries: CommissionEntry[]): {
   abschluesse: number;
   provision_total: number;
 } {
+  const relevant = entries.filter((e) => e.status === "genehmigt");
+  const abschluesse = relevant.reduce(
+    (s, e) => s + (e.storno_von_id ? -1 : 1),
+    0,
+  );
   return {
-    abschluesse: entries.length,
-    provision_total: entries.reduce((s, e) => s + e.provision, 0),
+    abschluesse,
+    provision_total: relevant.reduce((s, e) => s + e.provision, 0),
   };
 }
 

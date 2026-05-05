@@ -230,7 +230,7 @@ export function AbschlussForm({ rates }: { rates: CommissionRate[] }) {
           {erfolg && (
             <p className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--success)/0.12)] px-3 py-2 text-xs font-medium text-[hsl(var(--success))]">
               <Check className="h-3.5 w-3.5" />
-              Eingetragen
+              Eingereicht — wartet auf Genehmigung der Studioleitung
             </p>
           )}
           <Button
