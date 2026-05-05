@@ -20,7 +20,10 @@ export default async function KontakteAdminPage() {
   const mitTel = kontakte.filter((k) => k.phone).length;
   const mitMail = kontakte.filter((k) => k.email).length;
   const tagsSet = new Set<string>();
-  kontakte.forEach((k) => k.role_tags.forEach((t) => tagsSet.add(t)));
+  for (const k of kontakte) {
+    const tags = Array.isArray(k.role_tags) ? k.role_tags : [];
+    for (const t of tags) if (typeof t === "string" && t.length > 0) tagsSet.add(t);
+  }
 
   const columns: Column<Kontakt>[] = [
     {
@@ -47,20 +50,23 @@ export default async function KontakteAdminPage() {
     {
       key: "role_tags",
       label: "Rollen",
-      render: (k) => (
-        <div className="flex flex-wrap gap-1">
-          {k.role_tags.slice(0, 3).map((r) => (
-            <StatusPill key={r} ton="primary">
-              {r}
-            </StatusPill>
-          ))}
-          {k.role_tags.length > 3 && (
-            <span className="text-[11px] text-muted-foreground">
-              +{k.role_tags.length - 3}
-            </span>
-          )}
-        </div>
-      ),
+      render: (k) => {
+        const tags = Array.isArray(k.role_tags) ? k.role_tags : [];
+        return (
+          <div className="flex flex-wrap gap-1">
+            {tags.slice(0, 3).map((r) => (
+              <StatusPill key={r} ton="primary">
+                {r}
+              </StatusPill>
+            ))}
+            {tags.length > 3 && (
+              <span className="text-[11px] text-muted-foreground">
+                +{tags.length - 3}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
