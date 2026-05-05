@@ -40,6 +40,11 @@ type NavEintrag = {
   href: string;
   label: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  /** Wenn true, gilt der Eintrag NUR bei exakt passendem pathname als
+   * aktiv. Sonst (default) auch bei jeder Sub-Route. Nötig z.B. für
+   * "Übersicht" /admin -- sonst wäre der Eintrag auf jeder Admin-
+   * Sub-Page mit-markiert. */
+  exact?: boolean;
 };
 
 type AdminGruppe = {
@@ -81,6 +86,7 @@ const ADMIN_OVERVIEW: NavEintrag = {
   href: "/admin",
   label: "Übersicht",
   icon: ShieldCheck,
+  exact: true,
 };
 
 const ADMIN_GROUPS: AdminGruppe[] = [
@@ -387,7 +393,9 @@ function NavLink({
   const Icon = eintrag.icon;
   const aktiv =
     pathname === eintrag.href ||
-    (eintrag.href !== "/" && pathname.startsWith(`${eintrag.href}/`));
+    (!eintrag.exact &&
+      eintrag.href !== "/" &&
+      pathname.startsWith(`${eintrag.href}/`));
 
   return (
     <Link
