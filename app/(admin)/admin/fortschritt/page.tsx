@@ -19,7 +19,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
-import { alsArray } from "@/lib/admin/safe-loader";
+import { alsArray, istNextJsControlFlow } from "@/lib/admin/safe-loader";
 import { formatProzent, rolleLabel } from "@/lib/format";
 
 type Mitarbeiter = {
@@ -55,6 +55,7 @@ async function ladeAlleMitarbeiter(): Promise<Mitarbeiter[]> {
       .filter((p) => typeof p.id === "string")
       .filter((p) => p.role === "mitarbeiter" || p.role === "fuehrungskraft");
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeAlleMitarbeiter] unexpected error:", e);
     return [];
   }
@@ -93,6 +94,7 @@ async function ladeAlleLernpfade(): Promise<Lernpfad[]> {
         };
       });
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeAlleLernpfade] unexpected error:", e);
     return [];
   }
@@ -116,6 +118,7 @@ async function ladeZuweisungen(): Promise<Zuweisung[]> {
         typeof z.learning_path_id === "string",
     );
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeZuweisungen] unexpected error:", e);
     return [];
   }
@@ -148,6 +151,7 @@ async function ladeFortschrittEintraege(): Promise<
     }
     return map;
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeFortschrittEintraege] unexpected error:", e);
     return map;
   }

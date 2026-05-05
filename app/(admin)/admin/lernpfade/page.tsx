@@ -15,7 +15,7 @@ import {
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
-import { alsArray } from "@/lib/admin/safe-loader";
+import { alsArray, istNextJsControlFlow } from "@/lib/admin/safe-loader";
 import { bildUrlFuerPfad } from "@/lib/storage";
 import { formatDatum } from "@/lib/format";
 
@@ -80,6 +80,7 @@ async function ladeLernpfade(): Promise<Zeile[]> {
         };
       });
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeLernpfade] unexpected error:", e);
     return [];
   }

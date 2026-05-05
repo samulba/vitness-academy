@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { istNextJsControlFlow } from "@/lib/admin/safe-loader";
 
 export type Kontakt = {
   id: string;
@@ -71,6 +72,7 @@ export async function ladeKontakte(
     }
     return ((data ?? []) as unknown as Roh[]).map(map);
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeKontakte] unexpected error:", e);
     return [];
   }
@@ -87,6 +89,7 @@ export async function ladeKontakt(id: string): Promise<Kontakt | null> {
     if (error || !data) return null;
     return map(data as unknown as Roh);
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeKontakt] unexpected error:", e);
     return null;
   }

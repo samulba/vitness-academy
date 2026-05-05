@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { joinName } from "@/lib/admin/safe-loader";
+import { istNextJsControlFlow, joinName } from "@/lib/admin/safe-loader";
 
 export type Priority = "low" | "normal" | "high";
 export type Recurrence = "none" | "daily" | "weekly";
@@ -182,6 +182,7 @@ export async function ladeMeineAufgaben(
         .map(map);
     }
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeMeineAufgaben] unexpected error:", e);
     alle = [];
   }
@@ -219,6 +220,7 @@ export async function ladeAufgabe(id: string): Promise<Aufgabe | null> {
     if (error || !data) return null;
     return map(data as unknown as Roh);
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeAufgabe] unexpected error:", e);
     return null;
   }
@@ -252,6 +254,7 @@ export async function ladeAlleAufgabenAdmin(
       .filter((r) => typeof r.id === "string")
       .map(map);
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeAlleAufgabenAdmin] unexpected error:", e);
     return [];
   }

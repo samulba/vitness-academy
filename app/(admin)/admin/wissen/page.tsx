@@ -10,7 +10,7 @@ import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state"
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
-import { alsArray, joinFeld } from "@/lib/admin/safe-loader";
+import { alsArray, istNextJsControlFlow, joinFeld } from "@/lib/admin/safe-loader";
 import { formatDatum } from "@/lib/format";
 import {
   kategorieAktualisieren,
@@ -74,6 +74,7 @@ async function ladeArtikel(): Promise<Artikel[]> {
         category_name: joinFeld(a.knowledge_categories, "name"),
       }));
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeArtikel] unexpected error:", e);
     return [];
   }
@@ -107,6 +108,7 @@ async function ladeKategorien(): Promise<Kategorie[]> {
         artikel_anzahl: alsArray(k.knowledge_articles).length,
       }));
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeKategorien] unexpected error:", e);
     return [];
   }

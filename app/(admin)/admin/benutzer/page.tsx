@@ -14,7 +14,7 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
-import { alsArray, joinFeld } from "@/lib/admin/safe-loader";
+import { alsArray, istNextJsControlFlow, joinFeld } from "@/lib/admin/safe-loader";
 import { formatDatum } from "@/lib/format";
 
 type Zeile = {
@@ -71,6 +71,7 @@ async function ladeBenutzer(includeArchiviert: boolean): Promise<Zeile[]> {
         zugewiesen: alsArray(r.user_learning_path_assignments).length,
       }));
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeBenutzer] unexpected error:", e);
     return [];
   }

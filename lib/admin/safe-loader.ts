@@ -54,3 +54,54 @@ export function joinName(j: unknown): string | null {
 export function alsArray<T>(v: unknown): T[] {
   return Array.isArray(v) ? (v as T[]) : [];
 }
+
+/**
+ * KRITISCH: Erkennt Next.js-interne Control-Flow-Fehler, die
+ * NICHT verschluckt werden duerfen.
+ *
+ * - redirect() throwt mit digest beginnend mit "NEXT_REDIRECT"
+ * - notFound() throwt mit digest beginnend mit "NEXT_NOT_FOUND"
+ * - cookies()/headers() in moeglichem Static-Render-Pfad throwen
+ *   mit digest "DYNAMIC_SERVER_USAGE"
+ *
+ * Wenn ein try/catch in einem Loader diese Errors verschluckt,
+ * funktioniert die Seite zur Laufzeit nicht mehr -- daher MUSS
+ * jeder defensive Loader sie re-throwen.
+ */
+export function istNextJsControlFlow(e: unknown): boolean {
+  if (!e || typeof e !== "object") return false;
+  const digest = (e as { digest?: unknown }).digest;
+  if (typeof digest !== "string") return false;
+  return (
+    digest === "DYNAMIC_SERVER_USAGE" ||
+    digest.startsWith("NEXT_REDIRECT") ||
+    digest.startsWith("NEXT_NOT_FOUND") ||
+    digest.startsWith("BAILOUT_TO_CLIENT_SIDE_RENDERING")
+  );
+}
+
+/**
+ * Wrapper fuer alle defensiven Loader: faengt nur "echte" Fehler ab,
+ * laesst Next.js-interne Errors (redirect, notFound, dynamic-usage)
+ * durch.
+ *
+ * @example
+ *   return safeLoad(async () => {
+ *     const supabase = await createClient();
+ *     ...
+ *     return rows.map(map);
+ *   }, []);
+ */
+export async function safeLoad<T>(
+  fn: () => Promise<T>,
+  fallback: T,
+  label = "loader",
+): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
+    console.error(`[${label}] unexpected error:`, e);
+    return fallback;
+  }
+}

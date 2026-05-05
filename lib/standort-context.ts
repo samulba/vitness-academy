@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { istNextJsControlFlow } from "@/lib/admin/safe-loader";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
@@ -21,31 +22,63 @@ export type StandortMembership = {
 export async function ladeMeineStandorte(
   userId: string,
 ): Promise<StandortMembership[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("user_locations")
-    .select(
-      `is_primary,
-       locations:location_id ( id, name )`,
-    )
-    .eq("user_id", userId);
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("user_locations")
+      .select(
+        `is_primary,
+         locations:location_id ( id, name )`,
+      )
+      .eq("user_id", userId);
 
-  type Roh = {
-    is_primary: boolean;
-    locations: { id: string; name: string } | null;
-  };
-  const rows = ((data ?? []) as unknown as Roh[]).filter((r) => r.locations);
-  return rows
-    .map((r) => ({
-      id: r.locations!.id,
-      name: r.locations!.name,
-      is_primary: r.is_primary,
-    }))
-    .sort((a, b) => {
+    if (error) {
+      console.error("[ladeMeineStandorte] supabase error:", error);
+      return [];
+    }
+
+    type Roh = {
+      is_primary?: boolean;
+      locations?: unknown;
+    };
+
+    function pickLoc(j: unknown): { id: string; name: string } | null {
+      if (!j) return null;
+      const obj = Array.isArray(j) ? j[0] : j;
+      if (
+        obj &&
+        typeof obj === "object" &&
+        typeof (obj as { id?: unknown }).id === "string" &&
+        typeof (obj as { name?: unknown }).name === "string"
+      ) {
+        return {
+          id: (obj as { id: string }).id,
+          name: (obj as { name: string }).name,
+        };
+      }
+      return null;
+    }
+
+    const standorte: StandortMembership[] = [];
+    for (const r of (data ?? []) as Roh[]) {
+      const loc = pickLoc(r.locations);
+      if (!loc) continue;
+      standorte.push({
+        id: loc.id,
+        name: loc.name,
+        is_primary: Boolean(r.is_primary),
+      });
+    }
+    return standorte.sort((a, b) => {
       if (a.is_primary && !b.is_primary) return -1;
       if (!a.is_primary && b.is_primary) return 1;
       return a.name.localeCompare(b.name, "de");
     });
+  } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
+    console.error("[ladeMeineStandorte] unexpected error:", e);
+    return [];
+  }
 }
 
 /**

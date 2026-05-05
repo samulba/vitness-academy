@@ -16,7 +16,7 @@ import {
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
-import { alsArray, joinTitel } from "@/lib/admin/safe-loader";
+import { alsArray, istNextJsControlFlow, joinTitel } from "@/lib/admin/safe-loader";
 import { formatDatum } from "@/lib/format";
 
 type Zeile = {
@@ -101,6 +101,7 @@ async function ladeQuizze(): Promise<Zeile[]> {
         };
       });
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeQuizze] unexpected error:", e);
     return [];
   }

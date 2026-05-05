@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { joinName, joinTitel } from "@/lib/admin/safe-loader";
+import { istNextJsControlFlow, joinName, joinTitel } from "@/lib/admin/safe-loader";
 
 export type PraxisStatus = "offen" | "bereit" | "freigegeben" | "abgelehnt";
 
@@ -109,6 +109,7 @@ export async function ladeMeinePraxisaufgaben(
         };
       });
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeMeinePraxisaufgaben] unexpected error:", e);
     return [];
   }
@@ -205,6 +206,7 @@ export async function ladePraxisInbox(
     }
     return eintraege;
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladePraxisInbox] unexpected error:", e);
     return [];
   }

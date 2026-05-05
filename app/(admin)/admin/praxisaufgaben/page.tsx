@@ -6,7 +6,7 @@ import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state"
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
-import { alsArray, joinTitel } from "@/lib/admin/safe-loader";
+import { alsArray, istNextJsControlFlow, joinTitel } from "@/lib/admin/safe-loader";
 
 type Zeile = {
   id: string;
@@ -68,6 +68,7 @@ async function ladeAufgaben(): Promise<Zeile[]> {
         };
       });
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladeAufgaben] unexpected error:", e);
     return [];
   }
