@@ -372,3 +372,112 @@ export async function notizLoeschen(
   revalidatePath(`/admin/benutzer/${benutzerId}`);
   redirect(`/admin/benutzer/${benutzerId}?toast=deleted`);
 }
+
+// =============================================================
+// Onboarding-Checklisten
+// =============================================================
+
+export async function checklistTogglen(
+  itemId: string,
+  benutzerId: string,
+): Promise<void> {
+  const aktuell = await getCurrentProfile();
+  if (
+    !aktuell ||
+    !(istAdmin(aktuell.role) || istFuehrungskraftOderHoeher(aktuell.role))
+  ) {
+    redirect("/admin");
+  }
+
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("mitarbeiter_onboarding_progress")
+    .select("id, erledigt_am")
+    .eq("mitarbeiter_id", benutzerId)
+    .eq("item_id", itemId)
+    .maybeSingle();
+
+  if (existing) {
+    if (existing.erledigt_am) {
+      await supabase
+        .from("mitarbeiter_onboarding_progress")
+        .update({ erledigt_am: null, erledigt_von: null })
+        .eq("id", existing.id);
+    } else {
+      await supabase
+        .from("mitarbeiter_onboarding_progress")
+        .update({
+          erledigt_am: new Date().toISOString(),
+          erledigt_von: aktuell.id,
+        })
+        .eq("id", existing.id);
+    }
+  } else {
+    await supabase.from("mitarbeiter_onboarding_progress").insert({
+      mitarbeiter_id: benutzerId,
+      item_id: itemId,
+      erledigt_am: new Date().toISOString(),
+      erledigt_von: aktuell.id,
+    });
+  }
+
+  revalidatePath(`/admin/benutzer/${benutzerId}`);
+  revalidatePath("/admin/benutzer");
+}
+
+export async function checklistItemAnlegen(
+  formData: FormData,
+): Promise<void> {
+  await ensureAdmin();
+  const label = String(formData.get("label") ?? "").trim();
+  const beschreibung =
+    String(formData.get("beschreibung") ?? "").trim() || null;
+  const templateIdRaw = String(formData.get("template_id") ?? "").trim();
+  const template_id = istUUID(templateIdRaw) ? templateIdRaw : null;
+  const sortRaw = String(formData.get("sort_order") ?? "0").trim();
+  const sort_order = parseInt(sortRaw, 10) || 0;
+
+  if (label.length === 0) {
+    redirect("/admin/onboarding-templates?toast=error");
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("onboarding_checklist_items")
+    .insert({ template_id, label, beschreibung, sort_order });
+  if (error) {
+    redirect("/admin/onboarding-templates?toast=error");
+  }
+
+  revalidatePath("/admin/onboarding-templates");
+  if (template_id)
+    revalidatePath(`/admin/onboarding-templates/${template_id}`);
+  revalidatePath("/admin/benutzer");
+  redirect(
+    template_id
+      ? `/admin/onboarding-templates/${template_id}?toast=saved`
+      : "/admin/onboarding-templates?toast=saved",
+  );
+}
+
+export async function checklistItemLoeschen(id: string): Promise<void> {
+  await ensureAdmin();
+  const supabase = await createClient();
+  const { data: item } = await supabase
+    .from("onboarding_checklist_items")
+    .select("template_id")
+    .eq("id", id)
+    .maybeSingle();
+  const tid = item?.template_id as string | null | undefined;
+
+  await supabase.from("onboarding_checklist_items").delete().eq("id", id);
+
+  revalidatePath("/admin/onboarding-templates");
+  if (tid) revalidatePath(`/admin/onboarding-templates/${tid}`);
+  revalidatePath("/admin/benutzer");
+  redirect(
+    tid
+      ? `/admin/onboarding-templates/${tid}?toast=deleted`
+      : "/admin/onboarding-templates?toast=deleted",
+  );
+}

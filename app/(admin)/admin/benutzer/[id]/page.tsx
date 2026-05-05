@@ -24,8 +24,10 @@ import { ladeMeineLernpfade } from "@/lib/lernpfade";
 import { mitarbeiterQuizVerlauf } from "@/lib/quiz_stats";
 import { ladeAktivitaetsMap } from "@/lib/lektion";
 import { ladeNotizen } from "@/lib/mitarbeiter-notizen";
+import { ladeChecklistFuerMitarbeiter } from "@/lib/onboarding-checklist";
 import { AktivitaetsHeatmap } from "@/components/charts/AktivitaetsHeatmap";
 import { NotizenThread } from "@/components/benutzer/NotizenThread";
+import { OnboardingChecklist } from "@/components/benutzer/OnboardingChecklist";
 import { requireRole } from "@/lib/auth";
 import { formatDatum, formatProzent, rolleLabel } from "@/lib/format";
 import {
@@ -224,6 +226,7 @@ export default async function BenutzerBearbeitenPage({
   const quizVerlauf = await mitarbeiterQuizVerlauf(id, 10);
   const aktivitaetsMap = await ladeAktivitaetsMap(id);
   const notizen = await ladeNotizen(id);
+  const checklistItems = await ladeChecklistFuerMitarbeiter(id);
 
   if (!profil) notFound();
 
@@ -507,6 +510,22 @@ export default async function BenutzerBearbeitenPage({
               <SpeichernButton />
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Onboarding</CardTitle>
+          <CardDescription>
+            Schritte für den Einstieg ins Studio. Items pflegt Admin in
+            Onboarding-Templates.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <OnboardingChecklist
+            benutzerId={profil.id}
+            items={checklistItems}
+          />
         </CardContent>
       </Card>
 
