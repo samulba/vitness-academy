@@ -1,24 +1,11 @@
 import Link from "next/link";
-import { CheckSquare, Clock, Pencil, Plus, ThumbsDown, ThumbsUp } from "lucide-react";
+import { CheckSquare, Clock, Plus, ThumbsDown, ThumbsUp } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
-import { DataTable, type Column } from "@/components/ui/data-table";
-import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
 import { alsArray, istNextJsControlFlow, joinTitel } from "@/lib/admin/safe-loader";
-
-type Zeile = {
-  id: string;
-  title: string;
-  status: string;
-  pfad_titel: string | null;
-  lektion_titel: string | null;
-  bereit: number;
-  freigegeben: number;
-  abgelehnt: number;
-  updated_at: string;
-};
+import { PraxisaufgabenTable, type Zeile } from "./PraxisaufgabenTable";
 
 async function ladeAufgaben(): Promise<Zeile[]> {
   try {
@@ -74,80 +61,12 @@ async function ladeAufgaben(): Promise<Zeile[]> {
   }
 }
 
-function StatusBadge({ status }: { status: string }) {
-  if (status === "aktiv")
-    return (
-      <StatusPill ton="success" dot>
-        Aktiv
-      </StatusPill>
-    );
-  if (status === "entwurf") return <StatusPill ton="warn">Entwurf</StatusPill>;
-  return <StatusPill ton="neutral">Archiviert</StatusPill>;
-}
-
 export default async function AdminPraxisaufgabenPage() {
   const aufgaben = await ladeAufgaben();
   const aktiv = aufgaben.filter((a) => a.status === "aktiv").length;
   const wartetSumme = aufgaben.reduce((s, a) => s + a.bereit, 0);
   const freigegebenSumme = aufgaben.reduce((s, a) => s + a.freigegeben, 0);
   const abgelehntSumme = aufgaben.reduce((s, a) => s + a.abgelehnt, 0);
-
-  const columns: Column<Zeile>[] = [
-    {
-      key: "title",
-      label: "Titel",
-      sortable: true,
-      render: (a) => (
-        <div className="flex flex-col gap-0.5">
-          <span className="font-medium text-foreground">{a.title}</span>
-          {(a.pfad_titel || a.lektion_titel) && (
-            <span className="text-[11px] text-muted-foreground">
-              {[a.pfad_titel, a.lektion_titel].filter(Boolean).join(" · ")}
-            </span>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: "status",
-      label: "Status",
-      sortable: true,
-      render: (a) => <StatusBadge status={a.status} />,
-    },
-    {
-      key: "bereit",
-      label: "Wartet",
-      sortable: true,
-      align: "right",
-      render: (a) => (
-        <span className="tabular-nums text-[hsl(var(--brand-pink))]">
-          {a.bereit}
-        </span>
-      ),
-    },
-    {
-      key: "freigegeben",
-      label: "Freigegeben",
-      sortable: true,
-      align: "right",
-      render: (a) => (
-        <span className="tabular-nums text-[hsl(var(--success))]">
-          {a.freigegeben}
-        </span>
-      ),
-    },
-    {
-      key: "abgelehnt",
-      label: "Abgelehnt",
-      sortable: true,
-      align: "right",
-      render: (a) => (
-        <span className="tabular-nums text-muted-foreground">
-          {a.abgelehnt}
-        </span>
-      ),
-    },
-  ];
 
   return (
     <div className="space-y-6">
@@ -190,32 +109,7 @@ export default async function AdminPraxisaufgabenPage() {
           />
         </div>
       ) : (
-        <DataTable<Zeile>
-          data={aufgaben}
-          columns={columns}
-          searchable={{ placeholder: "Aufgabe suchen…", keys: ["title"] }}
-          filters={[
-            {
-              key: "status",
-              label: "Status",
-              options: [
-                { value: "aktiv", label: "Aktiv" },
-                { value: "entwurf", label: "Entwurf" },
-                { value: "archiviert", label: "Archiviert" },
-              ],
-              multi: true,
-            },
-          ]}
-          rowHref={(a) => `/admin/praxisaufgaben/${a.id}`}
-          rowActions={[
-            {
-              icon: <Pencil />,
-              label: "Bearbeiten",
-              href: (a) => `/admin/praxisaufgaben/${a.id}`,
-            },
-          ]}
-          defaultSort={{ key: "title", direction: "asc" }}
-        />
+        <PraxisaufgabenTable aufgaben={aufgaben} />
       )}
 
       <p className="text-[11px] text-muted-foreground">
