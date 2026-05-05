@@ -8,6 +8,8 @@ import {
   type EntryStatus,
   type Laufzeit,
   type MonatStat,
+  type Payout,
+  type PayoutStatus,
   type Target,
 } from "@/lib/provisionen-types";
 
@@ -19,10 +21,13 @@ export type {
   EntryStatus,
   Laufzeit,
   MonatStat,
+  Payout,
+  PayoutStatus,
   Target,
 } from "@/lib/provisionen-types";
 export {
   LAUFZEIT_OPTIONS,
+  PAYOUT_STATUS_LABEL,
   STATUS_LABEL,
   berechneMonatsTotal,
   berechneProvision,
@@ -417,4 +422,178 @@ export async function ladeMonatsHistorie(
   return Array.from(buckets.values()).sort((a, b) =>
     a.monat.localeCompare(b.monat),
   );
+}
+
+// =============================================================
+// Payouts (Monats-Abrechnung)
+// =============================================================
+
+const PAYOUT_SELECT = `
+  id, monat_yyyymm, vertriebler_id, abschluesse_anzahl, provision_summe,
+  bonus_summe, total, bonus_stufe_info, status, ausgezahlt_am,
+  ausgezahlt_via, ausgezahlt_note, locked_by, locked_at,
+  vertriebler:vertriebler_id ( full_name ),
+  locker:locked_by ( full_name )
+`;
+
+type PayoutRoh = {
+  id: string;
+  monat_yyyymm: string;
+  vertriebler_id: string;
+  abschluesse_anzahl: number | string;
+  provision_summe: number | string;
+  bonus_summe: number | string;
+  total: number | string;
+  bonus_stufe_info: string | null;
+  status: string;
+  ausgezahlt_am: string | null;
+  ausgezahlt_via: string | null;
+  ausgezahlt_note: string | null;
+  locked_by: string | null;
+  locked_at: string;
+  vertriebler: { full_name: string | null } | null;
+  locker: unknown;
+};
+
+function mapPayout(r: PayoutRoh): Payout {
+  const status = (
+    ["offen", "ausgezahlt", "geblockt"].includes(r.status)
+      ? r.status
+      : "offen"
+  ) as PayoutStatus;
+  return {
+    id: r.id,
+    monat_yyyymm: r.monat_yyyymm,
+    vertriebler_id: r.vertriebler_id,
+    vertriebler_name: r.vertriebler?.full_name ?? null,
+    abschluesse_anzahl:
+      typeof r.abschluesse_anzahl === "number"
+        ? r.abschluesse_anzahl
+        : parseInt(r.abschluesse_anzahl, 10) || 0,
+    provision_summe: num(r.provision_summe),
+    bonus_summe: num(r.bonus_summe),
+    total: num(r.total),
+    bonus_stufe_info: r.bonus_stufe_info,
+    status,
+    ausgezahlt_am: r.ausgezahlt_am,
+    ausgezahlt_via: r.ausgezahlt_via,
+    ausgezahlt_note: r.ausgezahlt_note,
+    locked_by: r.locked_by,
+    locked_by_name: joinName(r.locker),
+    locked_at: r.locked_at,
+  };
+}
+
+/**
+ * Lädt alle Payouts (Filter optional). Wenn die Migration noch nicht
+ * eingespielt ist, kommt ein leeres Array zurück.
+ */
+export async function ladePayouts(opts?: {
+  monatYYYYMM?: string;
+  vertrieblerId?: string;
+}): Promise<Payout[]> {
+  try {
+    const supabase = await createClient();
+    let q = supabase
+      .from("commission_payouts")
+      .select(PAYOUT_SELECT)
+      .order("monat_yyyymm", { ascending: false })
+      .order("locked_at", { ascending: false });
+    if (opts?.monatYYYYMM) q = q.eq("monat_yyyymm", opts.monatYYYYMM);
+    if (opts?.vertrieblerId) q = q.eq("vertriebler_id", opts.vertrieblerId);
+    const { data, error } = await q;
+    if (error) {
+      console.error("[ladePayouts] supabase error:", error);
+      return [];
+    }
+    return ((data ?? []) as unknown as PayoutRoh[]).map(mapPayout);
+  } catch (e) {
+    console.error("[ladePayouts] unexpected error:", e);
+    return [];
+  }
+}
+
+/**
+ * Sammelt für einen Monat alle Vertriebler-Vorschauen (vor dem Lock):
+ * Wer hat wie viele genehmigte Abschlüsse, wie hoch wäre Provision +
+ * Bonus, und somit Total. Wird auf der Abrechnungs-Page angezeigt
+ * BEVOR der Admin auf "abrechnen" klickt.
+ */
+export async function ladeAbrechnungsVorschau(
+  monatYYYYMM: string,
+): Promise<
+  {
+    vertriebler_id: string;
+    vertriebler_name: string | null;
+    abschluesse_anzahl: number;
+    provision_summe: number;
+    bonus_summe: number;
+    total: number;
+    bonus_stufe_info: string | null;
+  }[]
+> {
+  const [entries, bonusStufen] = await Promise.all([
+    ladeEntries({ monatYYYYMM, status: ["genehmigt"] }),
+    ladeBonusStufen(),
+  ]);
+
+  // Pro Vertriebler aggregieren
+  const map = new Map<
+    string,
+    {
+      vertriebler_id: string;
+      vertriebler_name: string | null;
+      abschluesse_anzahl: number;
+      provision_summe: number;
+    }
+  >();
+  for (const e of entries) {
+    const cur = map.get(e.vertriebler_id);
+    const delta = e.storno_von_id ? -1 : 1;
+    if (cur) {
+      cur.abschluesse_anzahl += delta;
+      cur.provision_summe += e.provision;
+    } else {
+      map.set(e.vertriebler_id, {
+        vertriebler_id: e.vertriebler_id,
+        vertriebler_name: e.vertriebler_name,
+        abschluesse_anzahl: delta,
+        provision_summe: e.provision,
+      });
+    }
+  }
+
+  // Bonus pro Vertriebler dazulegen
+  const monatsEnde = `${monatYYYYMM}-31`;
+  return Array.from(map.values()).map((v) => {
+    // Passende Stufe finden
+    const passend = bonusStufen
+      .filter(
+        (s) =>
+          s.valid_from <= monatsEnde &&
+          s.ab_abschluessen <= v.abschluesse_anzahl &&
+          (s.vertriebler_id === v.vertriebler_id ||
+            s.vertriebler_id === null),
+      )
+      .sort((a, b) => {
+        if (a.vertriebler_id && !b.vertriebler_id) return -1;
+        if (!a.vertriebler_id && b.vertriebler_id) return 1;
+        return b.ab_abschluessen - a.ab_abschluessen;
+      });
+    const stufe = passend[0] ?? null;
+    const bonus_summe = stufe
+      ? (v.provision_summe * stufe.bonus_prozent) / 100
+      : 0;
+    return {
+      vertriebler_id: v.vertriebler_id,
+      vertriebler_name: v.vertriebler_name,
+      abschluesse_anzahl: v.abschluesse_anzahl,
+      provision_summe: v.provision_summe,
+      bonus_summe,
+      total: v.provision_summe + bonus_summe,
+      bonus_stufe_info: stufe
+        ? `+${stufe.bonus_prozent}% ab ${stufe.ab_abschluessen} Abschlüssen`
+        : null,
+    };
+  });
 }

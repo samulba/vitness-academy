@@ -14,9 +14,11 @@ import {
   ladeBonusStufen,
   ladeEntries,
   ladeMonatsHistorie,
+  ladePayouts,
   ladeRates,
   ladeTarget,
   laufzeitLabel,
+  PAYOUT_STATUS_LABEL,
   STATUS_LABEL,
   type EntryStatus,
 } from "@/lib/provisionen";
@@ -83,11 +85,12 @@ export default async function ProvisionenPage({
   const sp = await searchParams;
   const monat = sp.monat?.match(/^\d{4}-\d{2}$/) ? sp.monat : aktuellerMonat();
 
-  const [entries, rates, historie, bonusStufen] = await Promise.all([
+  const [entries, rates, historie, bonusStufen, payouts] = await Promise.all([
     ladeEntries({ vertrieblerId: profile.id, monatYYYYMM: monat }),
     ladeRates(),
     ladeMonatsHistorie(profile.id, 6),
     ladeBonusStufen(),
+    ladePayouts({ vertrieblerId: profile.id }),
   ]);
   const stats = aggregiere(entries);
 
@@ -301,6 +304,61 @@ export default async function ProvisionenPage({
           </div>
         )}
       </section>
+
+      {/* Payouts/Auszahlungen-Historie */}
+      {payouts.length > 0 && (
+        <section>
+          <header className="mb-3">
+            <h2 className="text-base font-semibold tracking-tight">
+              Meine Auszahlungen
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Abgerechnete Monate und ihr Auszahlungsstatus.
+            </p>
+          </header>
+          <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+            {payouts.map((p) => (
+              <li
+                key={p.id}
+                className="flex flex-wrap items-center gap-3 px-5 py-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold">
+                    {monatsLabel(p.monat_yyyymm)}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {p.abschluesse_anzahl}{" "}
+                    {p.abschluesse_anzahl === 1
+                      ? "Abschluss"
+                      : "Abschlüsse"}{" "}
+                    · Provision {formatEuro(p.provision_summe)}
+                    {p.bonus_summe > 0 && (
+                      <span className="text-[hsl(var(--brand-pink))]">
+                        {" "}
+                        + Bonus {formatEuro(p.bonus_summe)}
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <span className="text-base font-bold text-[hsl(var(--brand-pink))] tabular-nums">
+                  {formatEuro(p.total)}
+                </span>
+                {p.status === "ausgezahlt" ? (
+                  <StatusPill ton="success" dot>
+                    {p.ausgezahlt_am
+                      ? `Ausgezahlt ${formatDatum(p.ausgezahlt_am)}`
+                      : PAYOUT_STATUS_LABEL[p.status]}
+                  </StatusPill>
+                ) : (
+                  <StatusPill ton="warn" dot>
+                    {PAYOUT_STATUS_LABEL[p.status]}
+                  </StatusPill>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

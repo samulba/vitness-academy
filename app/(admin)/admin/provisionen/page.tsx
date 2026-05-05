@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Inbox, Receipt, Settings, TrendingUp, Users } from "lucide-react";
+import { Banknote, Inbox, Receipt, Settings, TrendingUp, Users } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
@@ -150,6 +150,11 @@ export default async function ProvisionenAdminPage({
                 ? `Inbox (${ausstehend.length})`
                 : "Inbox",
             href: "/admin/provisionen/inbox",
+          },
+          {
+            icon: <Banknote />,
+            label: "Abrechnung",
+            href: "/admin/provisionen/abrechnung",
           },
         ]}
       />

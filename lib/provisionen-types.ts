@@ -96,6 +96,33 @@ export type MonatStat = {
   provision: number;
 };
 
+export type PayoutStatus = "offen" | "ausgezahlt" | "geblockt";
+
+export const PAYOUT_STATUS_LABEL: Record<PayoutStatus, string> = {
+  offen: "Offen",
+  ausgezahlt: "Ausgezahlt",
+  geblockt: "Geblockt",
+};
+
+export type Payout = {
+  id: string;
+  monat_yyyymm: string;
+  vertriebler_id: string;
+  vertriebler_name: string | null;
+  abschluesse_anzahl: number;
+  provision_summe: number;
+  bonus_summe: number;
+  total: number;
+  bonus_stufe_info: string | null;
+  status: PayoutStatus;
+  ausgezahlt_am: string | null;
+  ausgezahlt_via: string | null;
+  ausgezahlt_note: string | null;
+  locked_by: string | null;
+  locked_by_name: string | null;
+  locked_at: string;
+};
+
 /**
  * Findet den passenden Satz für einen Eintrag. Persönliche Sätze des
  * Vertrieblers gewinnen gegen den Default. Innerhalb der gleichen
