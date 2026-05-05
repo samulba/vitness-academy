@@ -1,4 +1,4 @@
-import { Contact, Phone, Plus } from "lucide-react";
+import { Contact, Phone, Plus, Settings2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
@@ -75,6 +75,13 @@ export default async function KontakteAdminPage() {
           icon: <Plus />,
           href: "/admin/kontakte/neu",
         }}
+        secondaryActions={[
+          {
+            label: "Rollen verwalten",
+            icon: <Settings2 />,
+            href: "/admin/kontakte/rollen",
+          },
+        ]}
       />
 
       <StatGrid cols={4}>

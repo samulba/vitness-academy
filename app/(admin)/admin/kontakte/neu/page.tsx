@@ -1,10 +1,12 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { requireRole } from "@/lib/auth";
+import { ladeRollen } from "@/lib/contact-roles";
 import { KontaktForm } from "../KontaktForm";
 import { kontaktAnlegen } from "../actions";
 
 export default async function NeuerKontaktPage() {
   await requireRole(["admin", "superadmin"]);
+  const rollen = await ladeRollen();
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <PageHeader
@@ -28,7 +30,7 @@ export default async function NeuerKontaktPage() {
           </p>
         </div>
         <div className="p-5">
-          <KontaktForm action={kontaktAnlegen} modus="neu" />
+          <KontaktForm action={kontaktAnlegen} modus="neu" rollen={rollen} />
         </div>
       </div>
     </div>

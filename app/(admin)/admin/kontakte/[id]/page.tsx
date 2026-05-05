@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { requireRole } from "@/lib/auth";
 import { ladeKontakt, vollerName } from "@/lib/kontakte";
+import { ladeRollen } from "@/lib/contact-roles";
 import { KontaktForm } from "../KontaktForm";
 import { kontaktAktualisieren, kontaktLoeschen } from "../actions";
 
@@ -13,7 +14,7 @@ export default async function KontaktBearbeitenPage({
 }) {
   await requireRole(["admin", "superadmin"]);
   const { id } = await params;
-  const k = await ladeKontakt(id);
+  const [k, rollen] = await Promise.all([ladeKontakt(id), ladeRollen()]);
   if (!k) notFound();
 
   const aktualisieren = kontaktAktualisieren.bind(null, id);
@@ -46,6 +47,7 @@ export default async function KontaktBearbeitenPage({
           <KontaktForm
             action={aktualisieren}
             modus="bearbeiten"
+            rollen={rollen}
             initial={{
               first_name: k.first_name,
               last_name: k.last_name,
@@ -53,7 +55,6 @@ export default async function KontaktBearbeitenPage({
               phone: k.phone,
               email: k.email,
               notes: k.notes,
-              sort_order: k.sort_order,
             }}
           />
         </div>
