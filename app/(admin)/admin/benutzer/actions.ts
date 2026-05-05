@@ -323,3 +323,52 @@ export async function standortAlsPrimary(
   revalidatePath(`/admin/benutzer/${benutzerId}`);
   redirect(`/admin/benutzer/${benutzerId}?toast=saved`);
 }
+
+// =============================================================
+// Notizen
+// =============================================================
+
+export async function notizAnlegen(
+  benutzerId: string,
+  formData: FormData,
+): Promise<void> {
+  const aktuell = await getCurrentProfile();
+  if (
+    !aktuell ||
+    !(istAdmin(aktuell.role) || istFuehrungskraftOderHoeher(aktuell.role))
+  ) {
+    redirect("/admin");
+  }
+  const body = String(formData.get("body") ?? "").trim();
+  if (body.length === 0) {
+    redirect(`/admin/benutzer/${benutzerId}?toast=error`);
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("mitarbeiter_notizen").insert({
+    mitarbeiter_id: benutzerId,
+    autor_id: aktuell.id,
+    body,
+  });
+  if (error) {
+    redirect(`/admin/benutzer/${benutzerId}?toast=error`);
+  }
+
+  revalidatePath(`/admin/benutzer/${benutzerId}`);
+  redirect(`/admin/benutzer/${benutzerId}?toast=saved`);
+}
+
+export async function notizLoeschen(
+  notizId: string,
+  benutzerId: string,
+): Promise<void> {
+  const aktuell = await getCurrentProfile();
+  if (!aktuell) redirect("/admin");
+
+  const supabase = await createClient();
+  // RLS sorgt dafür: Autor selbst oder Admin
+  await supabase.from("mitarbeiter_notizen").delete().eq("id", notizId);
+
+  revalidatePath(`/admin/benutzer/${benutzerId}`);
+  redirect(`/admin/benutzer/${benutzerId}?toast=deleted`);
+}

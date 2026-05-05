@@ -23,7 +23,9 @@ import { createClient } from "@/lib/supabase/server";
 import { ladeMeineLernpfade } from "@/lib/lernpfade";
 import { mitarbeiterQuizVerlauf } from "@/lib/quiz_stats";
 import { ladeAktivitaetsMap } from "@/lib/lektion";
+import { ladeNotizen } from "@/lib/mitarbeiter-notizen";
 import { AktivitaetsHeatmap } from "@/components/charts/AktivitaetsHeatmap";
+import { NotizenThread } from "@/components/benutzer/NotizenThread";
 import { requireRole } from "@/lib/auth";
 import { formatDatum, formatProzent, rolleLabel } from "@/lib/format";
 import {
@@ -221,6 +223,7 @@ export default async function BenutzerBearbeitenPage({
 
   const quizVerlauf = await mitarbeiterQuizVerlauf(id, 10);
   const aktivitaetsMap = await ladeAktivitaetsMap(id);
+  const notizen = await ladeNotizen(id);
 
   if (!profil) notFound();
 
@@ -504,6 +507,23 @@ export default async function BenutzerBearbeitenPage({
               <SpeichernButton />
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Notizen</CardTitle>
+          <CardDescription>
+            Personalführungs-Notizen — Lob, Konflikte, Entwicklung. Sichtbar
+            für Admin und Führungskraft. Mitarbeiter:in selbst sieht das nicht.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <NotizenThread
+            benutzerId={profil.id}
+            notizen={notizen}
+            aktuellId={aktuell.id}
+          />
         </CardContent>
       </Card>
 
