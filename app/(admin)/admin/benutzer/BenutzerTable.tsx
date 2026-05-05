@@ -14,6 +14,20 @@ export type Zeile = {
   location_name: string | null;
   zugewiesen: number;
   archived_at: string | null;
+  vertragsart: string | null;
+  tags: string[];
+  onboarding_erledigt: number;
+  onboarding_gesamt: number;
+};
+
+const VERTRAG_LABEL: Record<string, string> = {
+  vollzeit: "Vollzeit",
+  teilzeit: "Teilzeit",
+  minijob: "Minijob",
+  aushilfe: "Aushilfe",
+  selbstaendig: "Selbstständig",
+  praktikant: "Praktikant:in",
+  sonstiges: "Sonstiges",
 };
 
 function RollenPill({ role }: { role: string }) {
@@ -26,6 +40,26 @@ function RollenPill({ role }: { role: string }) {
 }
 
 export function BenutzerTable({ benutzer }: { benutzer: Zeile[] }) {
+  // Tag-Filter-Optionen aus den tatsächlich vorhandenen Tags
+  const tagSet = new Set<string>();
+  for (const b of benutzer) {
+    for (const t of b.tags ?? []) {
+      if (typeof t === "string" && t.length > 0) tagSet.add(t);
+    }
+  }
+  const tagOptions = Array.from(tagSet)
+    .sort((a, b) => a.localeCompare(b, "de"))
+    .map((t) => ({ value: t, label: t }));
+
+  const vertragSet = new Set<string>();
+  for (const b of benutzer) {
+    if (b.vertragsart) vertragSet.add(b.vertragsart);
+  }
+  const vertragOptions = Array.from(vertragSet).map((v) => ({
+    value: v,
+    label: VERTRAG_LABEL[v] ?? v,
+  }));
+
   const columns: Column<Zeile>[] = [
     {
       key: "full_name",
@@ -43,6 +77,23 @@ export function BenutzerTable({ benutzer }: { benutzer: Zeile[] }) {
                 archiviert seit {formatDatum(b.archived_at)}
               </span>
             )}
+            {b.tags.length > 0 && (
+              <div className="mt-0.5 flex flex-wrap gap-1">
+                {b.tags.slice(0, 3).map((t) => (
+                  <span
+                    key={t}
+                    className="inline-flex items-center rounded-full bg-[hsl(var(--brand-pink)/0.08)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]"
+                  >
+                    {t}
+                  </span>
+                ))}
+                {b.tags.length > 3 && (
+                  <span className="text-[10px] text-muted-foreground">
+                    +{b.tags.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       ),
@@ -54,6 +105,19 @@ export function BenutzerTable({ benutzer }: { benutzer: Zeile[] }) {
       render: (b) => <RollenPill role={b.role} />,
     },
     {
+      key: "vertragsart",
+      label: "Vertrag",
+      sortable: true,
+      render: (b) =>
+        b.vertragsart ? (
+          <StatusPill ton="neutral">
+            {VERTRAG_LABEL[b.vertragsart] ?? b.vertragsart}
+          </StatusPill>
+        ) : (
+          <span className="text-xs text-muted-foreground/50">—</span>
+        ),
+    },
+    {
       key: "location_name",
       label: "Standort",
       sortable: true,
@@ -62,6 +126,23 @@ export function BenutzerTable({ benutzer }: { benutzer: Zeile[] }) {
           {b.location_name ?? "—"}
         </span>
       ),
+    },
+    {
+      key: "onboarding_erledigt",
+      label: "Onboarding",
+      sortable: true,
+      align: "right",
+      render: (b) => {
+        if (b.onboarding_gesamt === 0) {
+          return <span className="text-xs text-muted-foreground/50">—</span>;
+        }
+        const fertig = b.onboarding_erledigt === b.onboarding_gesamt;
+        return (
+          <StatusPill ton={fertig ? "success" : "warn"}>
+            {b.onboarding_erledigt}/{b.onboarding_gesamt}
+          </StatusPill>
+        );
+      },
     },
     {
       key: "zugewiesen",
@@ -89,6 +170,27 @@ export function BenutzerTable({ benutzer }: { benutzer: Zeile[] }) {
     },
   ];
 
+  // Build filters dynamically
+  const filterList = [
+    {
+      key: "role",
+      label: "Rolle",
+      options: [
+        { value: "mitarbeiter", label: "Mitarbeiter" },
+        { value: "fuehrungskraft", label: "Führungskraft" },
+        { value: "admin", label: "Admin" },
+        { value: "superadmin", label: "Superadmin" },
+      ],
+      multi: true,
+    },
+    ...(vertragOptions.length > 0
+      ? [{ key: "vertragsart", label: "Vertrag", options: vertragOptions, multi: true }]
+      : []),
+    ...(tagOptions.length > 0
+      ? [{ key: "tags", label: "Tag", options: tagOptions, multi: true }]
+      : []),
+  ];
+
   return (
     <DataTable<Zeile>
       data={benutzer}
@@ -97,19 +199,7 @@ export function BenutzerTable({ benutzer }: { benutzer: Zeile[] }) {
         placeholder: "Mitarbeiter suchen…",
         keys: ["full_name", "location_name"],
       }}
-      filters={[
-        {
-          key: "role",
-          label: "Rolle",
-          options: [
-            { value: "mitarbeiter", label: "Mitarbeiter" },
-            { value: "fuehrungskraft", label: "Führungskraft" },
-            { value: "admin", label: "Admin" },
-            { value: "superadmin", label: "Superadmin" },
-          ],
-          multi: true,
-        },
-      ]}
+      filters={filterList}
       rowHref={(b) => `/admin/benutzer/${b.id}`}
       rowActions={[
         {

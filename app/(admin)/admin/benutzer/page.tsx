@@ -11,24 +11,39 @@ import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
 import { createClient } from "@/lib/supabase/server";
 import { alsArray, istNextJsControlFlow, joinFeld } from "@/lib/admin/safe-loader";
+import { ladeChecklistStatusBatch } from "@/lib/onboarding-checklist";
 import { BenutzerTable, type Zeile } from "./BenutzerTable";
 
 async function ladeBenutzer(includeArchiviert: boolean): Promise<Zeile[]> {
   try {
     const supabase = await createClient();
+    // Erst mit tags + vertragsart (Migration 0044), dann fallback ohne
+    const FELDER_VOLL = `id, full_name, role, created_at, archived_at, vertragsart, tags,
+       locations:location_id ( name ),
+       user_learning_path_assignments ( id )`;
+    const FELDER_BASIS = `id, full_name, role, created_at, archived_at,
+       locations:location_id ( name ),
+       user_learning_path_assignments ( id )`;
+
     let q = supabase
       .from("profiles")
-      .select(
-        `id, full_name, role, created_at, archived_at,
-         locations:location_id ( name ),
-         user_learning_path_assignments ( id )`,
-      )
+      .select(FELDER_VOLL)
       .order("created_at", { ascending: false });
     if (!includeArchiviert) q = q.is("archived_at", null);
-    const { data, error } = await q;
-    if (error) {
-      console.error("[ladeBenutzer] supabase error:", error);
-      return [];
+    const erst = await q;
+    let data: unknown = erst.data;
+    if (erst.error) {
+      let q2 = supabase
+        .from("profiles")
+        .select(FELDER_BASIS)
+        .order("created_at", { ascending: false });
+      if (!includeArchiviert) q2 = q2.is("archived_at", null);
+      const fb = await q2;
+      if (fb.error) {
+        console.error("[ladeBenutzer] supabase error:", fb.error);
+        return [];
+      }
+      data = fb.data;
     }
 
     type Roh = {
@@ -37,6 +52,8 @@ async function ladeBenutzer(includeArchiviert: boolean): Promise<Zeile[]> {
       role?: string;
       created_at?: string;
       archived_at?: string | null;
+      vertragsart?: string | null;
+      tags?: string[] | null;
       locations?: unknown;
       user_learning_path_assignments?: unknown;
     };
@@ -53,8 +70,13 @@ async function ladeBenutzer(includeArchiviert: boolean): Promise<Zeile[]> {
             : new Date().toISOString(),
         archived_at:
           typeof r.archived_at === "string" ? r.archived_at : null,
+        vertragsart:
+          typeof r.vertragsart === "string" ? r.vertragsart : null,
+        tags: Array.isArray(r.tags) ? (r.tags as string[]) : [],
         location_name: joinFeld(r.locations, "name"),
         zugewiesen: alsArray(r.user_learning_path_assignments).length,
+        onboarding_erledigt: 0,
+        onboarding_gesamt: 0,
       }));
   } catch (e) {
     if (istNextJsControlFlow(e)) throw e;
@@ -72,6 +94,18 @@ export default async function AdminBenutzerListe({
   const archivPrm = sp.archiviert;
   const showArchiv = archivPrm === "1" || archivPrm === "true";
   const benutzer = await ladeBenutzer(showArchiv);
+  // Onboarding-Status pro Mitarbeiter:in mergen (defensiv: bei
+  // fehlender Migration leerer Map -> Werte bleiben 0/0)
+  const onboardingMap = await ladeChecklistStatusBatch(
+    benutzer.map((b) => b.id),
+  );
+  for (const b of benutzer) {
+    const s = onboardingMap.get(b.id);
+    if (s) {
+      b.onboarding_erledigt = s.erledigt;
+      b.onboarding_gesamt = s.gesamt;
+    }
+  }
   const aktive = benutzer.filter((b) => !b.archived_at).length;
   const archiviert = benutzer.filter((b) => b.archived_at).length;
 

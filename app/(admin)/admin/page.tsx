@@ -3,6 +3,7 @@ import {
   Activity,
   AlertTriangle,
   ArrowRight,
+  Cake,
   CheckCircle2,
   Clock,
   FileText,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
+import { ladeGeburtstageNaechste } from "@/lib/mitarbeiter-stammdaten";
 import { formatDatum } from "@/lib/format";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
@@ -228,11 +230,12 @@ function relativeZeit(iso: string): string {
 
 export default async function AdminDashboardPage() {
   await requireRole(["admin", "superadmin", "fuehrungskraft"]);
-  const [puls, maengel, submissions, mitarbeiter] = await Promise.all([
+  const [puls, maengel, submissions, mitarbeiter, geburtstage] = await Promise.all([
     ladePuls(),
     ladeAktiveMaengel(),
     ladeFrischeSubmissions(),
     ladeAktiveMitarbeiter(),
+    ladeGeburtstageNaechste(14),
   ]);
 
   const todoSumme =
@@ -299,6 +302,55 @@ export default async function AdminDashboardPage() {
           href="/admin/fortschritt"
         />
       </StatGrid>
+
+      {/* Geburtstage in den nächsten 14 Tagen */}
+      {geburtstage.length > 0 && (
+        <section className="rounded-2xl border border-border bg-card">
+          <header className="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
+            <div className="flex items-center gap-2">
+              <Cake className="h-4 w-4 text-[hsl(var(--brand-pink))]" />
+              <h2 className="text-sm font-semibold tracking-tight">
+                Geburtstage
+              </h2>
+              <span className="text-[11px] text-muted-foreground">
+                · nächste 14 Tage
+              </span>
+            </div>
+            <span className="text-[11px] text-muted-foreground">
+              {geburtstage.length}{" "}
+              {geburtstage.length === 1 ? "Person" : "Personen"}
+            </span>
+          </header>
+          <ul className="divide-y divide-border">
+            {geburtstage.map((g) => (
+              <li
+                key={g.id}
+                className="flex items-center gap-3 px-5 py-2.5"
+              >
+                <ColoredAvatar name={g.full_name} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">
+                    {g.full_name ?? "—"}
+                    <span className="ml-2 text-xs font-normal text-muted-foreground">
+                      wird {g.alter_neu}
+                    </span>
+                  </p>
+                </div>
+                <span className="rounded-full bg-[hsl(var(--brand-pink)/0.08)] px-2.5 py-1 text-[11px] font-semibold text-[hsl(var(--brand-pink))]">
+                  {g.tage_bis === 0
+                    ? "🎂 heute"
+                    : g.tage_bis === 1
+                      ? "morgen"
+                      : `in ${g.tage_bis} Tagen`}
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  {formatDatum(g.naechster_geburtstag)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Zwei-Spalten: Mängel + Einreichungen */}
       <section className="grid gap-4 lg:grid-cols-2">
