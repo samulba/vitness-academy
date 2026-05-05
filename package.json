@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "check": "tsc --noEmit && next lint && next build",
     "db:types": "supabase gen types typescript --local --schema public > types/db.ts"
   },
   "dependencies": {
