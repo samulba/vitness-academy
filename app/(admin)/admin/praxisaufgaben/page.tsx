@@ -19,42 +19,75 @@ type Zeile = {
   updated_at: string;
 };
 
+function joinTitel(j: unknown): string | null {
+  // Supabase liefert einseitige FKs mal als Objekt, mal als Array
+  if (!j) return null;
+  if (Array.isArray(j)) {
+    const first = j[0];
+    return first && typeof (first as { title?: unknown }).title === "string"
+      ? (first as { title: string }).title
+      : null;
+  }
+  if (typeof j === "object" && "title" in j) {
+    const t = (j as { title?: unknown }).title;
+    return typeof t === "string" ? t : null;
+  }
+  return null;
+}
+
 async function ladeAufgaben(): Promise<Zeile[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("practical_tasks")
-    .select(
-      `id, title, status, updated_at,
-       learning_paths:learning_path_id ( title ),
-       lessons:lesson_id ( title ),
-       user_practical_signoffs ( status )`,
-    )
-    .order("sort_order", { ascending: true });
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("practical_tasks")
+      .select(
+        `id, title, status, updated_at, sort_order,
+         learning_paths:learning_path_id ( title ),
+         lessons:lesson_id ( title ),
+         user_practical_signoffs ( status )`,
+      )
+      .order("sort_order", { ascending: true });
 
-  type Roh = {
-    id: string;
-    title: string;
-    status: string;
-    updated_at: string;
-    learning_paths: { title: string } | null;
-    lessons: { title: string } | null;
-    user_practical_signoffs: { status: string }[] | null;
-  };
+    if (error) {
+      console.error("[ladeAufgaben] supabase error:", error);
+      return [];
+    }
 
-  return ((data ?? []) as unknown as Roh[]).map((t) => {
-    const sos = t.user_practical_signoffs ?? [];
-    return {
-      id: t.id,
-      title: t.title,
-      status: t.status,
-      pfad_titel: t.learning_paths?.title ?? null,
-      lektion_titel: t.lessons?.title ?? null,
-      bereit: sos.filter((s) => s.status === "bereit").length,
-      freigegeben: sos.filter((s) => s.status === "freigegeben").length,
-      abgelehnt: sos.filter((s) => s.status === "abgelehnt").length,
-      updated_at: t.updated_at,
+    type Roh = {
+      id?: string;
+      title?: string;
+      status?: string;
+      updated_at?: string;
+      learning_paths?: unknown;
+      lessons?: unknown;
+      user_practical_signoffs?: unknown;
     };
-  });
+
+    return ((data ?? []) as unknown as Roh[])
+      .filter((t) => typeof t.id === "string" && typeof t.title === "string")
+      .map((t) => {
+        const sos = Array.isArray(t.user_practical_signoffs)
+          ? (t.user_practical_signoffs as { status?: string }[])
+          : [];
+        return {
+          id: t.id as string,
+          title: t.title as string,
+          status: typeof t.status === "string" ? t.status : "aktiv",
+          pfad_titel: joinTitel(t.learning_paths),
+          lektion_titel: joinTitel(t.lessons),
+          bereit: sos.filter((s) => s?.status === "bereit").length,
+          freigegeben: sos.filter((s) => s?.status === "freigegeben").length,
+          abgelehnt: sos.filter((s) => s?.status === "abgelehnt").length,
+          updated_at:
+            typeof t.updated_at === "string"
+              ? t.updated_at
+              : new Date().toISOString(),
+        };
+      });
+  } catch (e) {
+    console.error("[ladeAufgaben] unexpected error:", e);
+    return [];
+  }
 }
 
 function StatusBadge({ status }: { status: string }) {
