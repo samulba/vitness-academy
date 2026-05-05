@@ -9,6 +9,11 @@ import { MobileNav } from "@/components/layout/MobileNav";
 import { NotificationBellServer } from "@/components/notifications/NotificationBellServer";
 import { StandortSwitcher } from "@/components/layout/StandortSwitcher";
 
+// Admin-Pages sind ALLE dynamisch (cookies/auth/RLS) -- explizit
+// markieren, damit Next.js gar nicht erst versucht, statisch zu
+// prerendern. Verhindert "DYNAMIC_SERVER_USAGE"-Errors zur Laufzeit.
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({
   children,
 }: {

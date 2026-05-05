@@ -12,6 +12,10 @@ import { CmdK } from "@/components/search/CmdK";
 import { NotificationBellServer } from "@/components/notifications/NotificationBellServer";
 import { StandortSwitcher } from "@/components/layout/StandortSwitcher";
 
+// App-Pages sind ALLE dynamisch (Auth + Cookies). Verhindert
+// "DYNAMIC_SERVER_USAGE"-Errors zur Laufzeit.
+export const dynamic = "force-dynamic";
+
 export default async function AppLayout({
   children,
 }: {
