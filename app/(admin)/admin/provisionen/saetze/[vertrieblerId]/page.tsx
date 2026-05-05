@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Plus, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Sparkles, Target as TargetIcon, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,9 +10,11 @@ import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
+  formatEuro,
   LAUFZEIT_OPTIONS,
   ladeBonusStufen,
   ladeRates,
+  ladeTargets,
   ladeVertriebler,
   laufzeitLabel,
 } from "@/lib/provisionen";
@@ -22,7 +24,23 @@ import {
   bonusStufeLoeschen,
   personalSatzAnlegen,
   personalSatzLoeschen,
+  targetLoeschen,
+  targetSetzen,
 } from "../actions";
+
+function aktuellerMonat(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monatsLabel(yyyymm: string): string {
+  const [y, m] = yyyymm.split("-").map(Number);
+  const monate = [
+    "Januar", "Februar", "März", "April", "Mai", "Juni",
+    "Juli", "August", "September", "Oktober", "November", "Dezember",
+  ];
+  return `${monate[m - 1]} ${y}`;
+}
 
 export default async function PersoenlicheSaetzePage({
   params,
@@ -32,10 +50,11 @@ export default async function PersoenlicheSaetzePage({
   await requireRole(["admin", "superadmin"]);
   const { vertrieblerId } = await params;
 
-  const [vertriebler, rates, bonusStufen] = await Promise.all([
+  const [vertriebler, rates, bonusStufen, targets] = await Promise.all([
     ladeVertriebler(),
     ladeRates(),
     ladeBonusStufen(),
+    ladeTargets(vertrieblerId),
   ]);
   const v = vertriebler.find((x) => x.id === vertrieblerId);
   if (!v) notFound();
@@ -364,6 +383,99 @@ export default async function PersoenlicheSaetzePage({
                     type="submit"
                     className="text-xs text-muted-foreground transition-colors hover:text-destructive"
                     aria-label="Bonus-Stufe entfernen"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Monatsziele */}
+      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <header className="mb-5">
+          <h2 className="text-base font-semibold tracking-tight">
+            <TargetIcon className="mr-2 inline h-4 w-4 text-[hsl(var(--brand-pink))]" />
+            Monatsziele
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Optional. Wenn gesetzt, sieht der/die Vertriebler:in im
+            Dashboard einen Progress-Bar (Ist gegen Ziel).
+          </p>
+        </header>
+        <form
+          action={targetSetzen.bind(null, vertrieblerId)}
+          className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end"
+        >
+          <div className="space-y-1.5">
+            <Label htmlFor="monat_yyyymm">Monat</Label>
+            <Input
+              id="monat_yyyymm"
+              name="monat_yyyymm"
+              type="month"
+              required
+              defaultValue={aktuellerMonat()}
+              className="h-10 rounded-lg"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ziel_abschluesse">Ziel: Abschlüsse</Label>
+            <Input
+              id="ziel_abschluesse"
+              name="ziel_abschluesse"
+              inputMode="numeric"
+              placeholder="z.B. 15"
+              className="h-10 rounded-lg"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ziel_provision">Ziel: Provision (€)</Label>
+            <Input
+              id="ziel_provision"
+              name="ziel_provision"
+              inputMode="decimal"
+              placeholder="z.B. 2500"
+              className="h-10 rounded-lg"
+            />
+          </div>
+          <Button
+            type="submit"
+            className="h-10 gap-2 rounded-lg bg-[hsl(var(--primary))] font-medium text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/0.9)]"
+          >
+            <Plus className="h-4 w-4" />
+            Speichern
+          </Button>
+        </form>
+
+        {targets.length > 0 && (
+          <ul className="mt-5 divide-y divide-border rounded-xl border border-border">
+            {targets.map((t) => (
+              <li
+                key={t.id}
+                className="flex items-center justify-between gap-3 px-4 py-2 text-sm"
+              >
+                <span>
+                  <strong>{monatsLabel(t.monat_yyyymm)}</strong>{" "}
+                  <span className="text-muted-foreground">·</span>{" "}
+                  {t.ziel_abschluesse !== null && (
+                    <span>
+                      {t.ziel_abschluesse} Abschlüsse
+                    </span>
+                  )}
+                  {t.ziel_abschluesse !== null && t.ziel_provision !== null && (
+                    <span className="text-muted-foreground"> · </span>
+                  )}
+                  {t.ziel_provision !== null && (
+                    <span>{formatEuro(t.ziel_provision)}</span>
+                  )}
+                </span>
+                <form action={targetLoeschen.bind(null, t.id, vertrieblerId)}>
+                  <button
+                    type="submit"
+                    className="text-xs text-muted-foreground transition-colors hover:text-destructive"
+                    aria-label="Ziel entfernen"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

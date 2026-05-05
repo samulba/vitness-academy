@@ -78,6 +78,24 @@ export type BonusStufe = {
   notiz: string | null;
 };
 
+export type Target = {
+  id: string;
+  vertriebler_id: string;
+  monat_yyyymm: string;
+  ziel_abschluesse: number | null;
+  ziel_provision: number | null;
+  notiz: string | null;
+};
+
+/**
+ * Aggregat pro Monat für Trend-Charts. Eine Zeile pro YYYY-MM.
+ */
+export type MonatStat = {
+  monat: string;
+  abschluesse: number;
+  provision: number;
+};
+
 /**
  * Findet den passenden Satz für einen Eintrag. Persönliche Sätze des
  * Vertrieblers gewinnen gegen den Default. Innerhalb der gleichen

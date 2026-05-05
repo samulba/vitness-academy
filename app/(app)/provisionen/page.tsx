@@ -11,14 +11,20 @@ import { requireProfile } from "@/lib/auth";
 import {
   aggregiere,
   formatEuro,
+  ladeBonusStufen,
   ladeEntries,
+  ladeMonatsHistorie,
   ladeRates,
+  ladeTarget,
   laufzeitLabel,
   STATUS_LABEL,
   type EntryStatus,
 } from "@/lib/provisionen";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { formatDatum } from "@/lib/format";
+import { MonatsTrend } from "@/components/provisionen/MonatsTrend";
+import { TargetTracker } from "@/components/provisionen/TargetTracker";
+import { BonusStatus } from "@/components/provisionen/BonusStatus";
 import { AbschlussForm } from "./AbschlussForm";
 import { LoeschenButton } from "./LoeschenButton";
 
@@ -77,9 +83,11 @@ export default async function ProvisionenPage({
   const sp = await searchParams;
   const monat = sp.monat?.match(/^\d{4}-\d{2}$/) ? sp.monat : aktuellerMonat();
 
-  const [entries, rates] = await Promise.all([
+  const [entries, rates, historie, bonusStufen] = await Promise.all([
     ladeEntries({ vertrieblerId: profile.id, monatYYYYMM: monat }),
     ladeRates(),
+    ladeMonatsHistorie(profile.id, 6),
+    ladeBonusStufen(),
   ]);
   const stats = aggregiere(entries);
 
@@ -91,6 +99,9 @@ export default async function ProvisionenPage({
       : await ladeEntries({ vertrieblerId: profile.id, monatYYYYMM: aktMonth });
   const aktStats = aggregiere(aktEntries);
 
+  // Target für aktuellen Monat (oder gewählten Monat)
+  const target = await ladeTarget(profile.id, monat);
+
   const monateOptions = letzteMonate(12);
 
   return (
@@ -100,6 +111,36 @@ export default async function ProvisionenPage({
         title="Provisionen"
         description="Abschlüsse eintragen, Provision wird automatisch aus den aktuellen Sätzen berechnet."
       />
+
+      {/* Dashboard: Trend + Target + Bonus-Status */}
+      <section className="grid gap-4 md:grid-cols-3">
+        <div className="md:col-span-2 rounded-2xl border border-border bg-card p-5">
+          <header className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold tracking-tight">
+              Provisions-Trend (6 Monate)
+            </h2>
+            <span className="text-[11px] text-muted-foreground">
+              Magenta-Balken = ausgezahlte Provision
+            </span>
+          </header>
+          <MonatsTrend daten={historie} modus="provision" />
+        </div>
+        <div className="space-y-4">
+          {target && (
+            <TargetTracker
+              target={target}
+              istProvision={stats.provision_total}
+              istAbschluesse={stats.abschluesse}
+            />
+          )}
+          <BonusStatus
+            abschluesseAktuell={aktStats.abschluesse}
+            monatYYYYMM={aktMonth}
+            vertrieblerId={profile.id}
+            stufen={bonusStufen}
+          />
+        </div>
+      </section>
 
       <StatGrid cols={3}>
         <StatCard

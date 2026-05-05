@@ -192,3 +192,62 @@ export async function bonusStufeLoeschen(id: string): Promise<void> {
       : "/admin/provisionen/saetze?toast=deleted",
   );
 }
+
+// =============================================================
+// Targets (Monatsziele)
+// =============================================================
+
+export async function targetSetzen(
+  vertrieblerId: string,
+  formData: FormData,
+): Promise<void> {
+  await requireRole(["admin", "superadmin"]);
+  const monatYYYYMM = String(formData.get("monat_yyyymm") ?? "").trim();
+  const zielAbschluesseRaw = String(
+    formData.get("ziel_abschluesse") ?? "",
+  ).trim();
+  const zielProvisionRaw = String(
+    formData.get("ziel_provision") ?? "",
+  ).trim();
+  const notiz = String(formData.get("notiz") ?? "").trim() || null;
+
+  if (!/^\d{4}-\d{2}$/.test(monatYYYYMM)) {
+    redirect(`/admin/provisionen/saetze/${vertrieblerId}?toast=error`);
+  }
+  const ziel_abschluesse = zielAbschluesseRaw
+    ? parseInt(zielAbschluesseRaw, 10)
+    : null;
+  const ziel_provision = zielProvisionRaw
+    ? parseFloat(zielProvisionRaw.replace(/\./g, "").replace(",", "."))
+    : null;
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("commission_targets").upsert(
+    {
+      vertriebler_id: vertrieblerId,
+      monat_yyyymm: monatYYYYMM,
+      ziel_abschluesse,
+      ziel_provision,
+      notiz,
+    },
+    { onConflict: "vertriebler_id,monat_yyyymm" },
+  );
+  if (error) {
+    redirect(`/admin/provisionen/saetze/${vertrieblerId}?toast=error`);
+  }
+  revalidatePath(`/admin/provisionen/saetze/${vertrieblerId}`);
+  revalidatePath("/provisionen");
+  redirect(`/admin/provisionen/saetze/${vertrieblerId}?toast=saved`);
+}
+
+export async function targetLoeschen(
+  id: string,
+  vertrieblerId: string,
+): Promise<void> {
+  await requireRole(["admin", "superadmin"]);
+  const supabase = await createClient();
+  await supabase.from("commission_targets").delete().eq("id", id);
+  revalidatePath(`/admin/provisionen/saetze/${vertrieblerId}`);
+  revalidatePath("/provisionen");
+  redirect(`/admin/provisionen/saetze/${vertrieblerId}?toast=deleted`);
+}

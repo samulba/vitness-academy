@@ -7,6 +7,8 @@ import {
   type CommissionRate,
   type EntryStatus,
   type Laufzeit,
+  type MonatStat,
+  type Target,
 } from "@/lib/provisionen-types";
 
 // Re-exports for server convenience
@@ -16,6 +18,8 @@ export type {
   CommissionRate,
   EntryStatus,
   Laufzeit,
+  MonatStat,
+  Target,
 } from "@/lib/provisionen-types";
 export {
   LAUFZEIT_OPTIONS,
@@ -305,4 +309,112 @@ export async function ladeVertriebler(): Promise<
     .is("archived_at", null)
     .order("full_name", { ascending: true });
   return (data ?? []) as { id: string; full_name: string | null }[];
+}
+
+/**
+ * Lädt das Ziel eines Vertrieblers für einen bestimmten Monat. Wenn
+ * keins existiert oder die Migration fehlt, gibt null zurück (UI
+ * blendet den Tracker dann aus).
+ */
+export async function ladeTarget(
+  vertrieblerId: string,
+  monatYYYYMM: string,
+): Promise<Target | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("commission_targets")
+    .select(
+      "id, vertriebler_id, monat_yyyymm, ziel_abschluesse, ziel_provision, notiz",
+    )
+    .eq("vertriebler_id", vertrieblerId)
+    .eq("monat_yyyymm", monatYYYYMM)
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    id: data.id,
+    vertriebler_id: data.vertriebler_id,
+    monat_yyyymm: data.monat_yyyymm,
+    ziel_abschluesse:
+      typeof data.ziel_abschluesse === "number"
+        ? data.ziel_abschluesse
+        : null,
+    ziel_provision: data.ziel_provision !== null ? num(data.ziel_provision) : null,
+    notiz: data.notiz,
+  };
+}
+
+/**
+ * Lädt alle Targets eines Vertrieblers (für Admin-Setup-Ansicht).
+ */
+export async function ladeTargets(vertrieblerId: string): Promise<Target[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("commission_targets")
+    .select(
+      "id, vertriebler_id, monat_yyyymm, ziel_abschluesse, ziel_provision, notiz",
+    )
+    .eq("vertriebler_id", vertrieblerId)
+    .order("monat_yyyymm", { ascending: false });
+  if (error) return [];
+  return ((data ?? []) as Target[]).map((t) => ({
+    id: t.id,
+    vertriebler_id: t.vertriebler_id,
+    monat_yyyymm: t.monat_yyyymm,
+    ziel_abschluesse:
+      typeof t.ziel_abschluesse === "number" ? t.ziel_abschluesse : null,
+    ziel_provision: t.ziel_provision !== null ? num(t.ziel_provision) : null,
+    notiz: t.notiz,
+  }));
+}
+
+/**
+ * Berechnet die Monats-Historie für einen Vertriebler -- ein Eintrag
+ * pro Monat aus den letzten N Monaten. Sortiert chronologisch
+ * (ältester zuerst, damit Recharts X-Axis logisch ist).
+ *
+ * Berücksichtigt nur 'genehmigt'-Einträge (inkl. Stornos = negativ).
+ */
+export async function ladeMonatsHistorie(
+  vertrieblerId: string,
+  monate = 6,
+): Promise<MonatStat[]> {
+  const supabase = await createClient();
+  const heute = new Date();
+  // Zeitraum: ab dem ersten Tag des Monats vor `monate` Monaten
+  const start = new Date(heute.getFullYear(), heute.getMonth() - (monate - 1), 1);
+  const startIso = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-01`;
+
+  const { data, error } = await supabase
+    .from("commission_entries")
+    .select(ENTRY_SELECT)
+    .eq("vertriebler_id", vertrieblerId)
+    .eq("status", "genehmigt")
+    .gte("datum", startIso)
+    .order("datum", { ascending: true });
+
+  if (error) return [];
+
+  const rows = (data ?? []) as unknown as EntryRoh[];
+  const rates = await ladeRates();
+  const entries = rows.map((r) => mapEntry(r, rates));
+
+  // Initialisiere alle Monate mit 0 (auch leere)
+  const buckets = new Map<string, MonatStat>();
+  for (let i = 0; i < monate; i++) {
+    const d = new Date(heute.getFullYear(), heute.getMonth() - (monate - 1) + i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    buckets.set(key, { monat: key, abschluesse: 0, provision: 0 });
+  }
+
+  for (const e of entries) {
+    const key = e.datum.slice(0, 7);
+    const cur = buckets.get(key);
+    if (!cur) continue;
+    cur.abschluesse += e.storno_von_id ? -1 : 1;
+    cur.provision += e.provision;
+  }
+
+  return Array.from(buckets.values()).sort((a, b) =>
+    a.monat.localeCompare(b.monat),
+  );
 }
