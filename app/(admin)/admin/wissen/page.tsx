@@ -1,4 +1,4 @@
-import { ExternalLink, Folder, BookOpen, Pencil, Plus } from "lucide-react";
+import { Folder, BookOpen, Pencil, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -7,25 +7,15 @@ import { SpeichernButton } from "@/components/admin/SpeichernButton";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
-import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
 import { alsArray, istNextJsControlFlow, joinFeld } from "@/lib/admin/safe-loader";
-import { formatDatum } from "@/lib/format";
+import { WissenTable, type Artikel } from "./WissenTable";
 import {
   kategorieAktualisieren,
   kategorieAnlegen,
   kategorieLoeschen,
 } from "./actions";
-
-type Artikel = {
-  id: string;
-  title: string;
-  slug: string;
-  category_name: string | null;
-  status: string;
-  updated_at: string;
-};
 
 type Kategorie = {
   id: string;
@@ -114,17 +104,6 @@ async function ladeKategorien(): Promise<Kategorie[]> {
   }
 }
 
-function StatusBadge({ status }: { status: string }) {
-  if (status === "aktiv")
-    return (
-      <StatusPill ton="success" dot>
-        Aktiv
-      </StatusPill>
-    );
-  if (status === "entwurf") return <StatusPill ton="warn">Entwurf</StatusPill>;
-  return <StatusPill ton="neutral">Archiviert</StatusPill>;
-}
-
 export default async function AdminWissenPage() {
   const [artikel, kategorien] = await Promise.all([
     ladeArtikel(),
@@ -132,47 +111,6 @@ export default async function AdminWissenPage() {
   ]);
   const aktiv = artikel.filter((a) => a.status === "aktiv").length;
   const ohneKategorie = artikel.filter((a) => !a.category_name).length;
-
-  const columns: Column<Artikel>[] = [
-    {
-      key: "title",
-      label: "Titel",
-      sortable: true,
-      render: (a) => (
-        <span className="font-medium text-foreground">{a.title}</span>
-      ),
-    },
-    {
-      key: "category_name",
-      label: "Kategorie",
-      sortable: true,
-      render: (a) =>
-        a.category_name ? (
-          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Folder className="h-3 w-3" />
-            {a.category_name}
-          </span>
-        ) : (
-          <span className="text-xs text-muted-foreground/50">—</span>
-        ),
-    },
-    {
-      key: "status",
-      label: "Status",
-      sortable: true,
-      render: (a) => <StatusBadge status={a.status} />,
-    },
-    {
-      key: "updated_at",
-      label: "Aktualisiert",
-      sortable: true,
-      render: (a) => (
-        <span className="text-xs text-muted-foreground">
-          {formatDatum(a.updated_at)}
-        </span>
-      ),
-    },
-  ];
 
   return (
     <div className="space-y-6">
@@ -341,44 +279,9 @@ export default async function AdminWissenPage() {
           />
         </div>
       ) : (
-        <DataTable<Artikel>
-          data={artikel}
-          columns={columns}
-          searchable={{ placeholder: "Artikel suchen…", keys: ["title"] }}
-          filters={[
-            {
-              key: "status",
-              label: "Status",
-              options: [
-                { value: "aktiv", label: "Aktiv" },
-                { value: "entwurf", label: "Entwurf" },
-                { value: "archiviert", label: "Archiviert" },
-              ],
-              multi: true,
-            },
-            {
-              key: "category_name",
-              label: "Kategorie",
-              options: kategorien.map((k) => ({
-                value: k.name,
-                label: k.name,
-              })),
-            },
-          ]}
-          rowHref={(a) => `/admin/wissen/${a.id}`}
-          rowActions={[
-            {
-              icon: <ExternalLink />,
-              label: "Vorschau",
-              href: (a) => `/wissen/${a.slug}`,
-            },
-            {
-              icon: <Pencil />,
-              label: "Bearbeiten",
-              href: (a) => `/admin/wissen/${a.id}`,
-            },
-          ]}
-          defaultSort={{ key: "title", direction: "asc" }}
+        <WissenTable
+          artikel={artikel}
+          kategorien={kategorien.map((k) => ({ name: k.name }))}
         />
       )}
 

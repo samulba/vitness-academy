@@ -2,9 +2,9 @@ import { MapPin, Plus, Users } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
-import { DataTable, type Column } from "@/components/ui/data-table";
 import { requireRole } from "@/lib/auth";
-import { ladeStandorte, type Standort } from "@/lib/standorte";
+import { ladeStandorte } from "@/lib/standorte";
+import { StandorteTable } from "./StandorteTable";
 
 export default async function StandorteAdminPage() {
   await requireRole(["admin", "superadmin"]);
@@ -14,34 +14,6 @@ export default async function StandorteAdminPage() {
     0,
   );
   const leerStehend = standorte.filter((s) => s.mitarbeiter_count === 0).length;
-
-  const columns: Column<Standort>[] = [
-    {
-      key: "name",
-      label: "Name",
-      sortable: true,
-      render: (s) => (
-        <div className="flex items-center gap-3">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]">
-            <MapPin className="h-3.5 w-3.5" />
-          </span>
-          <span className="font-medium text-foreground">{s.name}</span>
-        </div>
-      ),
-    },
-    {
-      key: "mitarbeiter_count",
-      label: "Mitarbeiter",
-      sortable: true,
-      align: "right",
-      render: (s) => (
-        <span className="inline-flex items-center gap-1 text-xs tabular-nums text-muted-foreground">
-          <Users className="h-3 w-3" />
-          {s.mitarbeiter_count}
-        </span>
-      ),
-    },
-  ];
 
   return (
     <div className="space-y-6">
@@ -87,13 +59,7 @@ export default async function StandorteAdminPage() {
           />
         </div>
       ) : (
-        <DataTable<Standort>
-          data={standorte}
-          columns={columns}
-          searchable={{ placeholder: "Standort suchen…", keys: ["name"] }}
-          rowHref={(s) => `/admin/standorte/${s.id}`}
-          defaultSort={{ key: "name", direction: "asc" }}
-        />
+        <StandorteTable standorte={standorte} />
       )}
     </div>
   );

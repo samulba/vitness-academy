@@ -3,7 +3,7 @@
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { StatusPill } from "@/components/admin/StatusPill";
-import { vollerName, type Kontakt } from "@/lib/kontakte";
+import { vollerName, type Kontakt } from "@/lib/kontakte-types";
 
 export function KontakteTable({
   kontakte,

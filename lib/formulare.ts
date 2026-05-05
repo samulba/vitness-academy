@@ -1,88 +1,26 @@
 import { createClient } from "@/lib/supabase/server";
 
-export type FieldType =
-  | "text"
-  | "textarea"
-  | "date"
-  | "number"
-  | "select"
-  | "checkbox"
-  | "radio"
-  | "file";
+// Re-export aller client-safe Types und Konstanten aus formulare-types.
+// Server-Code kann weiter aus @/lib/formulare importieren wie bisher.
+export {
+  istFileWert,
+  STATUS_LABEL,
+  type FieldType,
+  type FileWert,
+  type FormField,
+  type Status,
+  type Submission,
+  type SubmissionStatus,
+  type Template,
+} from "@/lib/formulare-types";
 
-export type FormField = {
-  /** Eindeutiger Feld-Schlüssel (snake_case, ohne Sonderzeichen) */
-  name: string;
-  /** Anzeige-Label */
-  label: string;
-  type: FieldType;
-  required: boolean;
-  /** Hilfe-Text unter dem Feld */
-  help?: string;
-  /** Placeholder im Input */
-  placeholder?: string;
-  /** Optionen für select/radio (eine pro Zeile bei der Eingabe) */
-  options?: string[];
-  /** Erlaubte MIME-/Erweiterungs-Liste für file (default: PDF + Bilder) */
-  accept?: string;
-  /** Max. Dateigröße in MB für file (default 5) */
-  max_size_mb?: number;
-};
-
-/**
- * Daten-Form für File-Uploads in form_submissions.data jsonb.
- * Statt String wird ein Objekt mit Storage-Pfad + Metadaten gespeichert.
- */
-export type FileWert = {
-  path: string;
-  name: string;
-  size: number;
-  type: string;
-};
-
-export function istFileWert(v: unknown): v is FileWert {
-  return (
-    typeof v === "object" &&
-    v !== null &&
-    "path" in v &&
-    typeof (v as FileWert).path === "string"
-  );
-}
-
-export type Status = "entwurf" | "aktiv" | "archiviert";
-export type SubmissionStatus =
-  | "eingereicht"
-  | "in_bearbeitung"
-  | "erledigt"
-  | "abgelehnt";
-
-export type Template = {
-  id: string;
-  location_id: string | null;
-  slug: string;
-  title: string;
-  description: string | null;
-  fields: FormField[];
-  status: Status;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-};
-
-export type Submission = {
-  id: string;
-  template_id: string;
-  submitted_by: string;
-  submitted_by_name: string | null;
-  template_title: string | null;
-  data: Record<string, unknown>;
-  status: SubmissionStatus;
-  admin_note: string | null;
-  submitted_at: string;
-  processed_by: string | null;
-  processed_by_name: string | null;
-  processed_at: string | null;
-};
+import type {
+  FormField,
+  Status,
+  Submission,
+  SubmissionStatus,
+  Template,
+} from "@/lib/formulare-types";
 
 const TEMPLATE_SELECT = `
   id, location_id, slug, title, description, fields, status,
@@ -284,10 +222,3 @@ export function validiereSubmission(
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   return { ok: true, data };
 }
-
-export const STATUS_LABEL: Record<SubmissionStatus, string> = {
-  eingereicht: "Eingereicht",
-  in_bearbeitung: "In Bearbeitung",
-  erledigt: "Erledigt",
-  abgelehnt: "Abgelehnt",
-};

@@ -1,19 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { istNextJsControlFlow } from "@/lib/admin/safe-loader";
+import type { Kontakt } from "@/lib/kontakte-types";
 
-export type Kontakt = {
-  id: string;
-  location_id: string | null;
-  first_name: string | null;
-  last_name: string | null;
-  role_tags: string[];
-  phone: string | null;
-  email: string | null;
-  notes: string | null;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-};
+// Re-exports fuer Server-Convenience -- Server-Code kann weiter
+// aus @/lib/kontakte importieren.
+export { vollerName, type Kontakt } from "@/lib/kontakte-types";
 
 const SELECT =
   "id, location_id, first_name, last_name, role_tags, phone, email, notes, sort_order, created_at, updated_at";
@@ -109,11 +100,4 @@ export function eindeutigeRollen(kontakte: Kontakt[]): string[] {
     }
   }
   return [...set].sort((a, b) => a.localeCompare(b, "de"));
-}
-
-export function vollerName(k: Kontakt): string {
-  const teile = [k.first_name, k.last_name]
-    .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
-    .map((s) => s.trim());
-  return teile.join(" ") || "—";
 }

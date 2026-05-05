@@ -4,71 +4,10 @@ import { PageHeader } from "@/components/ui/page-header";
 import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
-import { DataTable, type Column } from "@/components/ui/data-table";
-import { StatusPill } from "@/components/admin/StatusPill";
-import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { cn } from "@/lib/utils";
 import { requireRole } from "@/lib/auth";
-import {
-  ladeSubmissions,
-  STATUS_LABEL,
-  type Submission,
-  type SubmissionStatus,
-} from "@/lib/formulare";
-import { formatDatum } from "@/lib/format";
-
-function StatusBadge({ status }: { status: SubmissionStatus }) {
-  if (status === "eingereicht")
-    return (
-      <StatusPill ton="primary" dot>
-        {STATUS_LABEL[status]}
-      </StatusPill>
-    );
-  if (status === "in_bearbeitung")
-    return <StatusPill ton="warn">{STATUS_LABEL[status]}</StatusPill>;
-  if (status === "erledigt")
-    return <StatusPill ton="success">{STATUS_LABEL[status]}</StatusPill>;
-  return <StatusPill ton="neutral">{STATUS_LABEL[status]}</StatusPill>;
-}
-
-const columns: Column<Submission>[] = [
-  {
-    key: "template_title",
-    label: "Formular",
-    sortable: true,
-    render: (s) => (
-      <span className="font-medium text-foreground">
-        {s.template_title ?? "Formular"}
-      </span>
-    ),
-  },
-  {
-    key: "submitted_by_name",
-    label: "Eingereicht von",
-    render: (s) => (
-      <div className="flex items-center gap-2.5">
-        <ColoredAvatar name={s.submitted_by_name} size="sm" />
-        <span className="text-[13px]">{s.submitted_by_name ?? "—"}</span>
-      </div>
-    ),
-  },
-  {
-    key: "status",
-    label: "Status",
-    sortable: true,
-    render: (s) => <StatusBadge status={s.status} />,
-  },
-  {
-    key: "submitted_at",
-    label: "Datum",
-    sortable: true,
-    render: (s) => (
-      <span className="text-xs text-muted-foreground">
-        {formatDatum(s.submitted_at)}
-      </span>
-    ),
-  },
-];
+import { ladeSubmissions } from "@/lib/formulare";
+import { EingaengeTable } from "./EingaengeTable";
 
 export default async function EingaengePage({
   searchParams,
@@ -178,12 +117,7 @@ export default async function EingaengePage({
             />
           </div>
         ) : (
-          <DataTable<Submission>
-            data={offen}
-            columns={columns}
-            rowHref={(s) => `/admin/formulare/eingaenge/${s.id}`}
-            defaultSort={{ key: "submitted_at", direction: "desc" }}
-          />
+          <EingaengeTable data={offen} />
         )}
       </section>
 
@@ -197,12 +131,7 @@ export default async function EingaengePage({
               Letzte 30 abgeschlossene Einreichungen.
             </p>
           </header>
-          <DataTable<Submission>
-            data={erledigt.slice(0, 30)}
-            columns={columns}
-            rowHref={(s) => `/admin/formulare/eingaenge/${s.id}`}
-            defaultSort={{ key: "submitted_at", direction: "desc" }}
-          />
+          <EingaengeTable data={erledigt.slice(0, 30)} />
         </section>
       )}
     </div>
