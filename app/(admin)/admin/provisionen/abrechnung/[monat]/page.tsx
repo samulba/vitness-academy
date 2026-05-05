@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Banknote, Lock, ShieldAlert, Sparkles } from "lucide-react";
+import { ArrowLeft, Banknote, FileText, Lock, Printer, ShieldAlert, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
@@ -198,13 +198,23 @@ export default async function AbrechnungDetailPage({
                       <strong>{formatEuro(p.total)}</strong>
                     </Td>
                     <Td>
-                      <AuszahlungForm
-                        payoutId={p.id}
-                        istAusgezahlt={p.status === "ausgezahlt"}
-                        ausgezahltAm={p.ausgezahlt_am}
-                        ausgezahltVia={p.ausgezahlt_via}
-                        ausgezahltNote={p.ausgezahlt_note}
-                      />
+                      <div className="flex items-center gap-2">
+                        <AuszahlungForm
+                          payoutId={p.id}
+                          istAusgezahlt={p.status === "ausgezahlt"}
+                          ausgezahltAm={p.ausgezahlt_am}
+                          ausgezahltVia={p.ausgezahlt_via}
+                          ausgezahltNote={p.ausgezahlt_note}
+                        />
+                        <Link
+                          href={`/admin/provisionen/abrechnung/${monat}/${p.vertriebler_id}`}
+                          target="_blank"
+                          title="Detail-PDF (Druckansicht)"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-[hsl(var(--brand-pink)/0.5)] hover:text-foreground"
+                        >
+                          <Printer className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
                     </Td>
                   </tr>
                 ))
@@ -265,19 +275,34 @@ export default async function AbrechnungDetailPage({
               </Td>
               <Td>
                 {istGelocked && (
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="outline"
-                    className="gap-1.5"
-                  >
-                    <a
-                      href={`/api/admin/provisionen/csv?monat=${monat}`}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      title="Alle Einträge als CSV"
                     >
-                      <Banknote className="h-3.5 w-3.5" />
-                      CSV
-                    </a>
-                  </Button>
+                      <a href={`/api/admin/provisionen/csv?monat=${monat}`}>
+                        <Banknote className="h-3.5 w-3.5" />
+                        Einträge-CSV
+                      </a>
+                    </Button>
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      title="Eine Zeile pro Vertriebler:in für Lohnbuchhaltung"
+                    >
+                      <a
+                        href={`/api/admin/provisionen/lohn-csv?monat=${monat}`}
+                      >
+                        <FileText className="h-3.5 w-3.5" />
+                        Lohn-CSV
+                      </a>
+                    </Button>
+                  </div>
                 )}
               </Td>
             </tr>

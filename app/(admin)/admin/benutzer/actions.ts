@@ -34,12 +34,28 @@ export async function profilAktualisieren(
   const location_id =
     String(formData.get("location_id") ?? "").trim() || null;
   const kann_provisionen = formData.get("kann_provisionen") === "on";
+  const personalnummer =
+    String(formData.get("personalnummer") ?? "").trim() || null;
 
   const supabase = await createClient();
-  await supabase
+  // Versuch mit personalnummer (Migration 0042); wenn die Spalte fehlt
+  // → Fallback ohne, damit Speichern auch ohne 0042 funktioniert.
+  const erst = await supabase
     .from("profiles")
-    .update({ full_name, role, location_id, kann_provisionen })
+    .update({
+      full_name,
+      role,
+      location_id,
+      kann_provisionen,
+      personalnummer,
+    })
     .eq("id", benutzerId);
+  if (erst.error) {
+    await supabase
+      .from("profiles")
+      .update({ full_name, role, location_id, kann_provisionen })
+      .eq("id", benutzerId);
+  }
 
   revalidatePath("/admin/benutzer");
   revalidatePath(`/admin/benutzer/${benutzerId}`);

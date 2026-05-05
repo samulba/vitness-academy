@@ -43,6 +43,7 @@ type Profil = {
   role: string;
   location_id: string | null;
   kann_provisionen: boolean;
+  personalnummer: string | null;
   created_at: string;
   archived_at: string | null;
   email: string | null;
@@ -50,23 +51,35 @@ type Profil = {
 
 async function ladeProfil(id: string): Promise<Profil | null> {
   const supabase = await createClient();
-  const { data } = await supabase
+  // Erst mit personalnummer versuchen (Migration 0042). Fallback ohne.
+  const erst = await supabase
     .from("profiles")
     .select(
-      "id, full_name, role, location_id, kann_provisionen, created_at, archived_at",
+      "id, full_name, role, location_id, kann_provisionen, personalnummer, created_at, archived_at",
     )
     .eq("id", id)
     .maybeSingle();
-  if (!data) return null;
-  // Email kommt aus auth.users (per RLS nicht verfügbar) -> ohne Email
+  let row = erst.data as Record<string, unknown> | null;
+  if (!row) {
+    const fb = await supabase
+      .from("profiles")
+      .select(
+        "id, full_name, role, location_id, kann_provisionen, created_at, archived_at",
+      )
+      .eq("id", id)
+      .maybeSingle();
+    row = fb.data as Record<string, unknown> | null;
+  }
+  if (!row) return null;
   return {
-    id: data.id as string,
-    full_name: data.full_name as string | null,
-    role: data.role as string,
-    location_id: data.location_id as string | null,
-    kann_provisionen: Boolean(data.kann_provisionen),
-    created_at: data.created_at as string,
-    archived_at: data.archived_at as string | null,
+    id: row.id as string,
+    full_name: (row.full_name as string | null) ?? null,
+    role: row.role as string,
+    location_id: (row.location_id as string | null) ?? null,
+    kann_provisionen: Boolean(row.kann_provisionen),
+    personalnummer: (row.personalnummer as string | null) ?? null,
+    created_at: row.created_at as string,
+    archived_at: (row.archived_at as string | null) ?? null,
     email: null,
   };
 }
@@ -270,6 +283,22 @@ export default async function BenutzerBearbeitenPage({
                 </span>
               </span>
             </label>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="personalnummer">
+                Personalnummer
+                <span className="ml-1 text-xs font-normal text-muted-foreground">
+                  (für Lohn-CSV)
+                </span>
+              </Label>
+              <Input
+                id="personalnummer"
+                name="personalnummer"
+                defaultValue={profil.personalnummer ?? ""}
+                placeholder="z.B. 1042"
+                maxLength={32}
+              />
+            </div>
 
             <div className="flex justify-end">
               <SpeichernButton />
