@@ -95,6 +95,12 @@ const TABELLEN_LABEL: Record<string, string> = {
   studio_tasks: "Aufgaben",
   studio_issues: "Mängel",
   form_templates: "Formulare",
+  commission_entries: "Provisions-Einträge",
+  commission_rates: "Provisions-Sätze",
+  commission_rates_personal: "Persönliche Sätze",
+  commission_bonus_stufen: "Bonus-Stufen",
+  commission_payouts: "Monats-Abrechnungen",
+  commission_targets: "Monatsziele",
 };
 
 export function tabellenLabel(name: string): string {
