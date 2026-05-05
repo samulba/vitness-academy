@@ -6,6 +6,7 @@ import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state"
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
+import { alsArray, joinTitel } from "@/lib/admin/safe-loader";
 
 type Zeile = {
   id: string;
@@ -18,22 +19,6 @@ type Zeile = {
   abgelehnt: number;
   updated_at: string;
 };
-
-function joinTitel(j: unknown): string | null {
-  // Supabase liefert einseitige FKs mal als Objekt, mal als Array
-  if (!j) return null;
-  if (Array.isArray(j)) {
-    const first = j[0];
-    return first && typeof (first as { title?: unknown }).title === "string"
-      ? (first as { title: string }).title
-      : null;
-  }
-  if (typeof j === "object" && "title" in j) {
-    const t = (j as { title?: unknown }).title;
-    return typeof t === "string" ? t : null;
-  }
-  return null;
-}
 
 async function ladeAufgaben(): Promise<Zeile[]> {
   try {
@@ -66,9 +51,7 @@ async function ladeAufgaben(): Promise<Zeile[]> {
     return ((data ?? []) as unknown as Roh[])
       .filter((t) => typeof t.id === "string" && typeof t.title === "string")
       .map((t) => {
-        const sos = Array.isArray(t.user_practical_signoffs)
-          ? (t.user_practical_signoffs as { status?: string }[])
-          : [];
+        const sos = alsArray<{ status?: string }>(t.user_practical_signoffs);
         return {
           id: t.id as string,
           title: t.title as string,

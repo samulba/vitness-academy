@@ -10,6 +10,7 @@ import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state"
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
+import { alsArray, joinFeld } from "@/lib/admin/safe-loader";
 import { formatDatum } from "@/lib/format";
 import {
   kategorieAktualisieren,
@@ -35,54 +36,80 @@ type Kategorie = {
 };
 
 async function ladeArtikel(): Promise<Artikel[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("knowledge_articles")
-    .select(
-      `id, title, slug, status, updated_at,
-       knowledge_categories:category_id ( name )`,
-    )
-    .order("sort_order", { ascending: true })
-    .order("title", { ascending: true });
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("knowledge_articles")
+      .select(
+        `id, title, slug, status, updated_at, sort_order,
+         knowledge_categories:category_id ( name )`,
+      )
+      .order("sort_order", { ascending: true })
+      .order("title", { ascending: true });
 
-  type Roh = {
-    id: string;
-    title: string;
-    slug: string;
-    status: string;
-    updated_at: string;
-    knowledge_categories: { name: string } | null;
-  };
-  return ((data ?? []) as unknown as Roh[]).map((a) => ({
-    id: a.id,
-    title: a.title,
-    slug: a.slug,
-    status: a.status,
-    updated_at: a.updated_at,
-    category_name: a.knowledge_categories?.name ?? null,
-  }));
+    if (error) {
+      console.error("[ladeArtikel] supabase error:", error);
+      return [];
+    }
+
+    type Roh = {
+      id?: string;
+      title?: string;
+      slug?: string;
+      status?: string;
+      updated_at?: string;
+      knowledge_categories?: unknown;
+    };
+    return ((data ?? []) as unknown as Roh[])
+      .filter((a) => typeof a.id === "string" && typeof a.title === "string")
+      .map((a) => ({
+        id: a.id as string,
+        title: a.title as string,
+        slug: typeof a.slug === "string" ? a.slug : "",
+        status: typeof a.status === "string" ? a.status : "aktiv",
+        updated_at:
+          typeof a.updated_at === "string"
+            ? a.updated_at
+            : new Date().toISOString(),
+        category_name: joinFeld(a.knowledge_categories, "name"),
+      }));
+  } catch (e) {
+    console.error("[ladeArtikel] unexpected error:", e);
+    return [];
+  }
 }
 
 async function ladeKategorien(): Promise<Kategorie[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("knowledge_categories")
-    .select(`id, name, slug, description, knowledge_articles ( id )`)
-    .order("sort_order", { ascending: true });
-  type Roh = {
-    id: string;
-    name: string;
-    slug: string;
-    description: string | null;
-    knowledge_articles: { id: string }[] | null;
-  };
-  return ((data ?? []) as unknown as Roh[]).map((k) => ({
-    id: k.id,
-    name: k.name,
-    slug: k.slug,
-    description: k.description,
-    artikel_anzahl: (k.knowledge_articles ?? []).length,
-  }));
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("knowledge_categories")
+      .select(`id, name, slug, description, sort_order, knowledge_articles ( id )`)
+      .order("sort_order", { ascending: true });
+    if (error) {
+      console.error("[ladeKategorien] supabase error:", error);
+      return [];
+    }
+    type Roh = {
+      id?: string;
+      name?: string;
+      slug?: string;
+      description?: string | null;
+      knowledge_articles?: unknown;
+    };
+    return ((data ?? []) as unknown as Roh[])
+      .filter((k) => typeof k.id === "string" && typeof k.name === "string")
+      .map((k) => ({
+        id: k.id as string,
+        name: k.name as string,
+        slug: typeof k.slug === "string" ? k.slug : "",
+        description: typeof k.description === "string" ? k.description : null,
+        artikel_anzahl: alsArray(k.knowledge_articles).length,
+      }));
+  } catch (e) {
+    console.error("[ladeKategorien] unexpected error:", e);
+    return [];
+  }
 }
 
 function StatusBadge({ status }: { status: string }) {

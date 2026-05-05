@@ -16,6 +16,7 @@ import {
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
+import { alsArray, joinTitel } from "@/lib/admin/safe-loader";
 import { formatDatum } from "@/lib/format";
 
 type Zeile = {
@@ -32,55 +33,77 @@ type Zeile = {
 };
 
 async function ladeQuizze(): Promise<Zeile[]> {
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-  const { data: quizze } = await supabase
-    .from("quizzes")
-    .select(
-      `id, title, status, passing_score, lesson_id, module_id, updated_at,
-       quiz_questions (id),
-       quiz_attempts (id, passed),
-       lessons:lesson_id ( title ),
-       modules:module_id ( title )`,
-    )
-    .order("sort_order", { ascending: true });
+    const { data: quizze, error } = await supabase
+      .from("quizzes")
+      .select(
+        `id, title, status, passing_score, lesson_id, module_id, updated_at, sort_order,
+         quiz_questions (id),
+         quiz_attempts (id, passed),
+         lessons:lesson_id ( title ),
+         modules:module_id ( title )`,
+      )
+      .order("sort_order", { ascending: true });
 
-  type Roh = {
-    id: string;
-    title: string;
-    status: string;
-    passing_score: number;
-    lesson_id: string | null;
-    module_id: string | null;
-    updated_at: string;
-    quiz_questions: { id: string }[] | null;
-    quiz_attempts: { id: string; passed: boolean }[] | null;
-    lessons: { title: string } | null;
-    modules: { title: string } | null;
-  };
+    if (error) {
+      console.error("[ladeQuizze] supabase error:", error);
+      return [];
+    }
 
-  return ((quizze ?? []) as unknown as Roh[]).map((q) => {
-    const versuche = q.quiz_attempts ?? [];
-    const bestanden = versuche.filter((v) => v.passed).length;
-    const bindung_typ = q.lesson_id ? "Lektion" : q.module_id ? "Modul" : null;
-    const bindung_titel = q.lesson_id
-      ? q.lessons?.title ?? "—"
-      : q.module_id
-        ? q.modules?.title ?? "—"
-        : null;
-    return {
-      id: q.id,
-      title: q.title,
-      status: q.status,
-      passing_score: q.passing_score,
-      fragen_anzahl: (q.quiz_questions ?? []).length,
-      versuche_anzahl: versuche.length,
-      bestanden_anzahl: bestanden,
-      bindung_typ,
-      bindung_titel,
-      updated_at: q.updated_at,
+    type Roh = {
+      id?: string;
+      title?: string;
+      status?: string;
+      passing_score?: number;
+      lesson_id?: string | null;
+      module_id?: string | null;
+      updated_at?: string;
+      quiz_questions?: unknown;
+      quiz_attempts?: unknown;
+      lessons?: unknown;
+      modules?: unknown;
     };
-  });
+
+    return ((quizze ?? []) as unknown as Roh[])
+      .filter((q) => typeof q.id === "string" && typeof q.title === "string")
+      .map((q) => {
+        const versuche = alsArray<{ id: string; passed?: boolean }>(
+          q.quiz_attempts,
+        );
+        const bestanden = versuche.filter((v) => v?.passed === true).length;
+        const bindung_typ = q.lesson_id
+          ? "Lektion"
+          : q.module_id
+            ? "Modul"
+            : null;
+        const bindung_titel = q.lesson_id
+          ? joinTitel(q.lessons) ?? "—"
+          : q.module_id
+            ? joinTitel(q.modules) ?? "—"
+            : null;
+        return {
+          id: q.id as string,
+          title: q.title as string,
+          status: typeof q.status === "string" ? q.status : "aktiv",
+          passing_score:
+            typeof q.passing_score === "number" ? q.passing_score : 80,
+          fragen_anzahl: alsArray(q.quiz_questions).length,
+          versuche_anzahl: versuche.length,
+          bestanden_anzahl: bestanden,
+          bindung_typ,
+          bindung_titel,
+          updated_at:
+            typeof q.updated_at === "string"
+              ? q.updated_at
+              : new Date().toISOString(),
+        };
+      });
+  } catch (e) {
+    console.error("[ladeQuizze] unexpected error:", e);
+    return [];
+  }
 }
 
 function StatusBadge({ status }: { status: string }) {

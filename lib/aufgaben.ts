@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { joinName } from "@/lib/admin/safe-loader";
 
 export type Priority = "low" | "normal" | "high";
 export type Recurrence = "none" | "daily" | "weekly";
@@ -28,14 +29,14 @@ type Roh = {
   title: string;
   description: string | null;
   assigned_to: string | null;
-  assigned_profile: { full_name: string | null } | null;
+  assigned_profile: unknown;
   due_date: string | null;
   priority: string;
   recurrence: string;
   recurrence_template_id: string | null;
   active: boolean;
   completed_by: string | null;
-  completed_profile: { full_name: string | null } | null;
+  completed_profile: unknown;
   completed_at: string | null;
   created_at: string;
   updated_at: string;
@@ -52,23 +53,23 @@ const SELECT = `
 function map(r: Roh): Aufgabe {
   return {
     id: r.id,
-    location_id: r.location_id,
-    title: r.title,
-    description: r.description,
-    assigned_to: r.assigned_to,
-    assigned_to_name: r.assigned_profile?.full_name ?? null,
-    due_date: r.due_date,
+    location_id: r.location_id ?? null,
+    title: r.title ?? "",
+    description: r.description ?? null,
+    assigned_to: r.assigned_to ?? null,
+    assigned_to_name: joinName(r.assigned_profile),
+    due_date: r.due_date ?? null,
     priority: (["low", "normal", "high"].includes(r.priority)
       ? r.priority
       : "normal") as Priority,
     recurrence: (["none", "daily", "weekly"].includes(r.recurrence)
       ? r.recurrence
       : "none") as Recurrence,
-    recurrence_template_id: r.recurrence_template_id,
-    active: r.active,
-    completed_by: r.completed_by,
-    completed_by_name: r.completed_profile?.full_name ?? null,
-    completed_at: r.completed_at,
+    recurrence_template_id: r.recurrence_template_id ?? null,
+    active: r.active !== false,
+    completed_by: r.completed_by ?? null,
+    completed_by_name: joinName(r.completed_profile),
+    completed_at: r.completed_at ?? null,
     created_at: r.created_at,
     updated_at: r.updated_at,
   };
@@ -169,9 +170,21 @@ export async function ladeMeineAufgaben(
   if (locationId) {
     q = q.or(`location_id.eq.${locationId},location_id.is.null`);
   }
-  const { data } = await q;
-
-  const alle = ((data ?? []) as unknown as Roh[]).map(map);
+  let alle: Aufgabe[];
+  try {
+    const { data, error } = await q;
+    if (error) {
+      console.error("[ladeMeineAufgaben] supabase error:", error);
+      alle = [];
+    } else {
+      alle = ((data ?? []) as unknown as Roh[])
+        .filter((r) => typeof r.id === "string")
+        .map(map);
+    }
+  } catch (e) {
+    console.error("[ladeMeineAufgaben] unexpected error:", e);
+    alle = [];
+  }
 
   const heuteListe = alle.filter(
     (a) => !a.completed_at && a.due_date === heute,
@@ -196,13 +209,19 @@ export async function ladeMeineAufgaben(
 }
 
 export async function ladeAufgabe(id: string): Promise<Aufgabe | null> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("studio_tasks")
-    .select(SELECT)
-    .eq("id", id)
-    .maybeSingle();
-  return data ? map(data as unknown as Roh) : null;
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("studio_tasks")
+      .select(SELECT)
+      .eq("id", id)
+      .maybeSingle();
+    if (error || !data) return null;
+    return map(data as unknown as Roh);
+  } catch (e) {
+    console.error("[ladeAufgabe] unexpected error:", e);
+    return null;
+  }
 }
 
 /**
@@ -213,16 +232,27 @@ export async function ladeAufgabe(id: string): Promise<Aufgabe | null> {
 export async function ladeAlleAufgabenAdmin(
   locationId?: string | null,
 ): Promise<Aufgabe[]> {
-  const supabase = await createClient();
-  let q = supabase
-    .from("studio_tasks")
-    .select(SELECT)
-    .order("recurrence", { ascending: false }) // templates first
-    .order("due_date", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: false });
-  if (locationId) {
-    q = q.or(`location_id.eq.${locationId},location_id.is.null`);
+  try {
+    const supabase = await createClient();
+    let q = supabase
+      .from("studio_tasks")
+      .select(SELECT)
+      .order("recurrence", { ascending: false }) // templates first
+      .order("due_date", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: false });
+    if (locationId) {
+      q = q.or(`location_id.eq.${locationId},location_id.is.null`);
+    }
+    const { data, error } = await q;
+    if (error) {
+      console.error("[ladeAlleAufgabenAdmin] supabase error:", error);
+      return [];
+    }
+    return ((data ?? []) as unknown as Roh[])
+      .filter((r) => typeof r.id === "string")
+      .map(map);
+  } catch (e) {
+    console.error("[ladeAlleAufgabenAdmin] unexpected error:", e);
+    return [];
   }
-  const { data } = await q;
-  return ((data ?? []) as unknown as Roh[]).map(map);
 }

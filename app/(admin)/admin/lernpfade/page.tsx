@@ -15,6 +15,7 @@ import {
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
+import { alsArray } from "@/lib/admin/safe-loader";
 import { bildUrlFuerPfad } from "@/lib/storage";
 import { formatDatum } from "@/lib/format";
 
@@ -30,39 +31,58 @@ type Zeile = {
 };
 
 async function ladeLernpfade(): Promise<Zeile[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("learning_paths")
-    .select(
-      `id, title, status, updated_at, sort_order, hero_image_path,
-       modules ( id, lessons ( id ) ),
-       user_learning_path_assignments ( id )`,
-    )
-    .order("sort_order", { ascending: true });
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("learning_paths")
+      .select(
+        `id, title, status, updated_at, sort_order, hero_image_path,
+         modules ( id, lessons ( id ) ),
+         user_learning_path_assignments ( id )`,
+      )
+      .order("sort_order", { ascending: true });
+    if (error) {
+      console.error("[ladeLernpfade] supabase error:", error);
+      return [];
+    }
 
-  type Roh = {
-    id: string;
-    title: string;
-    status: string;
-    updated_at: string;
-    hero_image_path: string | null;
-    modules: { id: string; lessons: { id: string }[] }[] | null;
-    user_learning_path_assignments: { id: string }[] | null;
-  };
+    type Roh = {
+      id?: string;
+      title?: string;
+      status?: string;
+      updated_at?: string;
+      hero_image_path?: string | null;
+      modules?: unknown;
+      user_learning_path_assignments?: unknown;
+    };
 
-  return ((data ?? []) as unknown as Roh[]).map((p) => ({
-    id: p.id,
-    title: p.title,
-    status: p.status,
-    module_anzahl: (p.modules ?? []).length,
-    lektion_anzahl: (p.modules ?? []).reduce(
-      (s, m) => s + (m.lessons ?? []).length,
-      0,
-    ),
-    zugewiesen: (p.user_learning_path_assignments ?? []).length,
-    updated_at: p.updated_at,
-    hero_image_path: p.hero_image_path,
-  }));
+    return ((data ?? []) as unknown as Roh[])
+      .filter((p) => typeof p.id === "string" && typeof p.title === "string")
+      .map((p) => {
+        const moduleListe = alsArray<{ id: string; lessons?: unknown }>(p.modules);
+        const lektionAnzahl = moduleListe.reduce(
+          (s, m) => s + alsArray(m.lessons).length,
+          0,
+        );
+        return {
+          id: p.id as string,
+          title: p.title as string,
+          status: typeof p.status === "string" ? p.status : "aktiv",
+          module_anzahl: moduleListe.length,
+          lektion_anzahl: lektionAnzahl,
+          zugewiesen: alsArray(p.user_learning_path_assignments).length,
+          updated_at:
+            typeof p.updated_at === "string"
+              ? p.updated_at
+              : new Date().toISOString(),
+          hero_image_path:
+            typeof p.hero_image_path === "string" ? p.hero_image_path : null,
+        };
+      });
+  } catch (e) {
+    console.error("[ladeLernpfade] unexpected error:", e);
+    return [];
+  }
 }
 
 function StatusBadge({ status }: { status: string }) {

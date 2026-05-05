@@ -14,6 +14,7 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
+import { alsArray, joinFeld } from "@/lib/admin/safe-loader";
 import { formatDatum } from "@/lib/format";
 
 type Zeile = {
@@ -27,37 +28,52 @@ type Zeile = {
 };
 
 async function ladeBenutzer(includeArchiviert: boolean): Promise<Zeile[]> {
-  const supabase = await createClient();
-  let q = supabase
-    .from("profiles")
-    .select(
-      `id, full_name, role, created_at, archived_at,
-       locations:location_id ( name ),
-       user_learning_path_assignments ( id )`,
-    )
-    .order("created_at", { ascending: false });
-  if (!includeArchiviert) q = q.is("archived_at", null);
-  const { data } = await q;
+  try {
+    const supabase = await createClient();
+    let q = supabase
+      .from("profiles")
+      .select(
+        `id, full_name, role, created_at, archived_at,
+         locations:location_id ( name ),
+         user_learning_path_assignments ( id )`,
+      )
+      .order("created_at", { ascending: false });
+    if (!includeArchiviert) q = q.is("archived_at", null);
+    const { data, error } = await q;
+    if (error) {
+      console.error("[ladeBenutzer] supabase error:", error);
+      return [];
+    }
 
-  type Roh = {
-    id: string;
-    full_name: string | null;
-    role: string;
-    created_at: string;
-    archived_at: string | null;
-    locations: { name: string } | null;
-    user_learning_path_assignments: { id: string }[] | null;
-  };
+    type Roh = {
+      id?: string;
+      full_name?: string | null;
+      role?: string;
+      created_at?: string;
+      archived_at?: string | null;
+      locations?: unknown;
+      user_learning_path_assignments?: unknown;
+    };
 
-  return ((data ?? []) as unknown as Roh[]).map((r) => ({
-    id: r.id,
-    full_name: r.full_name,
-    role: r.role,
-    created_at: r.created_at,
-    archived_at: r.archived_at,
-    location_name: r.locations?.name ?? null,
-    zugewiesen: (r.user_learning_path_assignments ?? []).length,
-  }));
+    return ((data ?? []) as unknown as Roh[])
+      .filter((r) => typeof r.id === "string")
+      .map((r) => ({
+        id: r.id as string,
+        full_name: typeof r.full_name === "string" ? r.full_name : null,
+        role: typeof r.role === "string" ? r.role : "mitarbeiter",
+        created_at:
+          typeof r.created_at === "string"
+            ? r.created_at
+            : new Date().toISOString(),
+        archived_at:
+          typeof r.archived_at === "string" ? r.archived_at : null,
+        location_name: joinFeld(r.locations, "name"),
+        zugewiesen: alsArray(r.user_learning_path_assignments).length,
+      }));
+  } catch (e) {
+    console.error("[ladeBenutzer] unexpected error:", e);
+    return [];
+  }
 }
 
 function RollenPill({ role }: { role: string }) {

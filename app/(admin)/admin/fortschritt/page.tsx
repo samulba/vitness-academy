@@ -19,6 +19,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
+import { alsArray } from "@/lib/admin/safe-loader";
 import { formatProzent, rolleLabel } from "@/lib/format";
 
 type Mitarbeiter = {
@@ -40,66 +41,116 @@ type FortschrittZelle = {
 };
 
 async function ladeAlleMitarbeiter(): Promise<Mitarbeiter[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, full_name, role")
-    .order("full_name", { ascending: true });
-  return ((data ?? []) as Mitarbeiter[]).filter(
-    (p) => p.role === "mitarbeiter" || p.role === "fuehrungskraft",
-  );
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, full_name, role")
+      .order("full_name", { ascending: true });
+    if (error) {
+      console.error("[ladeAlleMitarbeiter] supabase error:", error);
+      return [];
+    }
+    return ((data ?? []) as unknown as Mitarbeiter[])
+      .filter((p) => typeof p.id === "string")
+      .filter((p) => p.role === "mitarbeiter" || p.role === "fuehrungskraft");
+  } catch (e) {
+    console.error("[ladeAlleMitarbeiter] unexpected error:", e);
+    return [];
+  }
 }
 
 async function ladeAlleLernpfade(): Promise<Lernpfad[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("learning_paths")
-    .select(`id, title, sort_order, modules ( lessons ( id ) )`)
-    .order("sort_order", { ascending: true });
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("learning_paths")
+      .select(`id, title, sort_order, modules ( lessons ( id ) )`)
+      .order("sort_order", { ascending: true });
+    if (error) {
+      console.error("[ladeAlleLernpfade] supabase error:", error);
+      return [];
+    }
 
-  type Roh = {
-    id: string;
-    title: string;
-    modules: { lessons: { id: string }[] | null }[] | null;
-  };
-  return ((data ?? []) as unknown as Roh[]).map((p) => ({
-    id: p.id,
-    title: p.title,
-    lessonIds: (p.modules ?? []).flatMap((m) =>
-      (m.lessons ?? []).map((l) => l.id),
-    ),
-  }));
+    type Roh = {
+      id?: string;
+      title?: string;
+      modules?: unknown;
+    };
+    return ((data ?? []) as unknown as Roh[])
+      .filter((p) => typeof p.id === "string" && typeof p.title === "string")
+      .map((p) => {
+        const moduleListe = alsArray<{ lessons?: unknown }>(p.modules);
+        const lessonIds = moduleListe.flatMap((m) =>
+          alsArray<{ id?: string }>(m.lessons)
+            .map((l) => l.id)
+            .filter((id): id is string => typeof id === "string"),
+        );
+        return {
+          id: p.id as string,
+          title: p.title as string,
+          lessonIds,
+        };
+      });
+  } catch (e) {
+    console.error("[ladeAlleLernpfade] unexpected error:", e);
+    return [];
+  }
 }
 
 type Zuweisung = { user_id: string; learning_path_id: string };
 
 async function ladeZuweisungen(): Promise<Zuweisung[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("user_learning_path_assignments")
-    .select("user_id, learning_path_id");
-  return (data ?? []) as Zuweisung[];
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("user_learning_path_assignments")
+      .select("user_id, learning_path_id");
+    if (error) {
+      console.error("[ladeZuweisungen] supabase error:", error);
+      return [];
+    }
+    return ((data ?? []) as unknown as Zuweisung[]).filter(
+      (z) =>
+        typeof z.user_id === "string" &&
+        typeof z.learning_path_id === "string",
+    );
+  } catch (e) {
+    console.error("[ladeZuweisungen] unexpected error:", e);
+    return [];
+  }
 }
 
 async function ladeFortschrittEintraege(): Promise<
   Map<string, Set<string>>
 > {
   // Mappt user_id -> Set abgeschlossener lesson_ids
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("user_lesson_progress")
-    .select("user_id, lesson_id, status")
-    .eq("status", "abgeschlossen");
   const map = new Map<string, Set<string>>();
-  for (const row of (data ?? []) as {
-    user_id: string;
-    lesson_id: string;
-  }[]) {
-    const set = map.get(row.user_id) ?? new Set<string>();
-    set.add(row.lesson_id);
-    map.set(row.user_id, set);
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("user_lesson_progress")
+      .select("user_id, lesson_id, status")
+      .eq("status", "abgeschlossen");
+    if (error) {
+      console.error("[ladeFortschrittEintraege] supabase error:", error);
+      return map;
+    }
+    for (const row of (data ?? []) as {
+      user_id?: string;
+      lesson_id?: string;
+    }[]) {
+      if (typeof row.user_id !== "string" || typeof row.lesson_id !== "string")
+        continue;
+      const set = map.get(row.user_id) ?? new Set<string>();
+      set.add(row.lesson_id);
+      map.set(row.user_id, set);
+    }
+    return map;
+  } catch (e) {
+    console.error("[ladeFortschrittEintraege] unexpected error:", e);
+    return map;
   }
-  return map;
 }
 
 export default async function FortschrittPage() {
