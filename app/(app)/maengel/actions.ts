@@ -8,6 +8,7 @@ import { requireProfile, requireRole } from "@/lib/auth";
 
 const FOTO_MAX_BYTES = 5 * 1024 * 1024;
 const FOTO_ERLAUBT = ["image/jpeg", "image/png", "image/webp"];
+const FOTO_MAX_ANZAHL = 5;
 
 export type Ergebnis =
   | { ok: true; id?: string }
@@ -19,36 +20,55 @@ export async function mangelMelden(formData: FormData): Promise<Ergebnis> {
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const severity = String(formData.get("severity") ?? "normal");
-  const datei = formData.get("foto");
+  const dateien = formData.getAll("foto");
 
   if (title.length < 3) {
     return { ok: false, message: "Bitte gib einen Titel ein (mindestens 3 Zeichen)." };
   }
 
-  // Optional Foto hochladen
-  let photoPath: string | null = null;
-  if (datei instanceof File && datei.size > 0) {
-    if (datei.size > FOTO_MAX_BYTES) {
-      return { ok: false, message: "Foto ist zu groß (max 5 MB)." };
-    }
-    if (!FOTO_ERLAUBT.includes(datei.type)) {
-      return { ok: false, message: "Nur JPG, PNG oder WebP erlaubt." };
-    }
-    const ext = datei.type.split("/")[1].replace("jpeg", "jpg");
-    photoPath = `${profile.id}/${Date.now()}.${ext}`;
-    const buffer = Buffer.from(await datei.arrayBuffer());
+  // Optional mehrere Fotos hochladen
+  const photoPaths: string[] = [];
+  const validFiles = dateien.filter(
+    (d): d is File => d instanceof File && d.size > 0,
+  );
+  if (validFiles.length > FOTO_MAX_ANZAHL) {
+    return {
+      ok: false,
+      message: `Maximal ${FOTO_MAX_ANZAHL} Fotos pro Mangel.`,
+    };
+  }
+  if (validFiles.length > 0) {
     const admin = createAdminClient();
-    const { error: uploadError } = await admin.storage
-      .from("issue-photos")
-      .upload(photoPath, buffer, {
-        contentType: datei.type,
-        upsert: false,
-      });
-    if (uploadError) {
-      return {
-        ok: false,
-        message: "Foto-Upload fehlgeschlagen: " + uploadError.message,
-      };
+    for (let i = 0; i < validFiles.length; i++) {
+      const datei = validFiles[i];
+      if (datei.size > FOTO_MAX_BYTES) {
+        return {
+          ok: false,
+          message: `Foto „${datei.name}" ist zu groß (max 5 MB).`,
+        };
+      }
+      if (!FOTO_ERLAUBT.includes(datei.type)) {
+        return {
+          ok: false,
+          message: `„${datei.name}": Nur JPG, PNG oder WebP erlaubt.`,
+        };
+      }
+      const ext = datei.type.split("/")[1].replace("jpeg", "jpg");
+      const path = `${profile.id}/${Date.now()}-${i}.${ext}`;
+      const buffer = Buffer.from(await datei.arrayBuffer());
+      const { error: uploadError } = await admin.storage
+        .from("issue-photos")
+        .upload(path, buffer, {
+          contentType: datei.type,
+          upsert: false,
+        });
+      if (uploadError) {
+        return {
+          ok: false,
+          message: "Foto-Upload fehlgeschlagen: " + uploadError.message,
+        };
+      }
+      photoPaths.push(path);
     }
   }
 
@@ -61,7 +81,7 @@ export async function mangelMelden(formData: FormData): Promise<Ergebnis> {
       severity: ["niedrig", "normal", "kritisch"].includes(severity)
         ? severity
         : "normal",
-      photo_path: photoPath,
+      photo_paths: photoPaths,
       reported_by: profile.id,
       status: "offen",
     })

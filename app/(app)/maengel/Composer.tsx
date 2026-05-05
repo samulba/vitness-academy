@@ -47,8 +47,10 @@ export function Composer({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [erfolg, setErfolg] = useState(false);
-  const [fotoName, setFotoName] = useState<string | null>(null);
+  const [fotos, setFotos] = useState<File[]>([]);
   const [severity, setSeverity] = useState<string>("normal");
+
+  const FOTO_MAX_ANZAHL = 5;
 
   useEffect(() => {
     if (expanded) titleRef.current?.focus();
@@ -57,20 +59,33 @@ export function Composer({
   function abbrechen() {
     setExpanded(false);
     setError(null);
-    setFotoName(null);
+    setFotos([]);
     setSeverity("normal");
     if (fileRef.current) fileRef.current.value = "";
     formRef.current?.reset();
   }
 
   function onChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    setFotoName(f ? f.name : null);
+    const neue = Array.from(e.target.files ?? []);
+    setFotos((prev) => {
+      const kombiniert = [...prev, ...neue];
+      // Dedupe nach Name+Size, max FOTO_MAX_ANZAHL
+      const seen = new Set<string>();
+      const ergebnis: File[] = [];
+      for (const f of kombiniert) {
+        const key = `${f.name}-${f.size}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        ergebnis.push(f);
+        if (ergebnis.length >= FOTO_MAX_ANZAHL) break;
+      }
+      return ergebnis;
+    });
+    if (fileRef.current) fileRef.current.value = "";
   }
 
-  function clearFile() {
-    if (fileRef.current) fileRef.current.value = "";
-    setFotoName(null);
+  function removeFoto(idx: number) {
+    setFotos((prev) => prev.filter((_, i) => i !== idx));
   }
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -78,12 +93,17 @@ export function Composer({
     setError(null);
     const fd = new FormData(e.currentTarget);
     fd.set("severity", severity);
+    // Fotos aus State (FormData-Eintraege aus dem leeren Input ueberschreiben)
+    fd.delete("foto");
+    for (const f of fotos) {
+      fd.append("foto", f);
+    }
     startTransition(async () => {
       const res = await mangelMelden(fd);
       if (res.ok) {
         setErfolg(true);
         formRef.current?.reset();
-        setFotoName(null);
+        setFotos([]);
         setSeverity("normal");
         setTimeout(() => {
           router.refresh();
@@ -208,43 +228,61 @@ export function Composer({
 
             <div className="space-y-1">
               <Label className="text-xs font-medium text-muted-foreground">
-                Foto
-                <span className="ml-1 font-normal opacity-70">(optional)</span>
+                Fotos
+                <span className="ml-1 font-normal opacity-70">
+                  (optional, max. {FOTO_MAX_ANZAHL})
+                </span>
               </Label>
               <input
                 ref={fileRef}
                 type="file"
                 name="foto"
                 accept="image/jpeg,image/png,image/webp"
+                multiple
                 onChange={onChangeFile}
                 className="hidden"
               />
-              {fotoName ? (
-                <div className="flex h-10 items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 text-sm">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileRef.current?.click()}
+                disabled={fotos.length >= FOTO_MAX_ANZAHL}
+                className="h-10 w-full justify-start gap-2 rounded-lg font-normal text-muted-foreground"
+              >
+                <Camera className="h-4 w-4" />
+                {fotos.length === 0
+                  ? "Fotos hinzufügen"
+                  : fotos.length >= FOTO_MAX_ANZAHL
+                    ? "Maximum erreicht"
+                    : "Weiteres Foto hinzufügen"}
+              </Button>
+            </div>
+          </div>
+
+          {fotos.length > 0 && (
+            <ul className="space-y-1.5">
+              {fotos.map((f, i) => (
+                <li
+                  key={`${f.name}-${f.size}-${i}`}
+                  className="flex h-9 items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 text-sm"
+                >
                   <Check className="h-3.5 w-3.5 shrink-0 text-[hsl(var(--success))]" />
-                  <span className="flex-1 truncate">{fotoName}</span>
+                  <span className="flex-1 truncate">{f.name}</span>
+                  <span className="shrink-0 text-[11px] text-muted-foreground">
+                    {(f.size / 1024 / 1024).toFixed(1)} MB
+                  </span>
                   <button
                     type="button"
-                    onClick={clearFile}
+                    onClick={() => removeFoto(i)}
                     className="text-muted-foreground transition-colors hover:text-destructive"
                     aria-label="Foto entfernen"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
-                </div>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileRef.current?.click()}
-                  className="h-10 w-full justify-start gap-2 rounded-lg font-normal text-muted-foreground"
-                >
-                  <Camera className="h-4 w-4" />
-                  Foto hinzufügen
-                </Button>
-              )}
-            </div>
-          </div>
+                </li>
+              ))}
+            </ul>
+          )}
 
           {error && (
             <p className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--destructive)/0.1)] px-3 py-2 text-xs font-medium text-[hsl(var(--destructive))]">

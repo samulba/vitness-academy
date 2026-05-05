@@ -27,7 +27,9 @@ export function MangelCard({
   mangel: Mangel;
   istEigener: boolean;
 }) {
-  const url = fotoUrlFuerPfad(mangel.photo_path);
+  const urls = mangel.photo_paths
+    .map((p) => fotoUrlFuerPfad(p))
+    .filter((u): u is string => !!u);
   const zeit = useRelativeZeit(mangel.created_at);
   const istKritisch = mangel.severity === "kritisch";
 
@@ -103,25 +105,56 @@ export function MangelCard({
           </p>
         )}
 
-        {/* Foto */}
-        {url ? (
+        {/* Fotos */}
+        {urls.length === 1 ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={url}
+            src={urls[0]}
             alt=""
             loading="lazy"
             className="mt-4 max-h-80 w-full rounded-xl border border-border bg-muted object-cover"
           />
+        ) : urls.length > 1 ? (
+          <div className="mt-4 space-y-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={urls[0]}
+              alt=""
+              loading="lazy"
+              className="max-h-80 w-full rounded-xl border border-border bg-muted object-cover"
+            />
+            <div className="grid grid-cols-4 gap-2">
+              {urls.slice(1).map((u, i) => (
+                <a
+                  key={i}
+                  href={u}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block aspect-square overflow-hidden rounded-lg border border-border bg-muted"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={u}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform hover:scale-105"
+                  />
+                </a>
+              ))}
+            </div>
+          </div>
         ) : null}
       </div>
 
       {/* Footer */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border px-6 py-3">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          {url ? (
+          {urls.length > 0 ? (
             <span className="inline-flex items-center gap-1">
               <ImageIcon className="h-3 w-3" />
-              Foto angehängt
+              {urls.length === 1
+                ? "Foto angehängt"
+                : `${urls.length} Fotos angehängt`}
             </span>
           ) : (
             <span className="text-[11px]">Kein Foto</span>

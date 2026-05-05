@@ -222,14 +222,20 @@ export default async function MaengelAdminPage() {
 }
 
 function MangelThumb({ m }: { m: Mangel }) {
-  const url = fotoUrlFuerPfad(m.photo_path);
+  const url = fotoUrlFuerPfad(m.photo_paths[0] ?? null);
+  const extra = m.photo_paths.length - 1;
   return (
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-muted-foreground">
+    <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-muted-foreground">
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={url} alt="" className="h-full w-full object-cover" />
       ) : (
         <ImageIcon className="h-3.5 w-3.5" />
+      )}
+      {extra > 0 && (
+        <span className="absolute -bottom-0.5 -right-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[hsl(var(--primary))] px-1 text-[9px] font-bold text-[hsl(var(--primary-foreground))]">
+          +{extra}
+        </span>
       )}
     </span>
   );

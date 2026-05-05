@@ -14,7 +14,7 @@ type Roh = {
   location_id: string | null;
   title: string;
   description: string | null;
-  photo_path: string | null;
+  photo_paths: string[] | null;
   status: string;
   severity: string;
   reported_by: string | null;
@@ -28,7 +28,7 @@ type Roh = {
 };
 
 const SELECT = `
-  id, location_id, title, description, photo_path, status, severity,
+  id, location_id, title, description, photo_paths, status, severity,
   reported_by, reporter:reported_by ( full_name, avatar_path ),
   assigned_to, assignee:assigned_to ( full_name ),
   resolution_note, created_at, updated_at, resolved_at
@@ -40,7 +40,7 @@ function map(r: Roh): Mangel {
     location_id: r.location_id,
     title: r.title,
     description: r.description,
-    photo_path: r.photo_path,
+    photo_paths: Array.isArray(r.photo_paths) ? r.photo_paths : [],
     status: (["offen", "in_bearbeitung", "behoben", "verworfen"].includes(r.status)
       ? r.status
       : "offen") as Status,

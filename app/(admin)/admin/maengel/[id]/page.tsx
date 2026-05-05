@@ -25,7 +25,9 @@ export default async function MangelDetailPage({
   const m = await ladeMangel(id);
   if (!m) notFound();
 
-  const url = fotoUrlFuerPfad(m.photo_path);
+  const urls = m.photo_paths
+    .map((p) => fotoUrlFuerPfad(p))
+    .filter((u): u is string => !!u);
   const setStatus = (next: typeof m.status) =>
     mangelStatusSetzen.bind(null, id, next);
   const loeschen = mangelLoeschen.bind(null, id);
@@ -51,10 +53,26 @@ export default async function MangelDetailPage({
         }
       />
 
-      {url && (
-        <div className="overflow-hidden rounded-2xl border border-border bg-muted">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={url} alt="" className="w-full object-cover" />
+      {urls.length > 0 && (
+        <div
+          className={
+            urls.length === 1
+              ? "overflow-hidden rounded-2xl border border-border bg-muted"
+              : "grid gap-3 sm:grid-cols-2"
+          }
+        >
+          {urls.map((u, i) => (
+            <a
+              key={i}
+              href={u}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block overflow-hidden rounded-2xl border border-border bg-muted"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={u} alt="" className="w-full object-cover" />
+            </a>
+          ))}
         </div>
       )}
 

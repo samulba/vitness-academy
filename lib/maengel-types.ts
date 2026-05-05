@@ -11,7 +11,7 @@ export type Mangel = {
   location_id: string | null;
   title: string;
   description: string | null;
-  photo_path: string | null;
+  photo_paths: string[];
   status: Status;
   severity: Severity;
   reported_by: string | null;
