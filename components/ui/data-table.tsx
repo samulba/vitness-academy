@@ -480,7 +480,7 @@ function Row<T extends { id: string | number }>({
 
 function RowActionButton<T>({ action, row }: { action: RowAction<T>; row: T }) {
   const cls = cn(
-    "inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors [&_svg]:size-3.5",
+    "inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors sm:h-7 sm:w-7 [&_svg]:size-3.5",
     action.variant === "danger"
       ? "text-muted-foreground/70 hover:bg-destructive/10 hover:text-destructive"
       : "text-muted-foreground/70 hover:bg-muted hover:text-foreground",

@@ -135,7 +135,7 @@ function SortableRow({
       ref={setActivatorNodeRef}
       {...attributes}
       {...listeners}
-      className="flex h-7 w-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:cursor-grabbing"
+      className="flex h-9 w-9 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:cursor-grabbing sm:h-7 sm:w-7"
       aria-label="Zum Verschieben ziehen"
     >
       <GripVertical className="h-4 w-4" />

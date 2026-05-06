@@ -24,7 +24,7 @@ export function ReihenfolgeButtons({
           variant="ghost"
           size="icon"
           disabled={hochDeaktiviert}
-          className="h-7 w-7"
+          className="h-9 w-9 sm:h-7 sm:w-7"
           aria-label="Nach oben"
         >
           <ChevronUp className="h-4 w-4" />
@@ -36,7 +36,7 @@ export function ReihenfolgeButtons({
           variant="ghost"
           size="icon"
           disabled={runterDeaktiviert}
-          className="h-7 w-7"
+          className="h-9 w-9 sm:h-7 sm:w-7"
           aria-label="Nach unten"
         >
           <ChevronDown className="h-4 w-4" />

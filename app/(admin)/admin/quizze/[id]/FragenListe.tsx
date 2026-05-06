@@ -284,7 +284,7 @@ function OptionZeile({
         </Badge>
       )}
       <span className="min-w-0 flex-1 truncate text-sm">{option.label}</span>
-      <div className="flex items-center gap-1 opacity-60 transition-opacity group-hover:opacity-100">
+      <div className="flex items-center gap-1 transition-opacity [@media(hover:hover)]:opacity-60 [@media(hover:hover)]:group-hover:opacity-100">
         <OptionBearbeitenInline
           action={optionAktualisieren.bind(null, quizId, option.id)}
           label={option.label}

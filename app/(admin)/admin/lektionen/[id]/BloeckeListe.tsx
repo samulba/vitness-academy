@@ -203,7 +203,7 @@ function BlockZeile({
         <div className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
           {previewText(block)}
         </div>
-        <div className="flex items-center gap-0.5 opacity-60 transition-opacity group-hover:opacity-100">
+        <div className="flex items-center gap-0.5 transition-opacity [@media(hover:hover)]:opacity-60 [@media(hover:hover)]:group-hover:opacity-100">
           <button
             type="button"
             onClick={() => setBearbeiten(true)}
