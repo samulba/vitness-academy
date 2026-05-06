@@ -14,36 +14,85 @@ import { alsArray, istNextJsControlFlow, joinFeld } from "@/lib/admin/safe-loade
 import { ladeChecklistStatusBatch } from "@/lib/onboarding-checklist";
 import { BenutzerTable, type Zeile } from "./BenutzerTable";
 
-async function ladeBenutzer(includeArchiviert: boolean): Promise<Zeile[]> {
+type LadeErgebnis = {
+  rows: Zeile[];
+  /** Fehler-Diagnose fuer Admin-Banner. null = kein Fehler. */
+  fehler: string | null;
+};
+
+function formatSupabaseError(e: unknown): string {
+  if (e && typeof e === "object") {
+    const obj = e as {
+      code?: unknown;
+      message?: unknown;
+      details?: unknown;
+      hint?: unknown;
+    };
+    const teile: string[] = [];
+    if (obj.code) teile.push(`code=${String(obj.code)}`);
+    if (obj.message) teile.push(`message=${String(obj.message)}`);
+    if (obj.details) teile.push(`details=${String(obj.details)}`);
+    if (obj.hint) teile.push(`hint=${String(obj.hint)}`);
+    if (teile.length > 0) return teile.join(" · ");
+  }
+  return String(e);
+}
+
+async function ladeBenutzer(
+  includeArchiviert: boolean,
+): Promise<LadeErgebnis> {
   try {
     const supabase = await createClient();
-    // Erst mit tags + vertragsart (Migration 0044), dann fallback ohne
+    // Drei-Stufen-Fallback:
+    //   Voll  = mit tags + vertragsart (Migration 0044) + JOINs
+    //   Basis = ohne 0044 aber mit JOINs
+    //   Ohne  = nur Stammfelder, kein JOIN -- letzte Rettung wenn
+    //           PostgREST den JOIN nicht aufloest
     const FELDER_VOLL = `id, full_name, role, created_at, archived_at, vertragsart, tags,
        locations:location_id ( name ),
        user_learning_path_assignments ( id )`;
     const FELDER_BASIS = `id, full_name, role, created_at, archived_at,
        locations:location_id ( name ),
        user_learning_path_assignments ( id )`;
+    const FELDER_OHNE_JOIN = `id, full_name, role, created_at, archived_at`;
 
-    let q = supabase
-      .from("profiles")
-      .select(FELDER_VOLL)
-      .order("created_at", { ascending: false });
-    if (!includeArchiviert) q = q.is("archived_at", null);
-    const erst = await q;
-    let data: unknown = erst.data;
-    if (erst.error) {
-      let q2 = supabase
+    async function probiere(felder: string) {
+      let q = supabase
         .from("profiles")
-        .select(FELDER_BASIS)
+        .select(felder)
         .order("created_at", { ascending: false });
-      if (!includeArchiviert) q2 = q2.is("archived_at", null);
-      const fb = await q2;
-      if (fb.error) {
-        console.error("[ladeBenutzer] supabase error:", fb.error);
-        return [];
+      if (!includeArchiviert) q = q.is("archived_at", null);
+      return q;
+    }
+
+    let data: unknown = null;
+    let warnung: string | null = null;
+
+    const erst = await probiere(FELDER_VOLL);
+    if (!erst.error) {
+      data = erst.data;
+    } else {
+      const erstFehler = formatSupabaseError(erst.error);
+      console.error("[ladeBenutzer] Voll-Query fehlgeschlagen:", erstFehler);
+      const zweit = await probiere(FELDER_BASIS);
+      if (!zweit.error) {
+        data = zweit.data;
+        warnung = `Voll-Query fehlgeschlagen, Basis greift (Migration 0044 fehlt?): ${erstFehler}`;
+      } else {
+        const zweitFehler = formatSupabaseError(zweit.error);
+        console.error("[ladeBenutzer] Basis-Query fehlgeschlagen:", zweitFehler);
+        const dritt = await probiere(FELDER_OHNE_JOIN);
+        if (dritt.error) {
+          const drittFehler = formatSupabaseError(dritt.error);
+          console.error("[ladeBenutzer] Ohne-Join-Query fehlgeschlagen:", drittFehler);
+          return {
+            rows: [],
+            fehler: `Alle drei Queries fehlgeschlagen. Voll: ${erstFehler} | Basis: ${zweitFehler} | OhneJoin: ${drittFehler}`,
+          };
+        }
+        data = dritt.data;
+        warnung = `JOIN auf locations/lernpfade ist kaputt -- zeige Stammdaten ohne Standort/Zuweisungen. Voll-Fehler: ${erstFehler}`;
       }
-      data = fb.data;
     }
 
     type Roh = {
@@ -58,7 +107,7 @@ async function ladeBenutzer(includeArchiviert: boolean): Promise<Zeile[]> {
       user_learning_path_assignments?: unknown;
     };
 
-    return ((data ?? []) as unknown as Roh[])
+    const rows = ((data ?? []) as unknown as Roh[])
       .filter((r) => typeof r.id === "string")
       .map((r) => ({
         id: r.id as string,
@@ -78,10 +127,12 @@ async function ladeBenutzer(includeArchiviert: boolean): Promise<Zeile[]> {
         onboarding_erledigt: 0,
         onboarding_gesamt: 0,
       }));
+    return { rows, fehler: warnung };
   } catch (e) {
     if (istNextJsControlFlow(e)) throw e;
-    console.error("[ladeBenutzer] unexpected error:", e);
-    return [];
+    const fehlerText = formatSupabaseError(e);
+    console.error("[ladeBenutzer] unexpected error:", fehlerText);
+    return { rows: [], fehler: `Unerwarteter Fehler: ${fehlerText}` };
   }
 }
 
@@ -93,7 +144,9 @@ export default async function AdminBenutzerListe({
   const sp = await searchParams;
   const archivPrm = sp.archiviert;
   const showArchiv = archivPrm === "1" || archivPrm === "true";
-  const benutzer = await ladeBenutzer(showArchiv);
+  const ergebnis = await ladeBenutzer(showArchiv);
+  const benutzer = ergebnis.rows;
+  const ladeFehler = ergebnis.fehler;
   // Onboarding-Status pro Mitarbeiter:in mergen (defensiv: bei
   // fehlender Migration leerer Map -> Werte bleiben 0/0)
   const onboardingMap = await ladeChecklistStatusBatch(
@@ -141,6 +194,17 @@ export default async function AdminBenutzerListe({
           },
         ]}
       />
+
+      {ladeFehler && (
+        <div className="rounded-xl border border-[hsl(var(--destructive)/0.4)] bg-[hsl(var(--destructive)/0.06)] p-4 text-xs text-[hsl(var(--destructive))]">
+          <p className="font-semibold">Diagnose: Loader-Problem</p>
+          <p className="mt-1 break-all font-mono">{ladeFehler}</p>
+          <p className="mt-2 text-muted-foreground">
+            Diese Meldung erscheint nur für Admins. Bitte an die Studioleitung
+            melden, damit die Migration / RLS-Policy gefixt werden kann.
+          </p>
+        </div>
+      )}
 
       <StatGrid cols={4}>
         <StatCard
