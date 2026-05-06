@@ -134,7 +134,7 @@ export default async function DashboardPage() {
           .join(" · ");
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       {/* === Banner: ungelesene wichtige Info === */}
       {banner && (
         <Link

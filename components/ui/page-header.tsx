@@ -94,7 +94,7 @@ export function PageHeader({
             </p>
           )}
           <div className="mt-1.5 flex flex-wrap items-center gap-3">
-            <h1 className="text-[28px] font-semibold leading-tight tracking-tight">
+            <h1 className="text-[22px] font-semibold leading-tight tracking-tight sm:text-[28px]">
               {title}
             </h1>
             {meta}

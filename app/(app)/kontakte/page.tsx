@@ -150,10 +150,10 @@ function KontaktZeile({ k }: { k: Kontakt }) {
         {k.email && (
           <a
             href={`mailto:${k.email}`}
-            className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+            className="inline-flex min-w-0 max-w-full items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
           >
-            <Mail className="h-3 w-3" />
-            <span>{k.email}</span>
+            <Mail className="h-3 w-3 shrink-0" />
+            <span className="truncate">{k.email}</span>
           </a>
         )}
       </div>

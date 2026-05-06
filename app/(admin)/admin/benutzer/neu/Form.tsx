@@ -108,7 +108,7 @@ export function NeuerBenutzerForm({
   }
 
   return (
-    <form action={action} className="space-y-10">
+    <form action={action} className="space-y-6 sm:space-y-10">
       {/* Template-Quick-Start */}
       {templates.length > 0 && (
         <div className="rounded-2xl border border-[hsl(var(--brand-pink)/0.25)] bg-[hsl(var(--brand-pink)/0.04)] p-5">

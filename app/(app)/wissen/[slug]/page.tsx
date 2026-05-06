@@ -22,7 +22,7 @@ export default async function ArtikelPage({
   if (!artikel) notFound();
 
   return (
-    <article className="mx-auto max-w-3xl space-y-12">
+    <article className="mx-auto max-w-3xl space-y-8 sm:space-y-12">
       <Link
         href={
           artikel.category_slug
