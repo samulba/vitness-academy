@@ -125,7 +125,7 @@ export function AvatarUpload({ initialPfad, fullName }: Props) {
         <p className="text-xs text-muted-foreground">
           {pending
             ? "Lädt …"
-            : "Quadratisch, JPG/PNG/WebP, max 3 MB."}
+            : "Quadratisch, JPG/PNG/WebP, max 10 MB."}
         </p>
         {error && (
           <p className="rounded-md bg-[hsl(var(--destructive)/0.1)] px-2.5 py-1.5 text-xs font-medium text-[hsl(var(--destructive))]">

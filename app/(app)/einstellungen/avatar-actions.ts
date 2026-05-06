@@ -5,7 +5,7 @@ import { requireProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const BUCKET = "avatars";
-const MAX_BYTES = 3 * 1024 * 1024; // 3 MB
+const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 const ERLAUBTE_TYPEN = ["image/jpeg", "image/png", "image/webp"];
 
 export type AvatarErgebnis =
