@@ -13,7 +13,7 @@ export default async function LoginPage({
   const istProfilFehlt = fehler === "profil-fehlt";
 
   return (
-    <main className="theme-light-locked grid min-h-screen bg-background text-foreground lg:grid-cols-[1.1fr_1fr]">
+    <main className="theme-light-locked grid min-h-[100svh] bg-background text-foreground lg:grid-cols-[1.1fr_1fr]">
       {/* Branding-Pane */}
       <aside className="relative hidden overflow-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))] lg:flex">
         <div

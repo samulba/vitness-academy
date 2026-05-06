@@ -373,7 +373,7 @@ function Closer() {
         aria-hidden
         className="pointer-events-none absolute inset-x-0 -bottom-12 select-none overflow-hidden text-center font-semibold leading-none tracking-[-0.05em] sm:-bottom-20 lg:-bottom-32"
         style={{
-          fontSize: "clamp(8rem, 26vw, 28rem)",
+          fontSize: "clamp(5rem, 22vw, 28rem)",
           color: "transparent",
           WebkitTextStroke: "1px hsl(var(--brand-cream) / 0.07)",
         }}

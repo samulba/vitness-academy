@@ -66,7 +66,7 @@ export function AnimatedHero() {
       </div>
 
       {/* === Inhalt === */}
-      <div className="relative z-10 flex flex-1 flex-col px-6 pt-44 lg:px-12 lg:pt-56 2xl:px-20">
+      <div className="relative z-10 flex flex-1 flex-col px-6 pt-28 sm:pt-32 lg:px-12 lg:pt-56 2xl:px-20">
         {/* Eyebrow */}
         <div className="word-reveal">
           <span
@@ -79,7 +79,7 @@ export function AnimatedHero() {
         </div>
 
         {/* Headline */}
-        <h1 className="mt-12 max-w-[16ch] text-balance font-semibold leading-[0.92] tracking-[-0.04em] text-[clamp(3.25rem,9vw,8.75rem)]">
+        <h1 className="mt-8 max-w-[16ch] text-balance font-semibold leading-[0.92] tracking-[-0.04em] text-[clamp(2.75rem,11vw,8.75rem)] sm:mt-12">
           {HEAD_LINES.map((line, lineIdx) => (
             <span key={lineIdx} className="block">
               {line.map((w, i) => {
@@ -121,10 +121,10 @@ export function AnimatedHero() {
         </h1>
 
         {/* Subline */}
-        <div className="word-reveal mt-14 max-w-2xl">
+        <div className="word-reveal mt-8 max-w-2xl sm:mt-14">
           <p
             style={{ animationDelay: "1100ms" }}
-            className="text-pretty text-lg leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:text-xl"
+            className="text-pretty text-base leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:text-lg lg:text-xl"
           >
             Hier lernst du, wie wir bei Vitness arbeiten —
             Theke, Trainingsfläche, Reha, Verkauf. In deinem Tempo.
@@ -133,7 +133,7 @@ export function AnimatedHero() {
         </div>
 
         {/* Feature-Pills */}
-        <div className="word-reveal mt-10">
+        <div className="word-reveal mt-6 sm:mt-10">
           <div
             style={{ animationDelay: "1250ms" }}
             className="flex flex-wrap gap-2"
@@ -151,21 +151,21 @@ export function AnimatedHero() {
         </div>
 
         {/* CTA */}
-        <div className="word-reveal mt-12">
+        <div className="word-reveal mt-8 sm:mt-12">
           <div
             style={{ animationDelay: "1400ms" }}
-            className="flex flex-col items-start gap-y-8 sm:flex-row sm:items-center sm:gap-x-16"
+            className="flex flex-col items-stretch gap-y-5 sm:flex-row sm:items-center sm:gap-x-16"
           >
             <Link
               href="/login"
-              className="group inline-flex items-center gap-3 rounded-full bg-[hsl(var(--primary))] px-8 py-4 text-base font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.02]"
+              className="group inline-flex items-center justify-center gap-3 rounded-full bg-[hsl(var(--primary))] px-8 py-4 text-base font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.02]"
             >
               Anmelden
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <a
               href="#story"
-              className="text-sm font-medium text-[hsl(var(--brand-cream)/0.55)] transition-colors hover:text-[hsl(var(--brand-cream))]"
+              className="text-center text-sm font-medium text-[hsl(var(--brand-cream)/0.55)] transition-colors hover:text-[hsl(var(--brand-cream))] sm:text-left"
             >
               Wie das hier funktioniert ↓
             </a>
@@ -173,25 +173,25 @@ export function AnimatedHero() {
         </div>
 
         {/* Spacer */}
-        <div className="flex-1 min-h-32" />
+        <div className="flex-1 min-h-16 sm:min-h-32" />
 
         {/* Bottom-Bar mit Live-Status */}
-        <div className="mb-8 flex items-end justify-between gap-6 border-t border-white/10 pt-8 text-xs text-[hsl(var(--brand-cream)/0.4)]">
-          <span className="inline-flex items-center gap-2.5 uppercase tracking-[0.18em]">
+        <div className="mb-6 flex items-center justify-between gap-4 border-t border-white/10 pt-5 text-[11px] text-[hsl(var(--brand-cream)/0.4)] sm:mb-8 sm:pt-8 sm:text-xs">
+          <span className="inline-flex items-center gap-2 uppercase tracking-[0.18em]">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--primary)/0.5)]" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[hsl(var(--primary))]" />
             </span>
             Live · Studio Mitte
           </span>
-          <span className="hidden font-mono sm:block">
+          <span className="hidden font-mono md:block">
             v · {new Date().getFullYear()}
           </span>
           <a
             href="#story"
-            className="scroll-arrow inline-flex items-center gap-2 transition-colors hover:text-[hsl(var(--brand-cream))]"
+            className="scroll-arrow inline-flex items-center gap-1.5 transition-colors hover:text-[hsl(var(--brand-cream))]"
           >
-            <span className="hidden sm:inline">Weiter</span>
+            <span>Weiter</span>
             <svg
               viewBox="0 0 12 12"
               className="h-3 w-3"

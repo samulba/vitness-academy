@@ -100,18 +100,18 @@ export function PinnedNarrative() {
         />
 
         {/* Timeline-Indikator — durchgehende Linie + nummerierte Marker */}
-        <div className="absolute left-0 right-0 top-0 z-20 px-6 pt-28 lg:px-12 2xl:px-20">
+        <div className="absolute left-0 right-0 top-0 z-20 px-4 pt-20 sm:px-6 sm:pt-28 lg:px-12 2xl:px-20">
           <div className="mx-auto max-w-[1600px]">
             <div className="relative">
-              {/* Background-Linie — durchgehend */}
+              {/* Background-Linie — durchgehend (Mobile: linker/rechter Offset = halbe Marker-Breite = 1rem; Desktop: 1.25rem) */}
               <div
                 aria-hidden
-                className="absolute left-[1.25rem] right-[1.25rem] top-[1.25rem] h-px bg-white/10"
+                className="absolute left-4 right-4 top-4 h-px bg-white/10 sm:left-5 sm:right-5 sm:top-5"
               />
               {/* Fill-Linie — folgt Gesamt-Progress, KEIN Transition damit kein Jitter */}
               <div
                 aria-hidden
-                className="absolute left-[1.25rem] right-[1.25rem] top-[1.25rem] h-px origin-left"
+                className="absolute left-4 right-4 top-4 h-px origin-left sm:left-5 sm:right-5 sm:top-5"
                 style={{
                   background:
                     "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--brand-pink)))",
@@ -128,14 +128,14 @@ export function PinnedNarrative() {
                   return (
                     <li
                       key={p.marker}
-                      className="flex flex-col items-center gap-3"
+                      className="flex flex-col items-center gap-2 sm:gap-3"
                     >
                       {/* Nummerierter Marker */}
                       <span
                         className={
                           istVorbei || istAktiv
-                            ? "relative flex h-10 w-10 items-center justify-center rounded-full border border-[hsl(var(--primary))] bg-[hsl(var(--brand-ink))] text-[10px] font-mono font-semibold tracking-wider text-[hsl(var(--brand-cream))] transition-colors duration-300"
-                            : "relative flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-[hsl(var(--brand-ink))] text-[10px] font-mono font-semibold tracking-wider text-[hsl(var(--brand-cream)/0.4)] transition-colors duration-300"
+                            ? "relative flex h-8 w-8 items-center justify-center rounded-full border border-[hsl(var(--primary))] bg-[hsl(var(--brand-ink))] text-[9px] font-mono font-semibold tracking-wider text-[hsl(var(--brand-cream))] transition-colors duration-300 sm:h-10 sm:w-10 sm:text-[10px]"
+                            : "relative flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-[hsl(var(--brand-ink))] text-[9px] font-mono font-semibold tracking-wider text-[hsl(var(--brand-cream)/0.4)] transition-colors duration-300 sm:h-10 sm:w-10 sm:text-[10px]"
                         }
                       >
                         {istAktiv && (
@@ -153,7 +153,7 @@ export function PinnedNarrative() {
                         {istVorbei ? (
                           <svg
                             viewBox="0 0 12 12"
-                            className="h-3.5 w-3.5"
+                            className="h-3 w-3 sm:h-3.5 sm:w-3.5"
                             fill="none"
                             stroke="currentColor"
                             strokeWidth="2"
@@ -171,10 +171,10 @@ export function PinnedNarrative() {
                       <span
                         className={
                           istAktiv
-                            ? "text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-cream))] transition-colors duration-300 sm:text-[11px]"
+                            ? "text-center text-[9px] font-semibold uppercase tracking-[0.16em] text-[hsl(var(--brand-cream))] transition-colors duration-300 sm:text-[11px] sm:tracking-[0.18em]"
                             : istVorbei
-                            ? "text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.6)] transition-colors duration-300 sm:text-[11px]"
-                            : "text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.3)] transition-colors duration-300 sm:text-[11px]"
+                            ? "text-center text-[9px] font-semibold uppercase tracking-[0.16em] text-[hsl(var(--brand-cream)/0.6)] transition-colors duration-300 sm:text-[11px] sm:tracking-[0.18em]"
+                            : "text-center text-[9px] font-semibold uppercase tracking-[0.16em] text-[hsl(var(--brand-cream)/0.3)] transition-colors duration-300 sm:text-[11px] sm:tracking-[0.18em]"
                         }
                       >
                         {p.marker}
@@ -188,7 +188,7 @@ export function PinnedNarrative() {
         </div>
 
         {/* Inhalt */}
-        <div className="relative z-10 mx-auto grid w-full max-w-[1600px] grid-cols-1 items-center gap-16 px-6 pt-16 lg:grid-cols-12 lg:px-12 lg:pt-0 2xl:px-20">
+        <div className="relative z-10 mx-auto grid w-full max-w-[1600px] grid-cols-1 items-center gap-8 px-6 pt-24 sm:gap-12 sm:pt-20 lg:grid-cols-12 lg:gap-16 lg:px-12 lg:pt-0 2xl:px-20">
           {/* Linke Spalte: Text — alle Frames in EINER Grid-Cell uebereinander */}
           <div className="grid grid-cols-1 grid-rows-1 lg:col-span-6 xl:col-span-7">
             {PHASEN.map((p, i) => (
@@ -209,13 +209,13 @@ export function PinnedNarrative() {
                   pointerEvents: i === aktuellerIdx ? "auto" : "none",
                 }}
               >
-                <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+                <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))] sm:text-[11px]">
                   {p.ueber}
                 </p>
-                <h2 className="mt-6 max-w-[16ch] text-balance font-semibold leading-[0.95] tracking-[-0.035em] text-[clamp(2.5rem,5.5vw,5.5rem)]">
+                <h2 className="mt-4 max-w-[16ch] text-balance font-semibold leading-[0.95] tracking-[-0.035em] text-[clamp(2rem,7vw,5.5rem)] sm:mt-6">
                   {p.headline}
                 </h2>
-                <p className="mt-8 max-w-xl text-pretty text-base leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:text-lg">
+                <p className="mt-5 max-w-xl text-pretty text-sm leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:mt-8 sm:text-base lg:text-lg">
                   {p.body}
                 </p>
               </div>
@@ -248,7 +248,7 @@ export function PinnedNarrative() {
 
 function PhasenVisual({ phase }: { phase: Phase }) {
   return (
-    <div className="relative mx-auto w-full max-w-md">
+    <div className="relative mx-auto w-full max-w-[280px] sm:max-w-sm lg:max-w-md">
       {/* Glow */}
       <div
         aria-hidden
