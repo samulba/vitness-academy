@@ -25,7 +25,7 @@ export default async function RootPage() {
   }
 
   return (
-    <main className="theme-dark-locked bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
+    <main className="theme-dark-locked overflow-x-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
       <StickyNav />
       <AnimatedHero />
       <PinnedNarrative />
@@ -165,34 +165,34 @@ function BentoCard({
   children: React.ReactNode;
 }) {
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[hsl(var(--primary))] hover:shadow-[0_24px_60px_-24px_hsl(var(--primary)/0.35)] sm:p-8">
+    <article className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-white p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[hsl(var(--primary))] hover:shadow-[0_24px_60px_-24px_hsl(var(--primary)/0.35)] sm:rounded-3xl sm:p-8">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <span className="font-mono text-xs text-muted-foreground">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <span className="font-mono text-[11px] text-muted-foreground sm:text-xs">
             {kicker}
           </span>
           <h3
             className={
               featured
-                ? "mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
-                : "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl"
+                ? "mt-2 text-xl font-semibold tracking-tight sm:mt-3 sm:text-4xl"
+                : "mt-2 text-xl font-semibold tracking-tight sm:mt-3 sm:text-3xl"
             }
           >
             {titel}
           </h3>
         </div>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-[hsl(var(--brand-cream))] text-[hsl(var(--brand-pink))] transition-colors group-hover:border-[hsl(var(--primary))] group-hover:bg-[hsl(var(--primary)/0.08)]">
-          <Icon className="h-5 w-5" strokeWidth={1.75} />
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-[hsl(var(--brand-cream))] text-[hsl(var(--brand-pink))] transition-colors group-hover:border-[hsl(var(--primary))] group-hover:bg-[hsl(var(--primary)/0.08)] sm:h-10 sm:w-10 sm:rounded-xl">
+          <Icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
         </span>
       </div>
 
-      <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+      <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground sm:mt-4 sm:max-w-md sm:text-base">
         {text}
       </p>
 
       {/* Visual */}
-      <div className="mt-8 flex-1">{children}</div>
+      <div className="mt-5 flex-1 sm:mt-8">{children}</div>
     </article>
   );
 }
@@ -204,12 +204,12 @@ function LernpfadVisual() {
     { titel: "Häufige Kundenfragen", state: "open" as const },
   ];
   return (
-    <div className="rounded-xl border border-border bg-[hsl(var(--brand-cream))] p-4">
-      <div className="flex items-baseline justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+    <div className="rounded-xl border border-border bg-[hsl(var(--brand-cream))] p-3 sm:p-4">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="truncate text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           Theke und Empfang
         </span>
-        <span className="text-[10px] tabular-nums text-muted-foreground">
+        <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
           11 / 16
         </span>
       </div>
@@ -219,19 +219,19 @@ function LernpfadVisual() {
           style={{ width: "68%" }}
         />
       </div>
-      <ul className="mt-4 space-y-2">
+      <ul className="mt-3 space-y-1.5 sm:mt-4 sm:space-y-2">
         {lektionen.map((l) => (
           <li
             key={l.titel}
-            className="flex items-center gap-3 rounded-lg bg-white px-3 py-2"
+            className="flex items-center gap-2 rounded-lg bg-white px-2.5 py-2 sm:gap-3 sm:px-3"
           >
             <span
               className={
                 l.state === "done"
-                  ? "flex h-5 w-5 items-center justify-center rounded-full bg-[hsl(var(--success))] text-white"
+                  ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--success))] text-white"
                   : l.state === "doing"
-                  ? "flex h-5 w-5 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
-                  : "h-5 w-5 rounded-full border-2 border-border"
+                  ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
+                  : "h-5 w-5 shrink-0 rounded-full border-2 border-border"
               }
             >
               {l.state === "done" && (
@@ -251,14 +251,14 @@ function LernpfadVisual() {
             <span
               className={
                 l.state === "done"
-                  ? "flex-1 text-sm text-muted-foreground line-through"
-                  : "flex-1 text-sm font-medium"
+                  ? "min-w-0 flex-1 truncate text-[13px] text-muted-foreground line-through sm:text-sm"
+                  : "min-w-0 flex-1 truncate text-[13px] font-medium sm:text-sm"
               }
             >
               {l.titel}
             </span>
             {l.state === "doing" && (
-              <span className="rounded-full border border-[hsl(var(--primary))] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[hsl(var(--primary))]">
+              <span className="shrink-0 rounded-full border border-[hsl(var(--primary))] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[hsl(var(--primary))]">
                 Jetzt
               </span>
             )}
