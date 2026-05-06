@@ -83,8 +83,11 @@ export function PinnedNarrative() {
       className="relative bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]"
       style={{ height: `${(phaseAnzahl + 1) * 100}vh` }}
     >
-      {/* Sticky Inner */}
-      <div className="sticky top-0 flex h-screen items-center overflow-hidden">
+      {/* Sticky Inner — flex-col damit Timeline garantiert OBEN sitzt
+       *   und die Inhalte den verbleibenden Raum bekommen. Kein
+       *   "items-center" mehr - das centerte die ganze Spalte und
+       *   liess die Inhalte mit der Timeline kollidieren. */}
+      <div className="sticky top-0 flex h-screen flex-col overflow-hidden">
         {/* Sich bewegender Lichtkegel — Farbe ändert sich mit Phase */}
         <div
           aria-hidden
@@ -100,7 +103,7 @@ export function PinnedNarrative() {
         />
 
         {/* Timeline-Indikator — durchgehende Linie + nummerierte Marker */}
-        <div className="absolute left-0 right-0 top-0 z-20 px-4 pt-20 sm:px-6 sm:pt-28 lg:px-12 2xl:px-20">
+        <div className="relative z-20 shrink-0 px-4 pt-20 sm:px-6 sm:pt-24 lg:px-12 lg:pt-28 2xl:px-20">
           <div className="mx-auto max-w-[1600px]">
             <div className="relative">
               {/* Background-Linie — durchgehend (Mobile: linker/rechter Offset = halbe Marker-Breite = 1rem; Desktop: 1.25rem) */}
@@ -187,8 +190,8 @@ export function PinnedNarrative() {
           </div>
         </div>
 
-        {/* Inhalt */}
-        <div className="relative z-10 mx-auto grid w-full max-w-[1600px] grid-cols-1 items-center gap-8 px-6 pt-24 sm:gap-12 sm:pt-20 lg:grid-cols-12 lg:gap-16 lg:px-12 lg:pt-0 2xl:px-20">
+        {/* Inhalt — fuellt verbleibenden Raum, vertikal zentriert */}
+        <div className="relative z-10 mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 items-center gap-6 px-6 py-6 sm:gap-10 sm:py-10 lg:grid-cols-12 lg:gap-16 lg:px-12 lg:py-0 2xl:px-20">
           {/* Linke Spalte: Text — alle Frames in EINER Grid-Cell uebereinander */}
           <div className="grid grid-cols-1 grid-rows-1 lg:col-span-6 xl:col-span-7">
             {PHASEN.map((p, i) => (

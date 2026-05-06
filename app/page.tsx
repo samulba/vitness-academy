@@ -4,8 +4,12 @@ import {
   ArrowRight,
   BookOpen,
   Compass,
+  FileText,
   ListChecks,
+  Megaphone,
+  Stethoscope,
   UserCheck,
+  Wrench,
 } from "lucide-react";
 import { getCurrentProfile, startseiteFuerRolle } from "@/lib/auth";
 import { StickyNav } from "@/components/landing/StickyNav";
@@ -52,11 +56,11 @@ function Bausteine() {
               </p>
             </Reveal>
             <Reveal delay={120}>
-              <h2 className="mt-8 text-balance font-semibold leading-[1.0] tracking-[-0.03em] text-[clamp(2.5rem,5vw,4.5rem)]">
-                Vier Werkzeuge.
+              <h2 className="mt-6 text-balance font-semibold leading-[1.0] tracking-[-0.03em] text-[clamp(2.25rem,5vw,4.5rem)] sm:mt-8">
+                Alles in einer App.
                 <br />
                 <span className="text-muted-foreground">
-                  Mehr brauchst du nicht.
+                  Lernen, Anfragen, Studio-Alltag.
                 </span>
               </h2>
             </Reveal>
@@ -70,8 +74,8 @@ function Bausteine() {
         </div>
 
         {/* Bento Grid */}
-        <div className="mt-20 grid gap-4 md:gap-6 lg:grid-cols-5 lg:grid-rows-2">
-          <Reveal className="lg:col-span-3 lg:row-span-1">
+        <div className="mt-12 grid gap-4 sm:mt-16 md:gap-6 lg:mt-20 lg:grid-cols-5">
+          <Reveal className="lg:col-span-3">
             <BentoCard
               kicker="01"
               titel="Lernpfade"
@@ -83,7 +87,7 @@ function Bausteine() {
             </BentoCard>
           </Reveal>
 
-          <Reveal delay={90} className="lg:col-span-2 lg:row-span-1">
+          <Reveal delay={90} className="lg:col-span-2">
             <BentoCard
               kicker="02"
               titel="Mini-Quizze & Aufdeck-Karten"
@@ -94,7 +98,7 @@ function Bausteine() {
             </BentoCard>
           </Reveal>
 
-          <Reveal delay={180} className="lg:col-span-2 lg:row-span-1">
+          <Reveal delay={180} className="lg:col-span-2">
             <BentoCard
               kicker="03"
               titel="Praxisfreigabe"
@@ -105,7 +109,7 @@ function Bausteine() {
             </BentoCard>
           </Reveal>
 
-          <Reveal delay={270} className="lg:col-span-3 lg:row-span-1">
+          <Reveal delay={270} className="lg:col-span-3">
             <BentoCard
               kicker="04"
               titel="Handbuch"
@@ -114,6 +118,29 @@ function Bausteine() {
               featured
             >
               <WissenVisual />
+            </BentoCard>
+          </Reveal>
+
+          <Reveal delay={360} className="lg:col-span-3">
+            <BentoCard
+              kicker="05"
+              titel="Anfragen einreichen"
+              text="Krankmeldung, Urlaub, Schicht-Tausch — direkt in der App, nichts ausdrucken, nichts vergessen."
+              icon={FileText}
+              featured
+            >
+              <AnfragenVisual />
+            </BentoCard>
+          </Reveal>
+
+          <Reveal delay={450} className="lg:col-span-2">
+            <BentoCard
+              kicker="06"
+              titel="Studio-Alltag"
+              text="Aufgaben für heute, Mängel melden, wichtige Infos lesen — alles auf einer Seite."
+              icon={Megaphone}
+            >
+              <StudioAlltagVisual />
             </BentoCard>
           </Reveal>
         </div>
@@ -348,6 +375,79 @@ function WissenVisual() {
   );
 }
 
+function AnfragenVisual() {
+  const items = [
+    {
+      titel: "Krankmeldung",
+      sub: "Krank ab heute · Krankenschein folgt",
+      Icon: Stethoscope,
+      tint:
+        "bg-[hsl(var(--destructive)/0.12)] text-[hsl(var(--destructive))]",
+      status: "Eingereicht",
+    },
+    {
+      titel: "Urlaubsantrag",
+      sub: "12. – 19. Aug · 7 Tage",
+      Icon: FileText,
+      tint: "bg-amber-500/15 text-amber-700",
+      status: "Genehmigt",
+    },
+  ];
+  return (
+    <div className="space-y-2">
+      {items.map((it) => (
+        <div
+          key={it.titel}
+          className="flex items-center gap-3 rounded-xl border border-border bg-white p-3"
+        >
+          <span
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${it.tint}`}
+          >
+            <it.Icon className="h-4 w-4" strokeWidth={1.75} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-semibold leading-tight">
+              {it.titel}
+            </p>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+              {it.sub}
+            </p>
+          </div>
+          <span className="rounded-full bg-[hsl(var(--brand-pink)/0.12)] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+            {it.status}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StudioAlltagVisual() {
+  const tiles = [
+    { Icon: ListChecks, label: "Aufgaben", count: 3 },
+    { Icon: Wrench, label: "Mängel", count: 1 },
+    { Icon: Megaphone, label: "Infos", count: 2 },
+  ];
+  return (
+    <div className="space-y-2">
+      {tiles.map((t) => (
+        <div
+          key={t.label}
+          className="flex items-center gap-3 rounded-xl border border-border bg-white p-3"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]">
+            <t.Icon className="h-4 w-4" strokeWidth={1.75} />
+          </span>
+          <span className="text-xs font-semibold">{t.label}</span>
+          <span className="ml-auto rounded-full bg-[hsl(var(--primary))] px-2 py-0.5 text-[10px] font-bold text-[hsl(var(--primary-foreground))]">
+            {t.count}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* -------------------------------------------------------------------- */
 /* Closer                                                                */
 /* -------------------------------------------------------------------- */
@@ -537,16 +637,22 @@ function TeamCard() {
 function Footer() {
   return (
     <footer className="bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream)/0.55)]">
-      <div className="w-full border-t border-white/10 px-6 py-10 lg:px-12 2xl:px-20">
-        <div className="mx-auto flex max-w-[1600px] flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-2.5 text-[hsl(var(--brand-cream))]">
-            <Logo size={28} />
-            <span className="text-sm font-semibold">Vitness Crew</span>
+      <div className="w-full border-t border-white/10 px-6 py-6 sm:py-8 lg:px-12 lg:py-10 2xl:px-20">
+        <div className="mx-auto max-w-[1600px]">
+          {/* Mobile: Logo + Anmelden in einer Zeile, dann Links + Copyright */}
+          <div className="flex items-center justify-between gap-4 sm:hidden">
+            <div className="flex items-center gap-2 text-[hsl(var(--brand-cream))]">
+              <Logo size={24} />
+              <span className="text-sm font-semibold">Vitness Crew</span>
+            </div>
+            <Link
+              href="/login"
+              className="text-sm font-medium text-[hsl(var(--brand-cream)/0.8)] transition-colors hover:text-[hsl(var(--brand-cream))]"
+            >
+              Anmelden →
+            </Link>
           </div>
-          <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
-            <span>
-              © {new Date().getFullYear()} Vitness · Interne Plattform
-            </span>
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:hidden">
             <Link
               href="/impressum"
               className="transition-colors hover:text-[hsl(var(--brand-cream))]"
@@ -559,13 +665,41 @@ function Footer() {
             >
               Datenschutz
             </Link>
-          </nav>
-          <Link
-            href="/login"
-            className="text-sm transition-colors hover:text-[hsl(var(--brand-cream))]"
-          >
-            Anmelden →
-          </Link>
+            <span className="text-[hsl(var(--brand-cream)/0.35)]">
+              © {new Date().getFullYear()} Vitness Crew
+            </span>
+          </div>
+
+          {/* Desktop: alles in einer Zeile */}
+          <div className="hidden flex-row items-center justify-between gap-6 sm:flex">
+            <div className="flex items-center gap-2.5 text-[hsl(var(--brand-cream))]">
+              <Logo size={28} />
+              <span className="text-sm font-semibold">Vitness Crew</span>
+            </div>
+            <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
+              <span>
+                © {new Date().getFullYear()} Vitness · Interne Plattform
+              </span>
+              <Link
+                href="/impressum"
+                className="transition-colors hover:text-[hsl(var(--brand-cream))]"
+              >
+                Impressum
+              </Link>
+              <Link
+                href="/datenschutz"
+                className="transition-colors hover:text-[hsl(var(--brand-cream))]"
+              >
+                Datenschutz
+              </Link>
+            </nav>
+            <Link
+              href="/login"
+              className="text-sm transition-colors hover:text-[hsl(var(--brand-cream))]"
+            >
+              Anmelden →
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
