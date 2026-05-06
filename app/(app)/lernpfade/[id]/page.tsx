@@ -53,22 +53,22 @@ export default async function LernpfadDetailPage({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="border-b border-border px-5 py-4">
-          <h2 className="text-[14px] font-semibold tracking-tight">
-            Dein Fortschritt
-          </h2>
-        </div>
-        <div className="space-y-2 p-5">
-          <Progress value={pfad.prozent} />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[hsl(var(--brand-pink)/0.08)] via-card to-card p-5 sm:p-6">
+        <div className="flex items-end justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
+              Dein Fortschritt
+            </p>
+            <p className="mt-1 text-[15px] font-medium text-muted-foreground">
               {pfad.abgeschlossen} von {pfad.gesamt} Lektionen abgeschlossen
-            </span>
-            <span className="font-semibold tabular-nums text-foreground">
-              {formatProzent(pfad.prozent)}
-            </span>
+            </p>
           </div>
+          <p className="text-[34px] font-bold leading-none tabular-nums text-[hsl(var(--brand-pink))] sm:text-[40px]">
+            {formatProzent(pfad.prozent)}
+          </p>
+        </div>
+        <div className="mt-4">
+          <Progress value={pfad.prozent} />
         </div>
       </div>
 
@@ -98,8 +98,15 @@ export default async function LernpfadDetailPage({
         </Link>
       )}
 
-      <section className="space-y-2">
-        <h2 className="text-[14px] font-semibold tracking-tight">Module</h2>
+      <section className="space-y-3">
+        <header>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Inhalt
+          </p>
+          <h2 className="mt-1 text-lg font-semibold tracking-tight">
+            Module &amp; Lektionen
+          </h2>
+        </header>
         <ModulAccordion module={pfad.modules} />
       </section>
     </div>
