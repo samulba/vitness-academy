@@ -72,14 +72,14 @@ export function VorschauButton({
           role="dialog"
           aria-modal="true"
           aria-label={`${label}: ${url}`}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm sm:p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-6"
           onClick={(e) => {
             // Klick auf den semi-transparenten Backdrop schliesst,
             // Klicks innerhalb des Modals nicht
             if (e.target === e.currentTarget) setOffen(false);
           }}
         >
-          <div className="flex h-full max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+          <div className="flex h-full max-h-[95vh] w-full max-w-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl sm:max-h-[90vh] sm:max-w-5xl sm:rounded-2xl">
             {/* Toolbar */}
             <div className="flex items-center justify-between border-b border-border bg-card px-4 py-2.5">
               <div className="flex min-w-0 items-center gap-3">

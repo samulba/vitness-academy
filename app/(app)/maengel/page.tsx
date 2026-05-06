@@ -95,7 +95,7 @@ export default async function MaengelPage({
         {/* Mitte */}
         <main className="min-w-0">
           <header className="mb-6">
-            <h1 className="text-3xl font-semibold tracking-tight">
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
               Mängel melden
             </h1>
             <p className="mt-2 max-w-xl text-base leading-relaxed text-muted-foreground">

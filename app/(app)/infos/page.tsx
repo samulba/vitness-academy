@@ -89,7 +89,7 @@ export default async function InfosPage({
           <header className="mb-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight">
+                <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
                   Wichtige Infos
                 </h1>
                 <p className="mt-2 max-w-xl text-base leading-relaxed text-muted-foreground">
