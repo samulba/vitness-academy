@@ -7,15 +7,15 @@ import { ToastFlash } from "@/components/ui/toast-flash";
 import { ShortcutsHelp } from "@/components/help/ShortcutsHelp";
 
 export const metadata: Metadata = {
-  title: "Vitness Academy",
+  title: "Vitness Crew",
   description:
-    "Interne Schulungsplattform für Fitnessstudio-Mitarbeiter mit Lernpfaden, Quizzen, Praxisfreigaben und Handbuch.",
+    "Interne Plattform für Vitness-Studio-Mitarbeiter — Onboarding, Lernpfade, Aufgaben, Mängel, Anfragen und Verwaltung an einem Ort.",
   manifest: "/manifest.json",
-  applicationName: "Vitness Academy",
+  applicationName: "Vitness Crew",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Vitness",
+    title: "Vitness Crew",
   },
 };
 

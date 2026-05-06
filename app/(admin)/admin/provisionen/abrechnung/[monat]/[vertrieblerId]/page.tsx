@@ -89,7 +89,7 @@ export default async function PrintPage({
             VA
           </span>
           <p className="mt-2 text-[10px] text-muted-foreground">
-            Vitness Academy
+            Vitness Crew
           </p>
         </div>
       </header>

@@ -1,6 +1,6 @@
-# Vitness Academy
+# Vitness Crew
 
-Interne Schulungsplattform für Fitnessstudio-Mitarbeiter mit Lernpfaden, Lektionen, Quizzen, Praxisfreigaben und Wissensdatenbank.
+Interne Plattform für Vitness-Studio-Mitarbeiter — Onboarding, Lernpfade, Aufgaben, Mängel, Anfragen, Provisionen und Verwaltung an einem Ort.
 
 > Aktueller Stand: **Iteration 1** – Login, rollenbasierte Navigation, Mitarbeiter-Dashboard, Lernpfade, Module, Lektionen mit Inhalts-Blöcken und „Lektion abschließen". Iteration 2 (Quiz + Praxisfreigaben) und Iteration 3 (Wissensdatenbank + voller Admin-CRUD) folgen.
 

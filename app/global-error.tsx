@@ -41,7 +41,7 @@ export default function GlobalError({
           }}
         >
           <h1 style={{ fontSize: "1.25rem", fontWeight: 600, marginTop: 0 }}>
-            Vitness Academy
+            Vitness Crew
           </h1>
           <p style={{ color: "#525252", fontSize: "0.875rem" }}>
             Es ist ein unerwarteter Fehler aufgetreten. Bitte lade die Seite neu.

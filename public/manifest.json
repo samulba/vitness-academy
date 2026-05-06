@@ -1,7 +1,7 @@
 {
-  "name": "Vitness Academy",
+  "name": "Vitness Crew",
   "short_name": "Vitness",
-  "description": "Interne Schulungsplattform für Vitness-Studio-Mitarbeiter.",
+  "description": "Interne Plattform für Vitness-Studio-Mitarbeiter — Onboarding, Lernpfade, Aufgaben und Verwaltung an einem Ort.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",

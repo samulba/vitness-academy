@@ -234,9 +234,9 @@ function VisualLogin() {
     <div>
       <div className="flex items-center gap-2">
         <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[hsl(var(--primary))] text-xs font-bold text-[hsl(var(--primary-foreground))]">
-          VA
+          VC
         </span>
-        <span className="text-sm font-semibold">Vitness Academy</span>
+        <span className="text-sm font-semibold">Vitness Crew</span>
       </div>
       <h4 className="mt-5 text-xl font-semibold leading-tight tracking-tight">
         Hallo, schön dass du da bist.

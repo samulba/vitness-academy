@@ -32,7 +32,7 @@ export function AnimatedHero() {
             className="inline-flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-cream)/0.5)]"
           >
             <span className="h-px w-10 bg-[hsl(var(--primary))]" />
-            Vitness Academy · Onboarding
+            Vitness Crew · Onboarding
           </span>
         </div>
 

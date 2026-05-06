@@ -22,7 +22,7 @@ export default function Icon() {
           fontFamily: "system-ui, sans-serif",
         }}
       >
-        VA
+        VC
       </div>
     ),
     size,

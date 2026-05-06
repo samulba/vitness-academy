@@ -536,13 +536,27 @@ function Footer() {
         <div className="mx-auto flex max-w-[1600px] flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2.5 text-[hsl(var(--brand-cream))]">
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[hsl(var(--primary))] text-xs font-bold text-[hsl(var(--primary-foreground))]">
-              VA
+              VC
             </span>
-            <span className="text-sm font-semibold">Vitness Academy</span>
+            <span className="text-sm font-semibold">Vitness Crew</span>
           </div>
-          <p className="text-xs">
-            © {new Date().getFullYear()} Vitness · Interne Plattform
-          </p>
+          <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
+            <span>
+              © {new Date().getFullYear()} Vitness · Interne Plattform
+            </span>
+            <Link
+              href="/impressum"
+              className="transition-colors hover:text-[hsl(var(--brand-cream))]"
+            >
+              Impressum
+            </Link>
+            <Link
+              href="/datenschutz"
+              className="transition-colors hover:text-[hsl(var(--brand-cream))]"
+            >
+              Datenschutz
+            </Link>
+          </nav>
           <Link
             href="/login"
             className="text-sm transition-colors hover:text-[hsl(var(--brand-cream))]"

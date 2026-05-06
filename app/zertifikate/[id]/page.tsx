@@ -45,11 +45,11 @@ export default async function ZertifikatPage({
         <header className="flex items-center justify-between gap-6 border-b border-border pb-6">
           <div className="flex items-center gap-3">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-base font-bold text-[hsl(var(--primary-foreground))]">
-              VA
+              VC
             </span>
             <div>
               <p className="text-sm font-semibold tracking-tight">
-                Vitness Academy
+                Vitness Crew
               </p>
               <p className="text-xs text-muted-foreground">
                 Interne Lernplattform

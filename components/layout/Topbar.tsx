@@ -51,11 +51,11 @@ export function Topbar({
         href="/dashboard"
         className="flex items-center gap-2.5 text-foreground"
       >
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--brand-lime))] text-sm font-bold text-[hsl(var(--brand-ink))]">
-          VA
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-sm font-bold text-[hsl(var(--primary-foreground))]">
+          VC
         </span>
         <span className="hidden text-[15px] font-semibold tracking-tight sm:inline">
-          Vitness Academy
+          Vitness Crew
         </span>
       </Link>
 

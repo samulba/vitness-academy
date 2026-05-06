@@ -36,10 +36,10 @@ export default async function LoginPage({
         <div className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-16">
           <Link href="/" className="flex w-fit items-center gap-2.5">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-sm font-bold text-[hsl(var(--primary-foreground))]">
-              VA
+              VC
             </span>
             <span className="text-[15px] font-semibold tracking-tight">
-              Vitness Academy
+              Vitness Crew
             </span>
           </Link>
 
@@ -59,9 +59,23 @@ export default async function LoginPage({
             </p>
           </div>
 
-          <p className="text-xs text-[hsl(var(--brand-cream)/0.4)]">
-            © {new Date().getFullYear()} Vitness Academy · Interne Plattform
-          </p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[hsl(var(--brand-cream)/0.4)]">
+            <span>
+              © {new Date().getFullYear()} Vitness Crew · Interne Plattform
+            </span>
+            <Link
+              href="/impressum"
+              className="transition-colors hover:text-[hsl(var(--brand-cream)/0.7)]"
+            >
+              Impressum
+            </Link>
+            <Link
+              href="/datenschutz"
+              className="transition-colors hover:text-[hsl(var(--brand-cream)/0.7)]"
+            >
+              Datenschutz
+            </Link>
+          </div>
         </div>
       </aside>
 

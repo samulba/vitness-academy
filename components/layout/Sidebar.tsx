@@ -190,10 +190,10 @@ export function Sidebar({
         {/* Branding + NotificationBell oben */}
         <div className="flex items-center gap-2 border-b border-border px-3 py-3">
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[hsl(var(--primary))] text-[11px] font-bold text-[hsl(var(--primary-foreground))]">
-            VA
+            VC
           </span>
           <span className="flex-1 text-[14px] font-semibold tracking-tight">
-            Vitness Academy
+            Vitness Crew
           </span>
           {notificationSlot}
         </div>

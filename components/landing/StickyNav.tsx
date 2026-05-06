@@ -29,10 +29,10 @@ export function StickyNav() {
           className="flex items-center gap-2.5 text-[hsl(var(--brand-cream))]"
         >
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-sm font-bold text-[hsl(var(--primary-foreground))]">
-            VA
+            VC
           </span>
           <span className="text-[15px] font-semibold tracking-tight">
-            Vitness Academy
+            Vitness Crew
           </span>
         </Link>
 
