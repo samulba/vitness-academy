@@ -21,7 +21,7 @@ export default async function RootPage() {
   }
 
   return (
-    <main className="bg-[hsl(var(--brand-ink))] text-foreground">
+    <main className="theme-dark-locked bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
       <StickyNav />
       <AnimatedHero />
       <PinnedNarrative />
@@ -468,11 +468,11 @@ function Closer() {
 }
 
 function TeamCard() {
-  const team = [
-    { initial: "M", name: "Maria" },
-    { initial: "L", name: "Lisa" },
-    { initial: "T", name: "Tom" },
-    { initial: "S", name: "Sara" },
+  const bausteine = [
+    { Icon: BookOpen, label: "Theke" },
+    { Icon: Compass, label: "Magicline" },
+    { Icon: ListChecks, label: "Regeln" },
+    { Icon: UserCheck, label: "Freigabe" },
   ];
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-sm">
@@ -482,43 +482,41 @@ function TeamCard() {
           <span className="relative inline-flex h-2 w-2 rounded-full bg-[hsl(var(--primary))]" />
         </span>
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.55)]">
-          Dein Team wartet
+          Alles vorbereitet
         </p>
       </div>
 
       <div className="mt-6 flex items-center -space-x-3">
-        {team.map((p, i) => (
+        {bausteine.map(({ Icon, label }, i) => (
           <span
-            key={p.initial}
-            className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[hsl(var(--brand-ink))] text-sm font-bold text-[hsl(var(--primary-foreground))] shadow-md"
+            key={label}
+            className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[hsl(var(--brand-ink))] text-[hsl(var(--primary-foreground))] shadow-md"
             style={{
               background: `hsl(var(--primary) / ${1 - i * 0.18})`,
-              zIndex: team.length - i,
+              zIndex: bausteine.length - i,
             }}
+            aria-label={label}
           >
-            {p.initial}
+            <Icon className="h-5 w-5" />
           </span>
         ))}
-        <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[hsl(var(--brand-ink))] bg-white/[0.06] text-xs font-semibold text-[hsl(var(--brand-cream)/0.7)]">
-          +12
-        </span>
       </div>
 
       <p className="mt-6 text-sm leading-relaxed text-[hsl(var(--brand-cream)/0.7)]">
-        Maria, Lisa, Tom und 13 weitere Kolleg:innen — sie haben den Onboarding-
-        Pfad genauso angefangen wie du gleich.
+        Theke, Magicline, Studioregeln, Praxisfreigabe — dein Onboarding-Pfad
+        steht schon. Du musst dir nichts selbst zusammensuchen.
       </p>
 
       <div className="mt-6 border-t border-white/10 pt-4">
         <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.4)]">
-          Diese Woche
+          Im Schnitt
         </p>
         <div className="mt-2 flex items-baseline gap-2">
           <span className="text-3xl font-semibold tracking-tight text-[hsl(var(--brand-cream))]">
-            142
+            10 Min
           </span>
           <span className="text-xs text-[hsl(var(--brand-cream)/0.55)]">
-            Lektionen abgeschlossen
+            pro Lektion
           </span>
         </div>
       </div>

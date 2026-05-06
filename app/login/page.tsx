@@ -13,7 +13,7 @@ export default async function LoginPage({
   const istProfilFehlt = fehler === "profil-fehlt";
 
   return (
-    <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
+    <main className="theme-light-locked grid min-h-screen bg-background text-foreground lg:grid-cols-[1.1fr_1fr]">
       {/* Branding-Pane */}
       <aside className="relative hidden overflow-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))] lg:flex">
         <div
@@ -53,8 +53,8 @@ export default async function LoginPage({
               wieder da bist.
             </h2>
             <p className="max-w-md text-base leading-relaxed text-[hsl(var(--brand-cream)/0.7)]">
-              Melde dich mit deiner dienstlichen E-Mail an und mach da weiter,
-              wo du aufgehört hast.
+              Mach da weiter, wo du aufgehört hast — Lernpfade, Aufgaben,
+              Studio-Updates. Alles in einer Sicht.
             </p>
           </div>
 
@@ -98,7 +98,7 @@ export default async function LoginPage({
               Hallo, schön dass du da bist.
             </h1>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Melde dich mit deiner dienstlichen E-Mail an. Noch keinen Zugang?
+              Melde dich mit deiner E-Mail an. Noch keinen Zugang?
               Kurz beim Studio-Team melden.
             </p>
           </div>

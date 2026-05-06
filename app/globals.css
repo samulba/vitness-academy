@@ -60,7 +60,8 @@
       "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   }
 
-  .dark {
+  .dark,
+  .theme-dark-locked {
     --background: 222 30% 7%;
     --foreground: 40 30% 96%;
     --card: 222 30% 10%;
@@ -89,6 +90,47 @@
     --border: 222 25% 16%;
     --input: 222 25% 16%;
     --ring: 331 80% 60%;
+  }
+
+  /*
+   * Landing-Page-Wrapper: ueberschreibt im hellen App-Mode die
+   * App-Vars mit den hellen Light-Mode-Werten. Damit ist die Landing
+   * IMMER im selben Look unabhaengig vom App-Theme.
+   * Aktuell: Landing ist dark-themed. Falls die App im light-mode
+   * ist, wuerde die Landing trotzdem die dark-vars erben weil
+   * .theme-dark-locked oben definiert ist.
+   * Wenn die Landing dagegen IMMER LIGHT sein soll, dann ist
+   * .theme-light-locked die richtige Wahl.
+   */
+  .theme-light-locked {
+    --background: 60 9% 98%;
+    --foreground: 222 30% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 30% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 30% 10%;
+    --primary: 331 85% 38%;
+    --primary-foreground: 0 0% 100%;
+    --brand-lime: 331 90% 65%;
+    --brand-pink: 331 75% 52%;
+    --brand-coral: 14 95% 60%;
+    --brand-ink: 222 30% 7%;
+    --brand-cream: 40 30% 97%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 30% 10%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 331 30% 96%;
+    --accent-foreground: 331 85% 38%;
+    --success: 331 70% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 24 95% 53%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 331 85% 38%;
   }
 }
 
