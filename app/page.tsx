@@ -40,9 +40,9 @@ function Bausteine() {
   return (
     <section
       id="bausteine"
-      className="scroll-mt-24 bg-[hsl(var(--brand-cream))] text-foreground"
+      className="theme-light-locked scroll-mt-24 bg-[hsl(var(--brand-cream))] text-foreground"
     >
-      <div className="mx-auto max-w-[1600px] px-6 py-32 lg:px-12 lg:py-48 2xl:px-20">
+      <div className="mx-auto max-w-[1600px] px-6 py-24 lg:px-12 lg:py-32 2xl:px-20">
         {/* Header */}
         <div className="flex flex-col justify-between gap-10 lg:flex-row lg:items-end">
           <div className="max-w-3xl">
@@ -381,8 +381,8 @@ function Closer() {
         VITNESS
       </div>
 
-      <div className="relative mx-auto max-w-[1600px] px-6 pt-32 lg:px-12 lg:pt-48 2xl:px-20">
-        <div className="grid gap-16 lg:grid-cols-12 lg:gap-12">
+      <div className="relative mx-auto max-w-[1600px] px-6 pt-24 lg:px-12 lg:pt-32 2xl:px-20">
+        <div className="grid gap-12 lg:grid-cols-12 lg:gap-12">
           {/* Linke Spalte: Headline */}
           <div className="lg:col-span-8">
             <Reveal>
@@ -393,21 +393,21 @@ function Closer() {
             </Reveal>
 
             <Reveal delay={120}>
-              <h2 className="mt-10 max-w-[16ch] text-balance font-semibold leading-[0.9] tracking-[-0.04em] text-[clamp(3.5rem,9vw,9rem)]">
+              <h2 className="mt-8 max-w-[16ch] text-balance font-semibold leading-[0.9] tracking-[-0.04em] text-[clamp(2.75rem,6.5vw,6.5rem)]">
                 Willkommen
                 <br />
                 <span className="relative inline-block">
                   im Vitness-Team.
                   <span
                     aria-hidden
-                    className="absolute -bottom-3 left-0 right-2 h-[8px] rounded-full bg-[hsl(var(--primary))]"
+                    className="absolute -bottom-2 left-0 right-2 h-[6px] rounded-full bg-[hsl(var(--primary))]"
                   />
                 </span>
               </h2>
             </Reveal>
 
             <Reveal delay={240}>
-              <p className="mt-14 max-w-2xl text-pretty text-lg leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:text-xl">
+              <p className="mt-10 max-w-2xl text-pretty text-base leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:text-lg">
                 Niemand erwartet, dass du alles auf einmal kannst. Wenn
                 unterwegs etwas hängt — deine Studioleitung weiß Bescheid und
                 hilft jederzeit.{" "}
@@ -426,13 +426,13 @@ function Closer() {
 
         {/* CTA */}
         <Reveal delay={480}>
-          <div className="mt-24 flex flex-col items-start gap-y-8 lg:mt-32 sm:flex-row sm:items-center sm:gap-x-16">
+          <div className="mt-16 flex flex-col items-start gap-y-6 lg:mt-20 sm:flex-row sm:items-center sm:gap-x-12">
             <Link
               href="/login"
-              className="group inline-flex items-center gap-3 rounded-full bg-[hsl(var(--primary))] px-9 py-5 text-lg font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_25px_70px_-20px_hsl(var(--primary)/0.65)] transition-transform hover:scale-[1.03]"
+              className="group inline-flex items-center gap-3 rounded-full bg-[hsl(var(--primary))] px-8 py-4 text-base font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_25px_70px_-20px_hsl(var(--primary)/0.65)] transition-transform hover:scale-[1.03]"
             >
               Zum Login
-              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <p className="max-w-sm text-sm text-[hsl(var(--brand-cream)/0.55)]">
               Login-Daten kommen per E-Mail von deiner Studioleitung.
@@ -441,7 +441,7 @@ function Closer() {
         </Reveal>
 
         {/* Spacer vor Marquee */}
-        <div className="h-32 lg:h-48" />
+        <div className="h-16 lg:h-24" />
       </div>
 
       {/* Marquee */}

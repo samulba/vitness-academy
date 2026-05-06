@@ -299,7 +299,7 @@
 
   /* Slow ticker animation fuer Marquee */
   .ticker {
-    animation: ticker-scroll 28s linear infinite;
+    animation: ticker-scroll 56s linear infinite;
   }
   @keyframes ticker-scroll {
     from { transform: translateX(0); }

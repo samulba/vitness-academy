@@ -282,7 +282,7 @@ function PhasenVisual({ phase }: { phase: Phase }) {
           </div>
         </div>
 
-        <div className="bg-[hsl(var(--brand-cream))] p-6 text-foreground">
+        <div className="theme-light-locked bg-[hsl(var(--brand-cream))] p-6 text-foreground">
           {phase.visual === "login" && <VisualLogin />}
           {phase.visual === "lektion" && <VisualLektion />}
           {phase.visual === "quiz" && <VisualQuiz />}
