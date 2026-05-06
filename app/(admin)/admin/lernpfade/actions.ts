@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, istAdmin } from "@/lib/auth";
-import { reorderSwap } from "@/lib/admin/reorder";
+import { reorderBulk, reorderSwap } from "@/lib/admin/reorder";
 
 async function ensureAdmin() {
   const p = await getCurrentProfile();
@@ -173,4 +173,24 @@ export async function modulReihenfolge(
   });
   revalidatePath(`/admin/lernpfade/${pfadId}`);
   revalidatePath(`/lernpfade/${pfadId}`);
+}
+
+/**
+ * Bulk-Reorder fuer Drag-and-Drop. Bekommt die NEUE Reihenfolge der
+ * Module-IDs und setzt sort_order entsprechend (10er-Schritte).
+ */
+export async function modulReihenfolgeBulk(
+  pfadId: string,
+  neueIds: string[],
+): Promise<{ ok: boolean; message?: string }> {
+  await ensureAdmin();
+  const res = await reorderBulk({
+    tabelle: "modules",
+    ids: neueIds,
+    scopeFeld: "learning_path_id",
+    scopeWert: pfadId,
+  });
+  revalidatePath(`/admin/lernpfade/${pfadId}`);
+  revalidatePath(`/lernpfade/${pfadId}`);
+  return res;
 }

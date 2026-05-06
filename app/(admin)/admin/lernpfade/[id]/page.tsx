@@ -1,30 +1,14 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ExternalLink, Pencil, Plus } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ReihenfolgeButtons } from "@/components/admin/ReihenfolgeButtons";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { SpeichernButton } from "@/components/admin/SpeichernButton";
 import { BildUpload } from "@/components/admin/BildUpload";
 import { createClient } from "@/lib/supabase/server";
-import {
-  lernpfadAktualisieren,
-  lernpfadLoeschen,
-  modulAnlegen,
-  modulLoeschen,
-  modulReihenfolge,
-} from "../actions";
+import { lernpfadAktualisieren, lernpfadLoeschen } from "../actions";
+import { ModuleListe } from "./ModuleListe";
 
 type Lektion = { id: string; title: string; sort_order: number };
 type Modul = {
@@ -84,7 +68,8 @@ async function ladePfad(id: string): Promise<Pfad | null> {
     title: data.title as string,
     description: data.description as string | null,
     status: data.status as string,
-    hero_image_path: (data as { hero_image_path: string | null }).hero_image_path ?? null,
+    hero_image_path:
+      (data as { hero_image_path: string | null }).hero_image_path ?? null,
     modules: moduleListe,
   };
 }
@@ -100,7 +85,6 @@ export default async function LernpfadBearbeitenPage({
 
   const aktualisieren = lernpfadAktualisieren.bind(null, pfad.id);
   const loeschen = lernpfadLoeschen.bind(null, pfad.id);
-  const modulNeu = modulAnlegen.bind(null, pfad.id);
 
   return (
     <div className="space-y-6">
@@ -122,30 +106,17 @@ export default async function LernpfadBearbeitenPage({
         ]}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Hero-Bild</CardTitle>
-          <CardDescription>
-            Erscheint auf der Lernpfad-Übersicht und im Pfad-Header.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <BildUpload
-            scope="path"
-            id={pfad.id}
-            aktuellerPfad={pfad.hero_image_path}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Stammdaten</CardTitle>
-          <CardDescription>Titel, Beschreibung und Status.</CardDescription>
-        </CardHeader>
-        <CardContent>
+      {/* Stammdaten + Hero in einer Card mit zwei Spalten auf Desktop */}
+      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <header className="mb-5">
+          <h2 className="text-base font-semibold tracking-tight">Stammdaten</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Titel, Beschreibung, Status und Hero-Bild des Lernpfads.
+          </p>
+        </header>
+        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <form action={aktualisieren} className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="title">Titel</Label>
               <Input
                 id="title"
@@ -155,7 +126,7 @@ export default async function LernpfadBearbeitenPage({
                 defaultValue={pfad.title}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="description">Beschreibung</Label>
               <textarea
                 id="description"
@@ -165,7 +136,7 @@ export default async function LernpfadBearbeitenPage({
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="status">Status</Label>
               <select
                 id="status"
@@ -187,112 +158,17 @@ export default async function LernpfadBearbeitenPage({
               <SpeichernButton />
             </div>
           </form>
-        </CardContent>
-      </Card>
-
-      <section className="space-y-3">
-        <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-xl font-semibold">Module</h2>
-            <p className="text-sm text-muted-foreground">
-              Module strukturieren den Lernpfad. Lektionen pflegst du in der
-              Modul-Detailseite.
-            </p>
+            <BildUpload
+              scope="path"
+              id={pfad.id}
+              aktuellerPfad={pfad.hero_image_path}
+            />
           </div>
         </div>
-
-        {pfad.modules.length === 0 ? (
-          <Card>
-            <CardContent className="py-6 text-center text-sm text-muted-foreground">
-              Noch keine Module – leg unten dein erstes Modul an.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {pfad.modules.map((m, idx) => (
-              <Card key={m.id}>
-                <CardContent className="flex flex-wrap items-start justify-between gap-3 py-4">
-                  <div className="flex items-start gap-3 min-w-0">
-                    <ReihenfolgeButtons
-                      hoch={modulReihenfolge.bind(null, pfad.id, m.id, "hoch")}
-                      runter={modulReihenfolge.bind(
-                        null,
-                        pfad.id,
-                        m.id,
-                        "runter",
-                      )}
-                      hochDeaktiviert={idx === 0}
-                      runterDeaktiviert={idx === pfad.modules.length - 1}
-                    />
-                    <div className="min-w-0">
-                      <div className="font-medium">{m.title}</div>
-                      {m.description ? (
-                        <p className="line-clamp-2 text-xs text-muted-foreground">
-                          {m.description}
-                        </p>
-                      ) : null}
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        <Badge variant="outline">
-                          {m.lessons.length}{" "}
-                          {m.lessons.length === 1 ? "Lektion" : "Lektionen"}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button asChild size="sm">
-                      <Link href={`/admin/module/${m.id}`}>
-                        <Pencil className="h-3.5 w-3.5" />
-                        Modul bearbeiten
-                      </Link>
-                    </Button>
-                    <LoeschenButton
-                      action={modulLoeschen.bind(null, pfad.id, m.id)}
-                      label="Modul löschen"
-                      bestaetigung="Modul inkl. aller Lektionen wirklich löschen?"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Neues Modul anlegen</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form action={modulNeu} className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="modul-title">Titel</Label>
-                <Input
-                  id="modul-title"
-                  name="title"
-                  required
-                  maxLength={150}
-                  placeholder="z.B. Check-in und Check-out"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="modul-description">Beschreibung</Label>
-                <textarea
-                  id="modul-description"
-                  name="description"
-                  rows={2}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-              </div>
-              <div className="flex justify-end">
-                <Button type="submit" size="sm">
-                  <Plus className="h-4 w-4" />
-                  Modul hinzufügen
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
       </section>
+
+      <ModuleListe pfadId={pfad.id} module={pfad.modules} />
     </div>
   );
 }

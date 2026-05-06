@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, istAdmin } from "@/lib/auth";
-import { reorderSwap } from "@/lib/admin/reorder";
+import { reorderBulk, reorderSwap } from "@/lib/admin/reorder";
 
 async function ensureAdmin() {
   const p = await getCurrentProfile();
@@ -242,4 +242,23 @@ export async function blockReihenfolge(
   });
   revalidatePath(`/admin/lektionen/${lessonId}`);
   revalidatePath(`/lektionen/${lessonId}`);
+}
+
+/**
+ * Bulk-Reorder fuer Drag-and-Drop von Inhalts-Bloecken.
+ */
+export async function blockReihenfolgeBulk(
+  lessonId: string,
+  neueIds: string[],
+): Promise<{ ok: boolean; message?: string }> {
+  await ensureAdmin();
+  const res = await reorderBulk({
+    tabelle: "lesson_content_blocks",
+    ids: neueIds,
+    scopeFeld: "lesson_id",
+    scopeWert: lessonId,
+  });
+  revalidatePath(`/admin/lektionen/${lessonId}`);
+  revalidatePath(`/lektionen/${lessonId}`);
+  return res;
 }
