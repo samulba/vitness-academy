@@ -11,7 +11,6 @@ import {
   X,
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -261,14 +260,14 @@ export default async function BenutzerBearbeitenPage({
         }
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Stammdaten</CardTitle>
-          <CardDescription>
+      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <header className="mb-5">
+          <h2 className="text-base font-semibold tracking-tight">Stammdaten</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
             Persönliche Daten, Rolle, Standort, Vertragsangaben.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </header>
+        <div>
           <form
             action={profilAktualisieren.bind(null, profil.id)}
             className="space-y-6"
@@ -515,18 +514,18 @@ export default async function BenutzerBearbeitenPage({
               <SpeichernButton />
             </div>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader>
+      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <header className="mb-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <CardTitle>Onboarding</CardTitle>
-              <CardDescription>
+              <h2 className="text-base font-semibold tracking-tight">Onboarding</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
                 Sichtbar sind Standard-Items + Items des aktiven Templates.
                 Items pflegt Admin in Onboarding-Templates.
-              </CardDescription>
+              </p>
             </div>
             <TemplateAuswahl
               benutzerId={profil.id}
@@ -534,41 +533,41 @@ export default async function BenutzerBearbeitenPage({
               templates={templates.map((t) => ({ id: t.id, name: t.name }))}
             />
           </div>
-        </CardHeader>
-        <CardContent>
+        </header>
+        <div>
           <OnboardingChecklist
             benutzerId={profil.id}
             items={checklistItems}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Notizen</CardTitle>
-          <CardDescription>
+      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <header className="mb-5">
+          <h2 className="text-base font-semibold tracking-tight">Notizen</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
             Personalführungs-Notizen — Lob, Konflikte, Entwicklung. Sichtbar
             für Admin und Führungskraft. Mitarbeiter:in selbst sieht das nicht.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </header>
+        <div>
           <NotizenThread
             benutzerId={profil.id}
             notizen={notizen}
             aktuellId={aktuell.id}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Standort-Mitgliedschaften</CardTitle>
-          <CardDescription>
+      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <header className="mb-5">
+          <h2 className="text-base font-semibold tracking-tight">Standort-Mitgliedschaften</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
             Studios in denen diese:r Mitarbeiter:in Inhalte sieht. Das mit
             dem Stern ist das Heim-Studio.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </p>
+        </header>
+        <div className="space-y-4">
           {memberships.length === 0 ? (
             <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
               Aktuell in keinem Studio Mitglied.
@@ -670,17 +669,17 @@ export default async function BenutzerBearbeitenPage({
               </Button>
             </form>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lernpfad-Zuweisungen</CardTitle>
-          <CardDescription>
+      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <header className="mb-5">
+          <h2 className="text-base font-semibold tracking-tight">Lernpfad-Zuweisungen</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
             Welche Lernpfade dieser Mitarbeiter sehen soll.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
+          </p>
+        </header>
+        <div className="space-y-3">
           {zuweisungen.length === 0 ? (
             <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
               Aktuell sind keine Lernpfade zugewiesen.
@@ -741,17 +740,17 @@ export default async function BenutzerBearbeitenPage({
               Alle vorhandenen Lernpfade sind bereits zugewiesen.
             </p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Fortschritt</CardTitle>
-          <CardDescription>
+      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <header className="mb-5">
+          <h2 className="text-base font-semibold tracking-tight">Fortschritt</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
             Pro zugewiesenem Lernpfad.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </header>
+        <div>
           {fortschritt.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Keine Lernpfade zugewiesen.
@@ -777,33 +776,33 @@ export default async function BenutzerBearbeitenPage({
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       {/* Aktivitaets-Heatmap */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lern-Aktivität</CardTitle>
-          <CardDescription>
+      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <header className="mb-5">
+          <h2 className="text-base font-semibold tracking-tight">Lern-Aktivität</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
             Abgeschlossene Lektionen pro Tag, letzte 12 Monate.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </header>
+        <div>
           <AktivitaetsHeatmap
             data={aktivitaetsMap}
             beschriftung="abgeschlossene Lektionen"
           />
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       {/* Quiz-Verlauf */}
       {quizVerlauf.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Quiz-Verlauf</CardTitle>
-            <CardDescription>Letzte 10 abgeschlossene Versuche.</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+          <header className="mb-5">
+            <h2 className="text-base font-semibold tracking-tight">Quiz-Verlauf</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Letzte 10 abgeschlossene Versuche.</p>
+          </header>
+          <div>
             <ul className="divide-y divide-border">
               {quizVerlauf.map((v) => (
                 <li
@@ -833,23 +832,23 @@ export default async function BenutzerBearbeitenPage({
                 </li>
               ))}
             </ul>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       )}
 
       {/* Archivieren / Reaktivieren */}
-      <Card className="border-destructive/30 bg-destructive/5">
-        <CardHeader>
-          <CardTitle className="text-base">
+      <section className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 sm:p-8">
+        <header className="mb-5">
+          <h2 className="text-base font-semibold tracking-tight text-destructive">
             {profil.archived_at ? "Mitarbeiter reaktivieren" : "Mitarbeiter archivieren"}
-          </CardTitle>
-          <CardDescription>
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
             {profil.archived_at
               ? "Login wird wieder erlaubt, der Mitarbeiter taucht wieder in der Standard-Liste auf."
               : "Der Mitarbeiter kann sich nicht mehr einloggen, alle Daten (Audit, Quizversuche, Praxis) bleiben aber erhalten. Statt löschen empfohlen."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </header>
+        <div>
           {profil.archived_at ? (
             <form action={mitarbeiterReaktivieren.bind(null, profil.id)}>
               <Button type="submit" size="sm">
@@ -864,8 +863,8 @@ export default async function BenutzerBearbeitenPage({
               bestaetigung={`"${profil.full_name ?? "Mitarbeiter"}" wirklich archivieren? Login wird sofort gesperrt.`}
             />
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }
