@@ -44,7 +44,12 @@ export function StandortSwitcher({
     };
   }, [open]);
 
-  if (optionen.length < 2 || !aktiv) return null;
+  // Switcher immer sichtbar wenn der User mindestens einem Studio
+  // zugeordnet ist -- auch bei nur 1 Studio. So weiss der Mitarbeiter
+  // visuell in welchem Studio er gerade ist und das Element ist
+  // vertraut wenn weitere Studios dazukommen.
+  if (!aktiv) return null;
+  const nurEinStudio = optionen.length < 2;
 
   function waehlen(id: string) {
     if (id === aktiv?.id) {
@@ -61,32 +66,42 @@ export function StandortSwitcher({
     variant === "row" ? (
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        disabled={pending}
+        onClick={() => !nurEinStudio && setOpen((o) => !o)}
+        disabled={pending || nurEinStudio}
         className={cn(
-          "flex w-full items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1.5 text-left text-[13px] transition-colors hover:border-[hsl(var(--brand-pink)/0.4)]",
+          "flex w-full items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1.5 text-left text-[13px] transition-colors",
+          !nurEinStudio && "hover:border-[hsl(var(--brand-pink)/0.4)]",
+          nurEinStudio && "cursor-default opacity-90",
           pending && "opacity-60",
         )}
+        title={nurEinStudio ? "Aktuelles Studio" : "Studio wechseln"}
       >
         <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1 truncate font-medium">
           {aktiv.name}
         </span>
-        <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        {!nurEinStudio && (
+          <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        )}
       </button>
     ) : (
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        disabled={pending}
+        onClick={() => !nurEinStudio && setOpen((o) => !o)}
+        disabled={pending || nurEinStudio}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium transition-colors hover:border-[hsl(var(--brand-pink)/0.4)]",
+          "inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium transition-colors",
+          !nurEinStudio && "hover:border-[hsl(var(--brand-pink)/0.4)]",
+          nurEinStudio && "cursor-default opacity-90",
           pending && "opacity-60",
         )}
+        title={nurEinStudio ? "Aktuelles Studio" : "Studio wechseln"}
       >
         <MapPin className="h-3 w-3 text-muted-foreground" />
         <span className="max-w-[100px] truncate">{aktiv.name}</span>
-        <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
+        {!nurEinStudio && (
+          <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
+        )}
       </button>
     );
 

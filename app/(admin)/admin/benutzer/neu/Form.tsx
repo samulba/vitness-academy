@@ -42,21 +42,42 @@ export function NeuerBenutzerForm({
     FormData
   >(mitarbeiterAnlegen, null);
 
-  const [standortIds, setStandortIds] = useState<Set<string>>(new Set());
-  const [primaryStandort, setPrimaryStandort] = useState<string>("");
+  // Default: alle Studios angekreuzt -- der Mitarbeiter wird allen
+  // existierenden Standorten zugeordnet. Admin kann einzelne abwaehlen
+  // wenn er nur in bestimmten arbeitet. Erstes Studio = Heim.
+  const [standortIds, setStandortIds] = useState<Set<string>>(
+    () => new Set(standorte.map((s) => s.id)),
+  );
+  const [primaryStandort, setPrimaryStandort] = useState<string>(
+    () => standorte[0]?.id ?? "",
+  );
 
   function toggleStandort(id: string) {
     setStandortIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
-        if (primaryStandort === id) setPrimaryStandort("");
+        if (primaryStandort === id) {
+          // Heim auf naechstes ausgewaehltes setzen oder leer
+          const ersatz = Array.from(next)[0] ?? "";
+          setPrimaryStandort(ersatz);
+        }
       } else {
         next.add(id);
         if (primaryStandort === "") setPrimaryStandort(id);
       }
       return next;
     });
+  }
+
+  function alleStandorte() {
+    setStandortIds(new Set(standorte.map((s) => s.id)));
+    if (!primaryStandort) setPrimaryStandort(standorte[0]?.id ?? "");
+  }
+
+  function keinStandort() {
+    setStandortIds(new Set());
+    setPrimaryStandort("");
   }
 
   const [role, setRole] = useState<string>("mitarbeiter");
@@ -199,9 +220,27 @@ export function NeuerBenutzerForm({
         <Section
           eyebrow="Schritt 3"
           titel="Standorte"
-          beschreibung="In welchen Studios arbeitet die Person? Eines davon ist Heim-Studio (Standard-Sicht)."
+          beschreibung="Default: alle Studios. Wenn die Person nur in bestimmten arbeitet, andere abwählen. Eines davon ist Heim-Studio (Standard-Sicht)."
         >
           <input type="hidden" name="primary_standort" value={primaryStandort} />
+          {standorte.length > 1 && (
+            <div className="flex flex-wrap gap-2 pb-1">
+              <button
+                type="button"
+                onClick={alleStandorte}
+                className="rounded-full border border-border bg-background px-3 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-[hsl(var(--primary))] hover:text-[hsl(var(--primary))]"
+              >
+                Alle auswählen
+              </button>
+              <button
+                type="button"
+                onClick={keinStandort}
+                className="rounded-full border border-border bg-background px-3 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-[hsl(var(--destructive))] hover:text-[hsl(var(--destructive))]"
+              >
+                Alle abwählen
+              </button>
+            </div>
+          )}
           <ul className="space-y-2">
             {standorte.map((s) => {
               const aktiv = standortIds.has(s.id);
@@ -321,19 +360,15 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="grid gap-6 lg:grid-cols-12 lg:gap-12">
-      <div className="lg:col-span-4">
+    <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+      <header className="mb-5">
         <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
           {eyebrow}
         </p>
-        <h2 className="mt-2 text-xl font-semibold tracking-tight">{titel}</h2>
-        <p className="mt-1.5 text-sm text-muted-foreground">{beschreibung}</p>
-      </div>
-      <div className="lg:col-span-8">
-        <div className="space-y-5 rounded-2xl border border-border bg-card p-6">
-          {children}
-        </div>
-      </div>
+        <h2 className="mt-1.5 text-lg font-semibold tracking-tight">{titel}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{beschreibung}</p>
+      </header>
+      <div className="space-y-5">{children}</div>
     </section>
   );
 }
