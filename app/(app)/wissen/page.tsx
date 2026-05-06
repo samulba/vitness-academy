@@ -71,7 +71,7 @@ export default async function HandbuchPage({
   );
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-10 sm:space-y-16">
       {/* === Hero === */}
       <section className="relative">
         {/* Subtiler Magenta-Glow als Akzent */}
@@ -84,34 +84,34 @@ export default async function HandbuchPage({
           }}
         />
 
-        <div className="relative grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-12">
+        <div className="relative grid gap-6 lg:grid-cols-12 lg:items-end lg:gap-12">
           <div className="lg:col-span-8">
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-              <span className="h-px w-10 bg-[hsl(var(--primary))]" />
+            <div className="flex flex-wrap items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))] sm:text-[11px] sm:tracking-[0.22em]">
+              <span className="h-px w-8 bg-[hsl(var(--primary))] sm:w-10" />
               <span>Vitness Handbuch</span>
               <span className="text-muted-foreground">
-                · {gesamtArtikel} Artikel · {kategorien.length} Kategorien
+                · {gesamtArtikel} Artikel
               </span>
             </div>
 
-            <h1 className="mt-8 text-balance font-semibold leading-[0.98] tracking-[-0.035em] text-[clamp(2.5rem,5vw,4.5rem)]">
+            <h1 className="mt-5 text-balance font-semibold leading-[0.98] tracking-[-0.035em] text-[clamp(2rem,8vw,4.5rem)] sm:mt-8">
               Antworten für den{" "}
               <span className="relative inline-block">
                 Studio-Alltag.
                 <span
                   aria-hidden
-                  className="absolute -bottom-1.5 left-0 right-1 h-[5px] rounded-full bg-[hsl(var(--primary))]"
+                  className="absolute -bottom-1 left-0 right-1 h-[4px] rounded-full bg-[hsl(var(--primary))] sm:-bottom-1.5 sm:h-[5px]"
                 />
               </span>
             </h1>
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            <p className="mt-5 max-w-xl text-sm leading-relaxed text-muted-foreground sm:mt-6 sm:text-base lg:text-lg">
               Schnelle Antworten auf typische Fragen — vom Notfallplan bis zur
               Reinigungsroutine.
             </p>
           </div>
 
-          {/* Studio-Karte rechts */}
-          <div className="lg:col-span-4">
+          {/* Studio-Karte rechts (auf Mobile versteckt - kein Mehrwert auf kleinen Screens) */}
+          <div className="hidden lg:col-span-4 lg:block">
             <div className="rounded-2xl border border-border bg-card p-5">
               <div className="flex items-start gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))]">
@@ -130,43 +130,47 @@ export default async function HandbuchPage({
         </div>
 
         {/* Such-Hero */}
-        <form action="/wissen" className="mt-12 space-y-5">
+        <form action="/wissen" className="mt-7 space-y-4 sm:mt-12 sm:space-y-5">
+          {/* Mobile: Input + Button gestapelt; Desktop: Button im Input */}
           <div className="relative">
-            {/* Magenta-Outer-Glow on focus */}
-            <div
-              aria-hidden
-              className="absolute -inset-0.5 rounded-full bg-[hsl(var(--primary)/0.2)] opacity-0 blur transition-opacity duration-300 focus-within:opacity-100"
-            />
             <div className="relative">
-              <Search className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground sm:left-5 sm:h-5 sm:w-5" />
               <input
                 name="q"
                 defaultValue={query}
-                placeholder="Stichwort eingeben — z.B. Karte, Reha, Beitrag…"
-                className="h-14 w-full rounded-full border-2 border-border bg-background pl-14 pr-32 text-base transition-all focus:border-[hsl(var(--primary))] focus:outline-none focus:ring-4 focus:ring-[hsl(var(--primary)/0.15)]"
+                placeholder="Stichwort eingeben…"
+                className="h-12 w-full rounded-full border-2 border-border bg-background pl-11 pr-4 transition-all focus:border-[hsl(var(--primary))] focus:outline-none focus:ring-4 focus:ring-[hsl(var(--primary)/0.15)] sm:h-14 sm:pl-14 sm:pr-32"
               />
               {kategorieSlug && (
                 <input type="hidden" name="kategorie" value={kategorieSlug} />
               )}
+              {/* Desktop-Button im Input */}
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-[hsl(var(--primary))] px-5 py-2.5 text-sm font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.03]"
+                className="absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-[hsl(var(--primary))] px-5 py-2.5 text-sm font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.03] sm:inline-flex"
               >
                 Suchen
               </button>
             </div>
           </div>
+          {/* Mobile-Button volle Breite unter Input */}
+          <button
+            type="submit"
+            className="w-full rounded-full bg-[hsl(var(--primary))] py-3 text-sm font-semibold text-[hsl(var(--primary-foreground))] sm:hidden"
+          >
+            Suchen
+          </button>
 
           {/* Häufig gesucht */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Häufig gesucht ·
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <span className="w-full text-[10px] font-medium uppercase tracking-wider text-muted-foreground sm:w-auto sm:text-xs">
+              Häufig gesucht
             </span>
             {HAEUFIG_GESUCHT.map((tag) => (
               <Link
                 key={tag}
                 href={`/wissen?q=${encodeURIComponent(tag)}`}
-                className="inline-flex items-center rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.06)] hover:text-[hsl(var(--primary))]"
+                className="inline-flex items-center rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.06)] hover:text-[hsl(var(--primary))] sm:px-3 sm:text-xs"
               >
                 {tag}
               </Link>

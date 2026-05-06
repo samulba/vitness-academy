@@ -20,7 +20,8 @@ import { PfadCard } from "@/components/lernpfad/PfadCard";
 import { requireProfile } from "@/lib/auth";
 import { ladeMeineLernpfade, offeneLektionen } from "@/lib/lernpfade";
 import { aktivitaetsStats } from "@/lib/lektion";
-import { aktiveBannerInfo } from "@/lib/infos";
+import { aktiveBannerInfo, ladeAnnouncements } from "@/lib/infos";
+import { formatDatum } from "@/lib/format";
 import { ladeMeineAufgaben } from "@/lib/aufgaben";
 import { ladeSubmissions } from "@/lib/formulare";
 import { ladeKudos } from "@/lib/kudos";
@@ -95,19 +96,32 @@ const SUBMISSION_LABEL: Record<string, { label: string; tint: string }> = {
 export default async function DashboardPage() {
   const profile = await requireProfile();
   const aktiv = await getAktiverStandort();
-  const [pfade, anzOffenePraxis, aktivitaet, banner, aufgaben, anfragen, kudos] =
-    await Promise.all([
-      ladeMeineLernpfade(profile.id),
-      ladeOffenePraxis(profile.id),
-      aktivitaetsStats(profile.id),
-      aktiveBannerInfo(profile.id, aktiv?.id ?? null),
-      ladeMeineAufgaben(profile.id, aktiv?.id ?? null),
-      ladeSubmissions({
-        submittedBy: profile.id,
-        status: ["eingereicht", "in_bearbeitung"],
-      }),
-      ladeKudos({ limit: 3, locationId: aktiv?.id ?? null }),
-    ]);
+  const [
+    pfade,
+    anzOffenePraxis,
+    aktivitaet,
+    banner,
+    aufgaben,
+    anfragen,
+    kudos,
+    infos,
+  ] = await Promise.all([
+    ladeMeineLernpfade(profile.id),
+    ladeOffenePraxis(profile.id),
+    aktivitaetsStats(profile.id),
+    aktiveBannerInfo(profile.id, aktiv?.id ?? null),
+    ladeMeineAufgaben(profile.id, aktiv?.id ?? null),
+    ladeSubmissions({
+      submittedBy: profile.id,
+      status: ["eingereicht", "in_bearbeitung"],
+    }),
+    ladeKudos({ limit: 3, locationId: aktiv?.id ?? null }),
+    ladeAnnouncements({ locationId: aktiv?.id ?? null }),
+  ]);
+
+  const aktuelleInfos = infos
+    .filter((i) => !banner || i.id !== banner.id)
+    .slice(0, 3);
 
   const gesamt = pfade.reduce((s, p) => s + p.gesamt, 0);
   const abgeschlossen = pfade.reduce((s, p) => s + p.abgeschlossen, 0);
@@ -248,31 +262,121 @@ export default async function DashboardPage() {
         <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
           Schnell-Aktionen
         </h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
           {QUICK_ACTIONS.map((qa) => {
             const Icon = qa.icon;
             return (
               <Link
                 key={qa.href}
                 href={qa.href}
-                className="group flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)]"
+                className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)] sm:flex-col sm:items-start sm:gap-3 sm:rounded-2xl sm:p-5"
               >
                 <span
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl ${qa.tint}`}
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg sm:h-10 sm:w-10 sm:rounded-xl ${qa.tint}`}
                 >
-                  <Icon className="h-5 w-5" strokeWidth={1.75} />
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
                 </span>
-                <div className="flex w-full items-end justify-between">
-                  <span className="text-sm font-semibold leading-tight">
+                <div className="flex w-full min-w-0 items-center justify-between gap-1 sm:items-end">
+                  <span className="truncate text-[13px] font-semibold leading-tight sm:text-sm">
                     {qa.label}
                   </span>
-                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))]" />
+                  <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))] sm:h-4 sm:w-4" />
                 </div>
               </Link>
             );
           })}
         </div>
       </section>
+
+      {/* === Aktuelle Infos === */}
+      {aktuelleInfos.length > 0 && (
+        <section className="space-y-5">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+                Aktuell aus dem Studio
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                Wichtige Infos
+              </h2>
+            </div>
+            <Link
+              href="/infos"
+              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Alle ansehen
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <ul className="space-y-2.5">
+            {aktuelleInfos.map((info) => {
+              const importance =
+                info.importance === "critical"
+                  ? {
+                      label: "Dringend",
+                      pill:
+                        "bg-[hsl(var(--destructive)/0.12)] text-[hsl(var(--destructive))]",
+                      border: "border-[hsl(var(--destructive)/0.4)]",
+                    }
+                  : info.importance === "warning"
+                  ? {
+                      label: "Wichtig",
+                      pill:
+                        "bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning))]",
+                      border: "border-[hsl(var(--warning)/0.4)]",
+                    }
+                  : {
+                      label: "Info",
+                      pill:
+                        "bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]",
+                      border: "border-border",
+                    };
+              return (
+                <li key={info.id}>
+                  <Link
+                    href={`/infos/${info.id}`}
+                    className={`group flex items-start gap-3 rounded-xl border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] ${importance.border}`}
+                  >
+                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--brand-pink)/0.10)] text-[hsl(var(--brand-pink))]">
+                      {info.pinned ? (
+                        <Sparkles className="h-4 w-4" />
+                      ) : (
+                        <Megaphone className="h-4 w-4" />
+                      )}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${importance.pill}`}
+                        >
+                          {importance.label}
+                        </span>
+                        {info.pinned && (
+                          <span className="inline-flex items-center rounded-full bg-[hsl(var(--primary)/0.12)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--primary))]">
+                            Angepinnt
+                          </span>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {formatDatum(info.created_at)}
+                        </span>
+                      </div>
+                      <p className="mt-1.5 truncate text-[15px] font-semibold leading-tight">
+                        {info.title}
+                      </p>
+                      {info.body && (
+                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                          {info.body}
+                        </p>
+                      )}
+                    </div>
+                    <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-[hsl(var(--primary))]" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       {/* === Aufgaben heute === */}
       {aufgaben.heute.length > 0 && (

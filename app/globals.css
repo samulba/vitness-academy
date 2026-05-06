@@ -437,6 +437,20 @@
     .word-reveal > span { opacity: 1; transform: none; }
   }
 
+  /* iOS-Zoom-Bug verhindern: Inputs/Textareas/Selects mit
+   * font-size < 16px loesen auf iOS Safari einen Zoom beim Focus aus.
+   * Auf Mobile alle Form-Controls auf min. 16px setzen.
+   * Auf >=sm darf Tailwind text-sm wieder greifen. */
+  @media (max-width: 640px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]),
+    textarea,
+    select,
+    [role="textbox"],
+    [contenteditable="true"] {
+      font-size: 16px !important;
+    }
+  }
+
   /* Reveal-Klassen (gesteuert vom Reveal-Component) */
   .reveal-init {
     opacity: 0;
