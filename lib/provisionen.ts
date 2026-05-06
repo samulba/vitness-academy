@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { joinName } from "@/lib/admin/safe-loader";
+import { joinName, istNextJsControlFlow } from "@/lib/admin/safe-loader";
 import {
   berechneProvision,
   type BonusStufe,
@@ -159,7 +159,11 @@ export async function ladeRates(): Promise<CommissionRate[]> {
   }));
 
   // Persönliche Sätze -- bei Fehler (Migration noch nicht eingespielt)
-  // einfach leer zurück.
+  // einfach leer zurück. Loggen damit echte DB-Fehler im Server-Log
+  // sichtbar werden.
+  if (personalRes.error) {
+    console.warn("[ladeRates] commission_rates_personal nicht verfuegbar:", personalRes.error);
+  }
   const personal: CommissionRate[] = personalRes.error
     ? []
     : ((personalRes.data ?? []) as {
@@ -508,6 +512,7 @@ export async function ladePayouts(opts?: {
     }
     return ((data ?? []) as unknown as PayoutRoh[]).map(mapPayout);
   } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
     console.error("[ladePayouts] unexpected error:", e);
     return [];
   }

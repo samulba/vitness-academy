@@ -2,8 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireProfile } from "@/lib/auth";
+import { requireProfile, requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type ProvisionsErgebnis = { ok: true } | { ok: false; message: string };
 
@@ -88,10 +91,19 @@ export async function abschlussLoeschen(
 }
 
 export async function abschlussLoeschenAdmin(id: string): Promise<void> {
-  await requireProfile();
-  // Admin-RLS in der Tabelle prüft is_admin() -> Admin darf alles
+  await requireRole(["admin", "superadmin"]);
+  if (!UUID_RE.test(id)) {
+    redirect("/admin/provisionen?toast=error");
+  }
   const supabase = await createClient();
-  await supabase.from("commission_entries").delete().eq("id", id);
+  const { error } = await supabase
+    .from("commission_entries")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    console.error("[abschlussLoeschenAdmin]", error);
+    redirect("/admin/provisionen?toast=error");
+  }
   revalidatePath("/provisionen");
   revalidatePath("/admin/provisionen");
   redirect("/admin/provisionen?toast=deleted");

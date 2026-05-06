@@ -25,25 +25,30 @@ export default async function AppLayout({
 }) {
   const profile = await requireProfile();
 
-  // Recurring-Tasks generieren -- darf bei Fehler das Layout nicht
-  // crashen (Tabelle könnte fehlen, RLS-Block etc).
-  try {
-    await generiereWiederkehrendeAufgaben();
-  } catch (e) {
-    if (istNextJsControlFlow(e)) throw e;
-    console.error("[AppLayout] generiereWiederkehrendeAufgaben failed:", e);
-  }
-
-  // Standort-Loading defensiv: bei Fehler einfach ohne Switcher.
+  // Recurring-Tasks-Generierung und Standort-Loading sind unabhaengig
+  // -- parallel statt sequenziell ausfuehren spart einen Roundtrip.
+  // Beide defensiv: bei Fehler weiter ohne Crash.
   let standorte: StandortMembership[] = [];
   let aktiv: StandortMembership | null = null;
-  try {
-    standorte = await ladeMeineStandorte(profile.id);
-    aktiv = await getAktiverStandort(standorte);
-  } catch (e) {
-    if (istNextJsControlFlow(e)) throw e;
-    console.error("[AppLayout] standort load failed:", e);
-  }
+  await Promise.all([
+    (async () => {
+      try {
+        await generiereWiederkehrendeAufgaben();
+      } catch (e) {
+        if (istNextJsControlFlow(e)) throw e;
+        console.error("[AppLayout] generiereWiederkehrendeAufgaben failed:", e);
+      }
+    })(),
+    (async () => {
+      try {
+        standorte = await ladeMeineStandorte(profile.id);
+        aktiv = await getAktiverStandort(standorte);
+      } catch (e) {
+        if (istNextJsControlFlow(e)) throw e;
+        console.error("[AppLayout] standort load failed:", e);
+      }
+    })(),
+  ]);
 
   const switcherTopbar = (
     <StandortSwitcher aktiv={aktiv} optionen={standorte} variant="compact" />
