@@ -33,15 +33,16 @@ export default function DatenschutzPage() {
           <p className="mt-2 whitespace-pre-line">
             Verantwortlich für die Datenverarbeitung im Rahmen dieser Plattform
             ist der im Impressum genannte Anbieter:{"\n"}
-            V-Itness GmbH{"\n"}
-            [Straße + Hausnummer]{"\n"}
-            [PLZ Ort]{"\n"}
+            V-itness Betriebs GmbH{"\n"}
+            Gietlstraße 17{"\n"}
+            81541 München{"\n"}
+            Telefon: 08121 99 55 0 55{"\n"}
             E-Mail:{" "}
             <a
-              href="mailto:info@v-itness.de"
+              href="mailto:info@vitness-poing.de"
               className="text-[hsl(var(--brand-pink))] hover:underline"
             >
-              info@v-itness.de
+              info@vitness-poing.de
             </a>
           </p>
         </section>
@@ -171,10 +172,10 @@ export default function DatenschutzPage() {
           <p className="mt-3">
             Wende dich für alle Auskunfts- und Löschanfragen an{" "}
             <a
-              href="mailto:datenschutz@v-itness.de"
+              href="mailto:info@vitness-poing.de"
               className="text-[hsl(var(--brand-pink))] hover:underline"
             >
-              datenschutz@v-itness.de
+              info@vitness-poing.de
             </a>{" "}
             oder direkt an die Studioleitung.
           </p>
