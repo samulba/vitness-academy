@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { Logo } from "@/components/brand/Logo";
 
 export default function NotFound() {
   return (
@@ -27,9 +28,7 @@ export default function NotFound() {
       {/* Header */}
       <header className="relative z-10 flex w-full items-center justify-between px-6 py-6 lg:px-12 2xl:px-20">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-sm font-bold text-[hsl(var(--primary-foreground))]">
-            VC
-          </span>
+          <Logo size={32} />
           <span className="text-[15px] font-semibold tracking-tight">
             Vitness Crew
           </span>

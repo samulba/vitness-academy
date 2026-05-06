@@ -12,6 +12,7 @@ import { StickyNav } from "@/components/landing/StickyNav";
 import { Reveal } from "@/components/landing/Reveal";
 import { AnimatedHero } from "@/components/landing/AnimatedHero";
 import { PinnedNarrative } from "@/components/landing/PinnedNarrative";
+import { Logo } from "@/components/brand/Logo";
 
 export default async function RootPage() {
   const profile = await getCurrentProfile();
@@ -535,9 +536,7 @@ function Footer() {
       <div className="w-full border-t border-white/10 px-6 py-10 lg:px-12 2xl:px-20">
         <div className="mx-auto flex max-w-[1600px] flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2.5 text-[hsl(var(--brand-cream))]">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[hsl(var(--primary))] text-xs font-bold text-[hsl(var(--primary-foreground))]">
-              VC
-            </span>
+            <Logo size={28} />
             <span className="text-sm font-semibold">Vitness Crew</span>
           </div>
           <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">

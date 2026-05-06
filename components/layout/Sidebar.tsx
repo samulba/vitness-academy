@@ -28,6 +28,7 @@ import {
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/brand/Logo";
 import {
   istAdmin,
   istFuehrungskraftOderHoeher,
@@ -189,9 +190,7 @@ export function Sidebar({
       <div className="sticky top-0 flex h-screen flex-col">
         {/* Branding + NotificationBell oben */}
         <div className="flex items-center gap-2 border-b border-border px-3 py-3">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[hsl(var(--primary))] text-[11px] font-bold text-[hsl(var(--primary-foreground))]">
-            VC
-          </span>
+          <Logo size={28} priority />
           <span className="flex-1 text-[14px] font-semibold tracking-tight">
             Vitness Crew
           </span>

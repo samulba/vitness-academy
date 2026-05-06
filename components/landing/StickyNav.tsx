@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/brand/Logo";
 
 export function StickyNav() {
   const [scrolled, setScrolled] = useState(false);
@@ -28,9 +29,7 @@ export function StickyNav() {
           href="/"
           className="flex items-center gap-2.5 text-[hsl(var(--brand-cream))]"
         >
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-sm font-bold text-[hsl(var(--primary-foreground))]">
-            VC
-          </span>
+          <Logo size={32} priority />
           <span className="text-[15px] font-semibold tracking-tight">
             Vitness Crew
           </span>

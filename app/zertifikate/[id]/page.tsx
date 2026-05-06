@@ -3,6 +3,7 @@ import { ladeZertifikatDetail } from "@/lib/zertifikat";
 import { requireProfile } from "@/lib/auth";
 import { formatDatum } from "@/lib/format";
 import { PrintButton } from "./PrintButton";
+import { Logo } from "@/components/brand/Logo";
 
 export default async function ZertifikatPage({
   params,
@@ -44,9 +45,7 @@ export default async function ZertifikatPage({
 
         <header className="flex items-center justify-between gap-6 border-b border-border pb-6">
           <div className="flex items-center gap-3">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-base font-bold text-[hsl(var(--primary-foreground))]">
-              VC
-            </span>
+            <Logo size={40} />
             <div>
               <p className="text-sm font-semibold tracking-tight">
                 Vitness Crew

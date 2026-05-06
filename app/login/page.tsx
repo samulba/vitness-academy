@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { LoginFormular } from "./LoginFormular";
+import { Logo } from "@/components/brand/Logo";
 
 export default async function LoginPage({
   searchParams,
@@ -35,9 +36,7 @@ export default async function LoginPage({
 
         <div className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-16">
           <Link href="/" className="flex w-fit items-center gap-2.5">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-sm font-bold text-[hsl(var(--primary-foreground))]">
-              VC
-            </span>
+            <Logo size={36} priority />
             <span className="text-[15px] font-semibold tracking-tight">
               Vitness Crew
             </span>
