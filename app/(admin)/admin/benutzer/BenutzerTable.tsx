@@ -1,6 +1,8 @@
 "use client";
 
-import { Pencil } from "lucide-react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { ChevronRight, Pencil, Search } from "lucide-react";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { StatusPill } from "@/components/admin/StatusPill";
@@ -192,23 +194,117 @@ export function BenutzerTable({ benutzer }: { benutzer: Zeile[] }) {
   ];
 
   return (
-    <DataTable<Zeile>
-      data={benutzer}
-      columns={columns}
-      searchable={{
-        placeholder: "Mitarbeiter suchen…",
-        keys: ["full_name", "location_name"],
-      }}
-      filters={filterList}
-      rowHref={(b) => `/admin/benutzer/${b.id}`}
-      rowActions={[
-        {
-          icon: <Pencil />,
-          label: "Bearbeiten",
-          href: (b) => `/admin/benutzer/${b.id}`,
-        },
-      ]}
-      defaultSort={{ key: "created_at", direction: "desc" }}
-    />
+    <>
+      {/* Mobile: Card-Liste (DataTable mit 7 Spalten passt nicht auf Phone) */}
+      <div className="lg:hidden">
+        <BenutzerCardsMobile benutzer={benutzer} />
+      </div>
+
+      {/* Desktop: Volle DataTable */}
+      <div className="hidden lg:block">
+        <DataTable<Zeile>
+          data={benutzer}
+          columns={columns}
+          searchable={{
+            placeholder: "Mitarbeiter suchen…",
+            keys: ["full_name", "location_name"],
+          }}
+          filters={filterList}
+          rowHref={(b) => `/admin/benutzer/${b.id}`}
+          rowActions={[
+            {
+              icon: <Pencil />,
+              label: "Bearbeiten",
+              href: (b) => `/admin/benutzer/${b.id}`,
+            },
+          ]}
+          defaultSort={{ key: "created_at", direction: "desc" }}
+        />
+      </div>
+    </>
+  );
+}
+
+function BenutzerCardsMobile({ benutzer }: { benutzer: Zeile[] }) {
+  const [query, setQuery] = useState("");
+  const gefiltert = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return benutzer;
+    return benutzer.filter((b) => {
+      const name = (b.full_name ?? "").toLowerCase();
+      const ort = (b.location_name ?? "").toLowerCase();
+      return name.includes(q) || ort.includes(q);
+    });
+  }, [benutzer, query]);
+
+  return (
+    <div className="space-y-3">
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Mitarbeiter suchen…"
+          className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 placeholder:text-muted-foreground/70 focus-visible:border-[hsl(var(--ring))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        />
+      </div>
+
+      {gefiltert.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+          Keine Treffer.
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {gefiltert.map((b) => (
+            <li key={b.id}>
+              <Link
+                href={`/admin/benutzer/${b.id}`}
+                className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:border-[hsl(var(--primary)/0.4)] active:bg-muted/50"
+              >
+                <ColoredAvatar name={b.full_name} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-semibold leading-tight">
+                      {b.full_name ?? "—"}
+                    </p>
+                    {b.archived_at && (
+                      <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Archiv
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <RollenPill role={b.role} />
+                    {b.onboarding_gesamt > 0 && (
+                      <StatusPill
+                        ton={
+                          b.onboarding_erledigt === b.onboarding_gesamt
+                            ? "success"
+                            : "warn"
+                        }
+                      >
+                        Onb. {b.onboarding_erledigt}/{b.onboarding_gesamt}
+                      </StatusPill>
+                    )}
+                    {b.zugewiesen > 0 && (
+                      <span className="inline-flex items-center rounded-full bg-[hsl(var(--brand-pink)/0.10)] px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-[hsl(var(--brand-pink))]">
+                        {b.zugewiesen} Pfade
+                      </span>
+                    )}
+                  </div>
+                  {b.location_name && (
+                    <p className="mt-1 truncate text-[11px] text-muted-foreground">
+                      {b.location_name}
+                    </p>
+                  )}
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-[hsl(var(--primary))]" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

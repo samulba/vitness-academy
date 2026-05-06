@@ -58,9 +58,11 @@ export function MobileNav({ rolle }: { rolle: Rolle }) {
         {/* Mode-Switch optisch abgesetzt: vertikaler Border, Magenta-Tint */}
         <Link
           href="/dashboard"
-          className="relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 border-l border-border bg-[hsl(var(--primary)/0.06)] py-2 text-[11px] font-medium text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.10)]"
+          className="relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 border-l border-border py-2 text-[11px] font-medium text-[hsl(var(--primary))] transition-colors hover:bg-muted/50"
         >
-          <ArrowLeftRight className="h-4 w-4" strokeWidth={1.75} />
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.4)]">
+            <ArrowLeftRight className="h-3.5 w-3.5" strokeWidth={2} />
+          </span>
           <span>Zur App</span>
         </Link>
       </nav>
@@ -84,9 +86,11 @@ export function MobileNav({ rolle }: { rolle: Rolle }) {
             <Link
               key={link.href + link.label}
               href={link.href}
-              className="relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 border-l border-border bg-[hsl(var(--primary)/0.06)] py-2 text-[11px] font-medium text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.10)]"
+              className="relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 border-l border-border py-2 text-[11px] font-medium text-[hsl(var(--primary))] transition-colors hover:bg-muted/50"
             >
-              <ArrowLeftRight className="h-4 w-4" strokeWidth={1.75} />
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.4)]">
+                <ArrowLeftRight className="h-3.5 w-3.5" strokeWidth={2} />
+              </span>
               <span>{link.label}</span>
             </Link>
           );

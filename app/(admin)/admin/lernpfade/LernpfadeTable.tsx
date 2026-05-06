@@ -1,6 +1,14 @@
 "use client";
 
-import { ExternalLink, GraduationCap, Pencil } from "lucide-react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import {
+  ChevronRight,
+  ExternalLink,
+  GraduationCap,
+  Pencil,
+  Search,
+} from "lucide-react";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { bildUrlFuerPfad } from "@/lib/storage";
@@ -111,36 +119,109 @@ export function LernpfadeTable({ pfade }: { pfade: Zeile[] }) {
   ];
 
   return (
-    <DataTable<Zeile>
-      data={pfade}
-      columns={columns}
-      searchable={{ placeholder: "Lernpfad suchen…", keys: ["title"] }}
-      filters={[
-        {
-          key: "status",
-          label: "Status",
-          options: [
-            { value: "aktiv", label: "Aktiv" },
-            { value: "entwurf", label: "Entwurf" },
-            { value: "archiviert", label: "Archiviert" },
-          ],
-          multi: true,
-        },
-      ]}
-      rowHref={(p) => `/admin/lernpfade/${p.id}`}
-      rowActions={[
-        {
-          icon: <ExternalLink />,
-          label: "Vorschau",
-          href: (p) => `/lernpfade/${p.id}`,
-        },
-        {
-          icon: <Pencil />,
-          label: "Bearbeiten",
-          href: (p) => `/admin/lernpfade/${p.id}`,
-        },
-      ]}
-      defaultSort={{ key: "title", direction: "asc" }}
-    />
+    <>
+      {/* Mobile: Card-Liste */}
+      <div className="lg:hidden">
+        <LernpfadeCardsMobile pfade={pfade} />
+      </div>
+
+      {/* Desktop: Volle DataTable */}
+      <div className="hidden lg:block">
+        <DataTable<Zeile>
+          data={pfade}
+          columns={columns}
+          searchable={{ placeholder: "Lernpfad suchen…", keys: ["title"] }}
+          filters={[
+            {
+              key: "status",
+              label: "Status",
+              options: [
+                { value: "aktiv", label: "Aktiv" },
+                { value: "entwurf", label: "Entwurf" },
+                { value: "archiviert", label: "Archiviert" },
+              ],
+              multi: true,
+            },
+          ]}
+          rowHref={(p) => `/admin/lernpfade/${p.id}`}
+          rowActions={[
+            {
+              icon: <ExternalLink />,
+              label: "Vorschau",
+              href: (p) => `/lernpfade/${p.id}`,
+            },
+            {
+              icon: <Pencil />,
+              label: "Bearbeiten",
+              href: (p) => `/admin/lernpfade/${p.id}`,
+            },
+          ]}
+          defaultSort={{ key: "title", direction: "asc" }}
+        />
+      </div>
+    </>
+  );
+}
+
+function LernpfadeCardsMobile({ pfade }: { pfade: Zeile[] }) {
+  const [query, setQuery] = useState("");
+  const gefiltert = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return pfade;
+    return pfade.filter((p) => p.title.toLowerCase().includes(q));
+  }, [pfade, query]);
+
+  return (
+    <div className="space-y-3">
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Lernpfad suchen…"
+          className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 placeholder:text-muted-foreground/70 focus-visible:border-[hsl(var(--ring))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        />
+      </div>
+
+      {gefiltert.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+          Keine Treffer.
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {gefiltert.map((p) => (
+            <li key={p.id}>
+              <Link
+                href={`/admin/lernpfade/${p.id}`}
+                className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:border-[hsl(var(--primary)/0.4)] active:bg-muted/50"
+              >
+                <PfadThumb pfad={p} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-semibold leading-tight">
+                      {p.title}
+                    </p>
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <StatusBadge status={p.status} />
+                    <span className="text-[11px] text-muted-foreground">
+                      {p.module_anzahl} Module · {p.lektion_anzahl} Lektionen
+                    </span>
+                  </div>
+                  {p.zugewiesen > 0 && (
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {p.zugewiesen}{" "}
+                      {p.zugewiesen === 1 ? "Zuweisung" : "Zuweisungen"}
+                    </p>
+                  )}
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-[hsl(var(--primary))]" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
