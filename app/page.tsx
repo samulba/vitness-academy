@@ -56,19 +56,15 @@ function Bausteine() {
               </p>
             </Reveal>
             <Reveal delay={120}>
-              <h2 className="mt-6 text-balance font-semibold leading-[1.0] tracking-[-0.03em] text-[clamp(2.25rem,5vw,4.5rem)] sm:mt-8">
+              <h2 className="mt-5 text-balance font-semibold leading-[1.05] tracking-[-0.03em] text-[clamp(2rem,6vw,4.5rem)] sm:mt-8">
                 Alles in einer App.
-                <br />
-                <span className="text-muted-foreground">
-                  Lernen, Anfragen, Studio-Alltag.
-                </span>
               </h2>
             </Reveal>
           </div>
           <Reveal delay={240}>
             <p className="max-w-md text-base leading-relaxed text-muted-foreground">
-              Jedes Werkzeug ist genau dort, wo du&apos;s brauchst. Du musst
-              nichts vorher verstehen — du fängst einfach an.
+              Lernen, Anfragen, Studio-Alltag — jedes Werkzeug ist genau dort,
+              wo du&apos;s brauchst. Du musst nichts vorher verstehen.
             </p>
           </Reveal>
         </div>

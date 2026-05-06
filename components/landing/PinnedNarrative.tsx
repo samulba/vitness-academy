@@ -103,7 +103,7 @@ export function PinnedNarrative() {
         />
 
         {/* Timeline-Indikator — durchgehende Linie + nummerierte Marker */}
-        <div className="relative z-20 shrink-0 px-4 pt-20 sm:px-6 sm:pt-24 lg:px-12 lg:pt-28 2xl:px-20">
+        <div className="relative z-20 shrink-0 px-4 pt-16 sm:px-6 sm:pt-24 lg:px-12 lg:pt-28 2xl:px-20">
           <div className="mx-auto max-w-[1600px]">
             <div className="relative">
               {/* Background-Linie — durchgehend (Mobile: linker/rechter Offset = halbe Marker-Breite = 1rem; Desktop: 1.25rem) */}
@@ -191,7 +191,7 @@ export function PinnedNarrative() {
         </div>
 
         {/* Inhalt — fuellt verbleibenden Raum, vertikal zentriert */}
-        <div className="relative z-10 mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 items-center gap-6 px-6 py-6 sm:gap-10 sm:py-10 lg:grid-cols-12 lg:gap-16 lg:px-12 lg:py-0 2xl:px-20">
+        <div className="relative z-10 mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 items-center gap-3 px-6 py-3 sm:gap-8 sm:py-8 lg:grid-cols-12 lg:gap-16 lg:px-12 lg:py-0 2xl:px-20">
           {/* Linke Spalte: Text — alle Frames in EINER Grid-Cell uebereinander */}
           <div className="grid grid-cols-1 grid-rows-1 lg:col-span-6 xl:col-span-7">
             {PHASEN.map((p, i) => (
@@ -215,10 +215,10 @@ export function PinnedNarrative() {
                 <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))] sm:text-[11px]">
                   {p.ueber}
                 </p>
-                <h2 className="mt-4 max-w-[16ch] text-balance font-semibold leading-[0.95] tracking-[-0.035em] text-[clamp(2rem,7vw,5.5rem)] sm:mt-6">
+                <h2 className="mt-3 max-w-[16ch] text-balance font-semibold leading-[0.95] tracking-[-0.035em] text-[clamp(1.5rem,6.5vw,5.5rem)] sm:mt-6">
                   {p.headline}
                 </h2>
-                <p className="mt-5 max-w-xl text-pretty text-sm leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:mt-8 sm:text-base lg:text-lg">
+                <p className="mt-3 max-w-xl text-pretty text-[13px] leading-snug text-[hsl(var(--brand-cream)/0.7)] sm:mt-8 sm:text-base sm:leading-relaxed lg:text-lg">
                   {p.body}
                 </p>
               </div>
@@ -251,7 +251,7 @@ export function PinnedNarrative() {
 
 function PhasenVisual({ phase }: { phase: Phase }) {
   return (
-    <div className="relative mx-auto w-full max-w-[280px] sm:max-w-sm lg:max-w-md">
+    <div className="relative mx-auto w-full max-w-[240px] sm:max-w-sm lg:max-w-md">
       {/* Glow */}
       <div
         aria-hidden
@@ -285,7 +285,7 @@ function PhasenVisual({ phase }: { phase: Phase }) {
           </div>
         </div>
 
-        <div className="theme-light-locked bg-[hsl(var(--brand-cream))] p-6 text-foreground">
+        <div className="theme-light-locked bg-[hsl(var(--brand-cream))] p-4 text-foreground sm:p-6">
           {phase.visual === "login" && <VisualLogin />}
           {phase.visual === "lektion" && <VisualLektion />}
           {phase.visual === "quiz" && <VisualQuiz />}
