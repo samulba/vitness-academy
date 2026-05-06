@@ -60,7 +60,7 @@ export function StatCard({
   const inhalt = (
     <>
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:text-[11px] sm:tracking-[0.14em]">
           {label}
         </p>
         {icon && (
@@ -70,15 +70,15 @@ export function StatCard({
         )}
       </div>
 
-      <div className="mt-3 flex items-baseline gap-2">
-        <p className="text-[32px] font-semibold leading-none tracking-tight tabular-nums">
+      <div className="mt-2 flex items-baseline gap-2 sm:mt-3">
+        <p className="text-[24px] font-semibold leading-none tracking-tight tabular-nums sm:text-[32px]">
           {value}
         </p>
         {trend && <TrendBadge trend={trend} />}
       </div>
 
       {sparklineData && sparklineData.length > 1 && (
-        <div className="mt-3 -mx-1 h-10">
+        <div className="-mx-1 mt-3 hidden h-10 sm:block">
           <Sparkline data={sparklineData} direction={trend?.direction ?? "up"} />
         </div>
       )}
@@ -86,7 +86,7 @@ export function StatCard({
   );
 
   const baseClass = cn(
-    "relative flex flex-col rounded-xl border border-border bg-secondary/50 p-4",
+    "relative flex flex-col rounded-xl border border-border bg-secondary/50 p-3 sm:p-4",
     "transition-all duration-150",
     href &&
       "hover:border-[hsl(var(--brand-pink)/0.4)] hover:bg-secondary hover:shadow-sm active:scale-[0.99]",
@@ -180,11 +180,13 @@ export function StatGrid({
 }) {
   const colClass =
     cols === 2
-      ? "sm:grid-cols-2"
+      ? "grid-cols-2"
       : cols === 3
-        ? "sm:grid-cols-2 lg:grid-cols-3"
-        : "sm:grid-cols-2 lg:grid-cols-4";
+        ? "grid-cols-2 lg:grid-cols-3"
+        : "grid-cols-2 lg:grid-cols-4";
   return (
-    <div className={cn("grid gap-3", colClass, className)}>{children}</div>
+    <div className={cn("grid gap-2.5 sm:gap-3", colClass, className)}>
+      {children}
+    </div>
   );
 }

@@ -10,6 +10,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { NotificationBellServer } from "@/components/notifications/NotificationBellServer";
 import { StandortSwitcher } from "@/components/layout/StandortSwitcher";
+import { MobileAdminBanner } from "@/components/admin/MobileAdminBanner";
 
 // Admin-Pages sind ALLE dynamisch (cookies/auth/RLS) -- explizit
 // markieren, damit Next.js gar nicht erst versucht, statisch zu
@@ -65,7 +66,10 @@ export default async function AdminLayout({
           id="main"
           className="flex-1 px-4 pb-24 pt-6 lg:px-8 lg:pb-10"
         >
-          <div className="mx-auto w-full max-w-6xl">{children}</div>
+          <div className="mx-auto w-full max-w-6xl">
+            <MobileAdminBanner />
+            {children}
+          </div>
         </main>
       </div>
       <MobileNav rolle={profile.role} />

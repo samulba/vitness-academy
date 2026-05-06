@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Activity,
+  ArrowLeftRight,
   BookOpen,
   FileText,
   GraduationCap,
@@ -12,7 +12,6 @@ import {
   Megaphone,
   ShieldCheck,
   Sparkles,
-  User,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,13 +35,13 @@ const MITARBEITER_LINKS: MobileLink[] = [
   { href: "/lernpfade", label: "Lernen", icon: GraduationCap },
 ];
 
-// Verwaltungs-Modus: 4 Top-Level-Bereiche + Mode-Switch zurueck
+// Verwaltungs-Modus: 4 Top-Level-Bereiche (Auswertung weggelassen — am
+// Laptop sinnvoller). Switch-zur-App ist visuell separater 5. Eintrag.
 const VERWALTUNG_LINKS: MobileLink[] = [
   { href: "/admin", label: "Übersicht", icon: ShieldCheck, exact: true },
   { href: "/admin/lernpfade", label: "Inhalte", icon: Sparkles },
-  { href: "/admin/benutzer", label: "Mitarbeiter", icon: Users },
+  { href: "/admin/benutzer", label: "Team", icon: Users },
   { href: "/admin/aufgaben", label: "Studio", icon: Megaphone },
-  { href: "/admin/fortschritt", label: "Auswertung", icon: Activity },
 ];
 
 export function MobileNav({ rolle }: { rolle: Rolle }) {
@@ -50,57 +49,83 @@ export function MobileNav({ rolle }: { rolle: Rolle }) {
   const zeigeAdmin = istFuehrungskraftOderHoeher(rolle);
   const adminMode = pathname === "/admin" || pathname.startsWith("/admin/");
 
-  let links: MobileLink[];
   if (zeigeAdmin && adminMode) {
-    // Im Verwaltungs-Modus: Admin-Top-Level + Switch-zurueck als 5.
-    links = [
-      ...VERWALTUNG_LINKS,
-      { href: "/dashboard", label: "Mitarbeiter", icon: User },
-    ];
-  } else {
-    // Mitarbeiter-Modus: Daily-Use + (fuer Admins) Switch-zur-Verwaltung.
-    links = [
-      ...MITARBEITER_LINKS,
-      ...(zeigeAdmin
-        ? [{ href: "/admin", label: "Verwaltung", icon: ShieldCheck, exact: true } satisfies MobileLink]
-        : [
-            {
-              href: "/wissen",
-              label: "Handbuch",
-              icon: BookOpen,
-            } satisfies MobileLink,
-          ]),
-    ];
+    return (
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-border bg-card/95 backdrop-blur lg:hidden">
+        {VERWALTUNG_LINKS.map((link) => (
+          <NavItem key={link.href + link.label} link={link} pathname={pathname} />
+        ))}
+        {/* Mode-Switch optisch abgesetzt: vertikaler Border, Magenta-Tint */}
+        <Link
+          href="/dashboard"
+          className="relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 border-l border-border bg-[hsl(var(--primary)/0.06)] py-2 text-[11px] font-medium text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.10)]"
+        >
+          <ArrowLeftRight className="h-4 w-4" strokeWidth={1.75} />
+          <span>Zur App</span>
+        </Link>
+      </nav>
+    );
   }
+
+  // Mitarbeiter-Modus
+  const links: MobileLink[] = [
+    ...MITARBEITER_LINKS,
+    zeigeAdmin
+      ? { href: "/admin", label: "Verwaltung", icon: ShieldCheck, exact: true }
+      : { href: "/wissen", label: "Handbuch", icon: BookOpen },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-border bg-card/95 backdrop-blur lg:hidden">
-      {links.map(({ href, label, icon: Icon, exact }) => {
-        const aktiv =
-          pathname === href ||
-          (!exact && href !== "/" && pathname.startsWith(`${href}/`));
-        return (
-          <Link
-            key={href + label}
-            href={href}
-            className={cn(
-              "relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors",
-              aktiv
-                ? "text-[hsl(var(--primary))]"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {aktiv && (
-              <span
-                aria-hidden
-                className="absolute left-1/2 top-0 h-[2px] w-8 -translate-x-1/2 rounded-b-full bg-[hsl(var(--primary))]"
-              />
-            )}
-            <Icon className="h-4 w-4" strokeWidth={1.75} />
-            {label}
-          </Link>
-        );
+      {links.map((link, i) => {
+        const istSwitch = zeigeAdmin && i === links.length - 1;
+        if (istSwitch) {
+          return (
+            <Link
+              key={link.href + link.label}
+              href={link.href}
+              className="relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 border-l border-border bg-[hsl(var(--primary)/0.06)] py-2 text-[11px] font-medium text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.10)]"
+            >
+              <ArrowLeftRight className="h-4 w-4" strokeWidth={1.75} />
+              <span>{link.label}</span>
+            </Link>
+          );
+        }
+        return <NavItem key={link.href + link.label} link={link} pathname={pathname} />;
       })}
     </nav>
+  );
+}
+
+function NavItem({
+  link,
+  pathname,
+}: {
+  link: MobileLink;
+  pathname: string;
+}) {
+  const { href, label, icon: Icon, exact } = link;
+  const aktiv =
+    pathname === href ||
+    (!exact && href !== "/" && pathname.startsWith(`${href}/`));
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors",
+        aktiv
+          ? "text-[hsl(var(--primary))]"
+          : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {aktiv && (
+        <span
+          aria-hidden
+          className="absolute left-1/2 top-0 h-[2px] w-8 -translate-x-1/2 rounded-b-full bg-[hsl(var(--primary))]"
+        />
+      )}
+      <Icon className="h-4 w-4" strokeWidth={1.75} />
+      {label}
+    </Link>
   );
 }
