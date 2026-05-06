@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Check, Circle, Loader2 } from "lucide-react";
+import { ArrowRight, Check, Circle, Loader2, Lock } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -28,6 +28,16 @@ export function ModulAccordion({
       </p>
     );
   }
+
+  // Sequenzielle Freigabe: alle Lektionen ueber alle Module flatten,
+  // finde die ID der ersten nicht-abgeschlossenen Lektion. Diese ist
+  // die "naechste" -- alle danach werden gesperrt, alle abgeschlossenen
+  // bleiben klickbar.
+  const alleLessons = moduleListe.flatMap((m) => m.lessons);
+  const naechsteId =
+    alleLessons.find(
+      (l) => (l.status as LektionStatus) !== "abgeschlossen",
+    )?.id ?? null;
 
   return (
     <Accordion
@@ -72,13 +82,21 @@ export function ModulAccordion({
                 </p>
               ) : (
                 <ul className="divide-y divide-border/50">
-                  {modul.lessons.map((lektion, idx) => (
-                    <LektionZeile
-                      key={lektion.id}
-                      lektion={lektion}
-                      nummer={idx + 1}
-                    />
-                  ))}
+                  {modul.lessons.map((lektion, idx) => {
+                    const status = lektion.status as LektionStatus;
+                    const istFertig = status === "abgeschlossen";
+                    const istNaechste = lektion.id === naechsteId;
+                    const freigeschaltet = istFertig || istNaechste;
+                    return (
+                      <LektionZeile
+                        key={lektion.id}
+                        lektion={lektion}
+                        nummer={idx + 1}
+                        freigeschaltet={freigeschaltet}
+                        istNaechste={istNaechste}
+                      />
+                    );
+                  })}
                 </ul>
               )}
             </AccordionContent>
@@ -92,38 +110,73 @@ export function ModulAccordion({
 function LektionZeile({
   lektion,
   nummer,
+  freigeschaltet,
+  istNaechste,
 }: {
   lektion: ModulMitFortschritt["lessons"][number];
   nummer: number;
+  freigeschaltet: boolean;
+  istNaechste: boolean;
 }) {
   const status = lektion.status as LektionStatus;
+
+  const inhalt = (
+    <>
+      <StatusIndicator
+        status={status}
+        nummer={nummer}
+        gesperrt={!freigeschaltet}
+      />
+      <div className="min-w-0 flex-1">
+        <p
+          className={cn(
+            "break-words text-[14px] font-medium leading-snug",
+            status === "abgeschlossen" && "text-muted-foreground",
+            !freigeschaltet && "text-muted-foreground",
+          )}
+        >
+          {lektion.title}
+        </p>
+        {lektion.summary && (
+          <p className="mt-0.5 line-clamp-2 text-[12px] text-muted-foreground">
+            {lektion.summary}
+          </p>
+        )}
+        {istNaechste && status !== "abgeschlossen" && (
+          <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-[hsl(var(--brand-pink)/0.12)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+            Jetzt dran
+          </span>
+        )}
+      </div>
+      {freigeschaltet ? (
+        <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground/50 transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5 [@media(hover:hover)]:group-hover:text-[hsl(var(--brand-pink))]" />
+      ) : (
+        <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" />
+      )}
+    </>
+  );
+
+  if (!freigeschaltet) {
+    return (
+      <li>
+        <div
+          className="flex cursor-not-allowed items-center gap-3 px-4 py-3 opacity-60"
+          aria-disabled="true"
+          title="Schließ erst die vorherigen Lektionen ab um diese freizuschalten"
+        >
+          {inhalt}
+        </div>
+      </li>
+    );
+  }
+
   return (
     <li>
       <Link
         href={`/lektionen/${lektion.id}`}
         className="group flex items-center gap-3 px-4 py-3 transition-colors active:bg-[hsl(var(--primary)/0.04)] [@media(hover:hover)]:hover:bg-[hsl(var(--primary)/0.04)]"
       >
-        <StatusIndicator status={status} nummer={nummer} />
-        <div className="min-w-0 flex-1">
-          <p
-            className={cn(
-              "break-words text-[14px] font-medium leading-snug",
-              status === "abgeschlossen" && "text-muted-foreground",
-            )}
-          >
-            {lektion.title}
-          </p>
-          {lektion.summary && (
-            <p className="mt-0.5 line-clamp-2 text-[12px] text-muted-foreground">
-              {lektion.summary}
-            </p>
-          )}
-        </div>
-        <ArrowRight
-          className={cn(
-            "h-4 w-4 shrink-0 text-muted-foreground/50 transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5 [@media(hover:hover)]:group-hover:text-[hsl(var(--brand-pink))]",
-          )}
-        />
+        {inhalt}
       </Link>
     </li>
   );
@@ -131,21 +184,31 @@ function LektionZeile({
 
 /**
  * Kleiner kreisförmiger Status-Indicator links der Lektion.
- * - nicht_gestartet: nur Border, leer
+ * - gesperrt: graue Border + Lock-Icon
+ * - nicht_gestartet (= naechste freigeschaltete): leerer Kreis mit Zahl
  * - in_bearbeitung: Magenta-Pulse-Border
  * - abgeschlossen: Magenta-gefüllt mit Check
  */
 function StatusIndicator({
   status,
   nummer,
+  gesperrt,
 }: {
   status: LektionStatus;
   nummer: number;
+  gesperrt: boolean;
 }) {
   if (status === "abgeschlossen") {
     return (
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]">
         <Check className="h-3.5 w-3.5" strokeWidth={3} />
+      </span>
+    );
+  }
+  if (gesperrt) {
+    return (
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-dashed border-border bg-background text-muted-foreground/50">
+        <Lock className="h-3 w-3" strokeWidth={2} />
       </span>
     );
   }
@@ -157,9 +220,9 @@ function StatusIndicator({
       </span>
     );
   }
-  // nicht gestartet
+  // nicht gestartet, freigeschaltet (= "jetzt dran")
   return (
-    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-background text-[11px] font-medium text-muted-foreground">
+    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-[hsl(var(--brand-pink))] bg-[hsl(var(--brand-pink)/0.08)] text-[11px] font-bold text-[hsl(var(--brand-pink))]">
       {nummer}
     </span>
   );
