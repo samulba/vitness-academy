@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, istAdmin } from "@/lib/auth";
-import { reorderSwap } from "@/lib/admin/reorder";
+import { reorderBulk, reorderSwap } from "@/lib/admin/reorder";
 
 async function ensureAdmin() {
   const p = await getCurrentProfile();
@@ -271,4 +271,34 @@ export async function optionReihenfolge(
   });
   revalidatePath(`/admin/quizze/${quizId}`);
   revalidatePath(`/quiz/${quizId}`);
+}
+
+/**
+ * Bulk-Reorder fuer Drag-and-Drop von Fragen + Optionen. Kein
+ * revalidatePath -- lokaler Client-State zeigt schon korrekt.
+ */
+export async function frageReihenfolgeBulk(
+  quizId: string,
+  neueIds: string[],
+): Promise<{ ok: boolean; message?: string }> {
+  await ensureAdmin();
+  return await reorderBulk({
+    tabelle: "quiz_questions",
+    ids: neueIds,
+    scopeFeld: "quiz_id",
+    scopeWert: quizId,
+  });
+}
+
+export async function optionReihenfolgeBulk(
+  frageId: string,
+  neueIds: string[],
+): Promise<{ ok: boolean; message?: string }> {
+  await ensureAdmin();
+  return await reorderBulk({
+    tabelle: "quiz_options",
+    ids: neueIds,
+    scopeFeld: "question_id",
+    scopeWert: frageId,
+  });
 }

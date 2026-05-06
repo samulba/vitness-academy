@@ -1,51 +1,14 @@
 import { notFound } from "next/navigation";
-import { BarChart3, CheckCircle2, Plus, XCircle } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { VorschauButton } from "@/components/admin/VorschauButton";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
-import { ReihenfolgeButtons } from "@/components/admin/ReihenfolgeButtons";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { QuizFormular } from "@/components/admin/QuizFormular";
-import { FrageBearbeitenInline } from "@/components/admin/FrageBearbeitenInline";
-import { OptionBearbeitenInline } from "@/components/admin/OptionBearbeitenInline";
 import { createClient } from "@/lib/supabase/server";
 import { ladeLektionOptionen, ladeModulOptionen } from "@/lib/admin/optionen";
-import {
-  frageAktualisieren,
-  frageAnlegen,
-  frageLoeschen,
-  frageReihenfolge,
-  optionAktualisieren,
-  optionAnlegen,
-  optionLoeschen,
-  optionReihenfolge,
-  quizAktualisieren,
-  quizLoeschen,
-} from "../actions";
+import { quizAktualisieren, quizLoeschen } from "../actions";
+import { FragenListe, type Frage } from "./FragenListe";
 
-type Option = {
-  id: string;
-  label: string;
-  is_correct: boolean;
-  sort_order: number;
-};
-type Frage = {
-  id: string;
-  prompt: string;
-  question_type: "single" | "multiple";
-  sort_order: number;
-  options: Option[];
-};
 type QuizDetail = {
   id: string;
   title: string;
@@ -84,16 +47,21 @@ async function ladeQuiz(id: string): Promise<QuizDetail | null> {
   };
 
   const fragen: Frage[] = ((data.quiz_questions ?? []) as unknown as RohFrage[])
+    .slice()
+    .sort((a, b) => a.sort_order - b.sort_order)
     .map((q) => ({
       id: q.id,
       prompt: q.prompt,
       question_type: q.question_type,
-      sort_order: q.sort_order,
       options: (q.quiz_options ?? [])
         .slice()
-        .sort((a, b) => a.sort_order - b.sort_order),
-    }))
-    .sort((a, b) => a.sort_order - b.sort_order);
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map((o) => ({
+          id: o.id,
+          label: o.label,
+          is_correct: o.is_correct,
+        })),
+    }));
 
   return {
     id: data.id as string,
@@ -141,247 +109,45 @@ export default async function QuizBearbeitenPage({
         extras={<VorschauButton url={`/quiz/${quiz.id}`} />}
       />
 
-      <div className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="border-b border-border px-5 py-4">
-          <h2 className="text-[14px] font-semibold tracking-tight">
-            Stammdaten
-          </h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Title, Beschreibung, Pass-Score, Bindung an Lektion oder Modul.
+      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <header className="mb-5">
+          <h2 className="text-base font-semibold tracking-tight">Stammdaten</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Titel, Beschreibung, Pass-Score und Bindung an Lektion oder Modul.
           </p>
-        </div>
-        <div className="p-5">
-          <QuizFormular
-            modus="bearbeiten"
-            action={quizAktualisieren.bind(null, quiz.id)}
-            lektionen={lektionen}
-            module={module}
-            werte={{
-              title: quiz.title,
-              description: quiz.description,
-              passing_score: quiz.passing_score,
-              status: quiz.status,
-              lesson_id: quiz.lesson_id,
-              module_id: quiz.module_id,
-            }}
-          />
-        </div>
-      </div>
+        </header>
+        <QuizFormular
+          modus="bearbeiten"
+          action={quizAktualisieren.bind(null, quiz.id)}
+          lektionen={lektionen}
+          module={module}
+          werte={{
+            title: quiz.title,
+            description: quiz.description,
+            passing_score: quiz.passing_score,
+            status: quiz.status,
+            lesson_id: quiz.lesson_id,
+            module_id: quiz.module_id,
+          }}
+        />
+      </section>
 
-      <div className="overflow-hidden rounded-xl border border-destructive/25 bg-destructive/[0.03]">
-        <div className="border-b border-destructive/20 px-5 py-4">
-          <h2 className="text-[14px] font-semibold tracking-tight text-destructive">
+      <FragenListe quizId={quiz.id} fragen={quiz.fragen} />
+
+      <section className="rounded-2xl border border-destructive/25 bg-destructive/[0.03] p-6 sm:p-8">
+        <header className="mb-4">
+          <h2 className="text-base font-semibold tracking-tight text-destructive">
             Quiz löschen
           </h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             Inklusive aller Fragen, Antworten und bestehender Versuche.
           </p>
-        </div>
-        <div className="p-5">
-          <LoeschenButton
-            action={quizLoeschen.bind(null, quiz.id)}
-            label="Quiz endgültig löschen"
-            bestaetigung="Quiz inkl. aller Fragen, Antworten und Versuche wirklich löschen?"
-          />
-        </div>
-      </div>
-
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold">Fragen ({quiz.fragen.length})</h2>
-
-        {quiz.fragen.length === 0 ? (
-          <Card>
-            <CardContent className="py-6 text-center text-sm text-muted-foreground">
-              Noch keine Fragen – leg unten die erste an.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {quiz.fragen.map((frage, i) => (
-              <Card key={frage.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <ReihenfolgeButtons
-                        hoch={frageReihenfolge.bind(
-                          null,
-                          quiz.id,
-                          frage.id,
-                          "hoch",
-                        )}
-                        runter={frageReihenfolge.bind(
-                          null,
-                          quiz.id,
-                          frage.id,
-                          "runter",
-                        )}
-                        hochDeaktiviert={i === 0}
-                        runterDeaktiviert={i === quiz.fragen.length - 1}
-                      />
-                      <div>
-                        <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                          Frage {i + 1}
-                          {frage.question_type === "multiple"
-                            ? " · Multiple Choice"
-                            : " · Single Choice"}
-                        </div>
-                        <CardTitle className="text-base font-medium leading-snug">
-                          {frage.prompt}
-                        </CardTitle>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <FrageBearbeitenInline
-                        action={frageAktualisieren.bind(
-                          null,
-                          quiz.id,
-                          frage.id,
-                        )}
-                        prompt={frage.prompt}
-                        question_type={frage.question_type}
-                      />
-                      <LoeschenButton
-                        action={frageLoeschen.bind(null, quiz.id, frage.id)}
-                        label="Frage löschen"
-                        bestaetigung="Frage inkl. Antworten wirklich löschen?"
-                      />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {frage.options.length === 0 ? (
-                    <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-                      Noch keine Antwortoptionen.
-                    </p>
-                  ) : (
-                    <ul className="space-y-1">
-                      {frage.options.map((opt, j) => (
-                        <li
-                          key={opt.id}
-                          className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/30 px-3 py-2"
-                        >
-                          <ReihenfolgeButtons
-                            hoch={optionReihenfolge.bind(
-                              null,
-                              quiz.id,
-                              frage.id,
-                              opt.id,
-                              "hoch",
-                            )}
-                            runter={optionReihenfolge.bind(
-                              null,
-                              quiz.id,
-                              frage.id,
-                              opt.id,
-                              "runter",
-                            )}
-                            hochDeaktiviert={j === 0}
-                            runterDeaktiviert={j === frage.options.length - 1}
-                          />
-                          {opt.is_correct ? (
-                            <Badge variant="success" className="gap-1">
-                              <CheckCircle2 className="h-3 w-3" />
-                              Richtig
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="gap-1">
-                              <XCircle className="h-3 w-3" />
-                              Falsch
-                            </Badge>
-                          )}
-                          <span className="flex-1 text-sm">{opt.label}</span>
-                          <OptionBearbeitenInline
-                            action={optionAktualisieren.bind(
-                              null,
-                              quiz.id,
-                              opt.id,
-                            )}
-                            label={opt.label}
-                            is_correct={opt.is_correct}
-                          />
-                          <LoeschenButton
-                            action={optionLoeschen.bind(null, quiz.id, opt.id)}
-                            label="Löschen"
-                            bestaetigung="Antwort wirklich löschen?"
-                          />
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  <form
-                    action={optionAnlegen.bind(null, quiz.id, frage.id)}
-                    className="flex flex-wrap items-center gap-2 pt-2"
-                  >
-                    <Input
-                      name="label"
-                      placeholder="Antworttext eingeben …"
-                      required
-                      className="flex-1 min-w-[200px]"
-                    />
-                    <label className="flex items-center gap-1 text-xs">
-                      <input
-                        type="checkbox"
-                        name="is_correct"
-                        className="h-4 w-4 accent-success"
-                      />
-                      Richtig
-                    </label>
-                    <Button type="submit" size="sm">
-                      <Plus className="h-3.5 w-3.5" />
-                      Antwort hinzufügen
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Neue Frage</CardTitle>
-            <CardDescription>
-              Antworten ergänzt du nach dem Anlegen direkt unter der Frage.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form
-              action={frageAnlegen.bind(null, quiz.id)}
-              className="space-y-3"
-            >
-              <div className="space-y-1">
-                <Label htmlFor="prompt">Frage</Label>
-                <Input
-                  id="prompt"
-                  name="prompt"
-                  required
-                  placeholder="z.B. Was ist bei der Begrüßung besonders wichtig?"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="question_type">Typ</Label>
-                <select
-                  id="question_type"
-                  name="question_type"
-                  defaultValue="single"
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="single">Single Choice (eine Antwort)</option>
-                  <option value="multiple">
-                    Multiple Choice (mehrere Antworten)
-                  </option>
-                </select>
-              </div>
-              <div className="flex justify-end">
-                <Button type="submit" size="sm">
-                  <Plus className="h-4 w-4" />
-                  Frage hinzufügen
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+        </header>
+        <LoeschenButton
+          action={quizLoeschen.bind(null, quiz.id)}
+          label="Quiz endgültig löschen"
+          bestaetigung="Quiz inkl. aller Fragen, Antworten und Versuche wirklich löschen?"
+        />
       </section>
     </div>
   );
