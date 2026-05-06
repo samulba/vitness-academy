@@ -48,12 +48,15 @@ async function ladeBenutzer(
     //   Basis = ohne 0044 aber mit JOINs
     //   Ohne  = nur Stammfelder, kein JOIN -- letzte Rettung wenn
     //           PostgREST den JOIN nicht aufloest
+    // Hinweis: user_learning_path_assignments hat ZWEI FKs auf
+    // profiles (user_id und assigned_by). Wir muessen explizit den
+    // user_id-FK angeben, sonst wirft PostgREST PGRST201.
     const FELDER_VOLL = `id, full_name, role, created_at, archived_at, vertragsart, tags,
        locations:location_id ( name ),
-       user_learning_path_assignments ( id )`;
+       user_learning_path_assignments!user_learning_path_assignments_user_id_fkey ( id )`;
     const FELDER_BASIS = `id, full_name, role, created_at, archived_at,
        locations:location_id ( name ),
-       user_learning_path_assignments ( id )`;
+       user_learning_path_assignments!user_learning_path_assignments_user_id_fkey ( id )`;
     const FELDER_OHNE_JOIN = `id, full_name, role, created_at, archived_at`;
 
     async function probiere(felder: string) {
