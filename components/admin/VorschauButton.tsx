@@ -72,53 +72,55 @@ export function VorschauButton({
           role="dialog"
           aria-modal="true"
           aria-label={`${label}: ${url}`}
-          className="fixed inset-0 z-50 flex flex-col bg-background/95 backdrop-blur"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm sm:p-6"
           onClick={(e) => {
             // Klick auf den semi-transparenten Backdrop schliesst,
             // Klicks innerhalb des Modals nicht
             if (e.target === e.currentTarget) setOffen(false);
           }}
         >
-          {/* Toolbar */}
-          <div className="flex items-center justify-between border-b border-border bg-card px-4 py-2.5">
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
-                Vorschau
-              </span>
-              <span className="truncate font-mono text-[11px] text-muted-foreground">
-                {url}
-              </span>
+          <div className="flex h-full max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between border-b border-border bg-card px-4 py-2.5">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
+                  Vorschau
+                </span>
+                <span className="truncate font-mono text-[11px] text-muted-foreground">
+                  {url}
+                </span>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Link
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-[12px] font-medium text-muted-foreground transition hover:border-[hsl(var(--brand-pink)/0.4)] hover:text-foreground"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">In neuem Tab öffnen</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setOffen(false)}
+                  aria-label="Vorschau schließen"
+                  className={cn(
+                    "inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition",
+                    "hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Link
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-[12px] font-medium text-muted-foreground transition hover:border-[hsl(var(--brand-pink)/0.4)] hover:text-foreground"
-              >
-                <ExternalLink className="h-3.5 w-3.5" />
-                In neuem Tab öffnen
-              </Link>
-              <button
-                type="button"
-                onClick={() => setOffen(false)}
-                aria-label="Vorschau schließen"
-                className={cn(
-                  "inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition",
-                  "hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
 
-          {/* iframe */}
-          <iframe
-            src={url}
-            title={`Vorschau ${url}`}
-            className="flex-1 w-full border-0 bg-background"
-          />
+            {/* iframe */}
+            <iframe
+              src={url}
+              title={`Vorschau ${url}`}
+              className="flex-1 w-full border-0 bg-background"
+            />
+          </div>
         </div>
       )}
     </>
