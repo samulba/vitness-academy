@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
-import { ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { SpeichernButton } from "@/components/admin/SpeichernButton";
 import { BildUpload } from "@/components/admin/BildUpload";
+import { VorschauButton } from "@/components/admin/VorschauButton";
 import { createClient } from "@/lib/supabase/server";
 import { lernpfadAktualisieren, lernpfadLoeschen } from "../actions";
 import { ModuleListe } from "./ModuleListe";
@@ -97,13 +97,7 @@ export default async function LernpfadBearbeitenPage({
         eyebrow="Lernpfad"
         title={pfad.title}
         description="Stammdaten, Hero-Bild und Module verwalten."
-        secondaryActions={[
-          {
-            icon: <ExternalLink />,
-            label: "Vorschau",
-            href: `/lernpfade/${pfad.id}`,
-          },
-        ]}
+        extras={<VorschauButton url={`/lernpfade/${pfad.id}`} />}
       />
 
       {/* Stammdaten + Hero in einer Card mit zwei Spalten auf Desktop */}

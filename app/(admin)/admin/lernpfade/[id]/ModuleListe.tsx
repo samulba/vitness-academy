@@ -31,12 +31,17 @@ export function ModuleListe({
   module: Modul[];
 }) {
   const [hinzufuegenOffen, setHinzufuegenOffen] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const router = useRouter();
 
   async function onReorder(neueIds: string[]) {
+    setSyncing(true);
+    setSyncError(null);
     const res = await modulReihenfolgeBulk(pfadId, neueIds);
+    setSyncing(false);
     if (!res.ok) {
-      // Fehler: Refresh um echten Server-State zurückzubekommen
+      setSyncError(res.message ?? "Speichern fehlgeschlagen");
       router.refresh();
     }
   }
@@ -45,7 +50,20 @@ export function ModuleListe({
     <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
       <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold tracking-tight">Module</h2>
+          <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight">
+            Module
+            {syncing && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--primary)/0.1)] px-2 py-0.5 text-[10px] font-medium text-[hsl(var(--primary))]">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[hsl(var(--primary))]" />
+                Speichert…
+              </span>
+            )}
+            {syncError && (
+              <span className="rounded-full bg-[hsl(var(--destructive)/0.12)] px-2 py-0.5 text-[10px] font-medium text-[hsl(var(--destructive))]">
+                {syncError}
+              </span>
+            )}
+          </h2>
           <p className="mt-1 text-xs text-muted-foreground">
             Strukturieren den Lernpfad. Reihenfolge per Drag-Handle ändern.
             Lektionen werden im Modul gepflegt.

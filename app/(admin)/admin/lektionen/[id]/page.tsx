@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
-import { ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { SpeichernButton } from "@/components/admin/SpeichernButton";
 import { BildUpload } from "@/components/admin/BildUpload";
+import { VorschauButton } from "@/components/admin/VorschauButton";
 import { createClient } from "@/lib/supabase/server";
 import { lektionAktualisieren, lektionLoeschen } from "./actions";
 import { BloeckeListe, type Block } from "./BloeckeListe";
@@ -94,13 +94,7 @@ export default async function LektionBearbeitenPage({
         eyebrow="Lektion"
         title={lekt.title}
         description="Stammdaten, Hero-Bild und Inhalts-Blöcke pflegen."
-        secondaryActions={[
-          {
-            icon: <ExternalLink />,
-            label: "Vorschau",
-            href: `/lektionen/${lekt.id}`,
-          },
-        ]}
+        extras={<VorschauButton url={`/lektionen/${lekt.id}`} />}
       />
 
       <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">

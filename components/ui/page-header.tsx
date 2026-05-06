@@ -60,6 +60,7 @@ export function PageHeader({
   description,
   primaryAction,
   secondaryActions,
+  extras,
   meta,
   className,
 }: {
@@ -69,6 +70,12 @@ export function PageHeader({
   description?: string;
   primaryAction?: PrimaryAction;
   secondaryActions?: SecondaryAction[];
+  /**
+   * Beliebiger JSX-Slot rechts vor den Action-Buttons. Gedacht
+   * fuer Client-Components mit eigenem State (z.B. VorschauButton),
+   * die nicht ueber das href/onClick-API von SecondaryAction passen.
+   */
+  extras?: React.ReactNode;
   /** Optional rechts vom Title (z.B. Live-Pille, Counter) */
   meta?: React.ReactNode;
   className?: string;
@@ -99,8 +106,11 @@ export function PageHeader({
           )}
         </div>
 
-        {(primaryAction || (secondaryActions && secondaryActions.length > 0)) && (
+        {(primaryAction ||
+          (secondaryActions && secondaryActions.length > 0) ||
+          extras) && (
           <div className="flex items-center gap-1.5">
+            {extras}
             {secondaryActions?.map((a, i) => (
               <SecondaryButton key={i} action={a} />
             ))}

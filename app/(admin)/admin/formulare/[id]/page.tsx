@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
-import { ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireRole } from "@/lib/auth";
 import { ladeTemplate } from "@/lib/formulare";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
+import { VorschauButton } from "@/components/admin/VorschauButton";
 import { TemplateForm } from "../TemplateForm";
 import {
   templateAktualisieren,
@@ -34,16 +34,10 @@ export default async function TemplateBearbeitenPage({
         eyebrow={`Formular · /${t.slug}`}
         title={t.title}
         description="Felder pflegen, Status setzen, Eingänge ansehen."
-        secondaryActions={
-          t.status === "aktiv"
-            ? [
-                {
-                  icon: <ExternalLink />,
-                  label: "Vorschau",
-                  href: `/formulare/${t.slug}`,
-                },
-              ]
-            : []
+        extras={
+          t.status === "aktiv" ? (
+            <VorschauButton url={`/formulare/${t.slug}`} />
+          ) : undefined
         }
       />
 

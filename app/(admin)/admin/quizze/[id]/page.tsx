@@ -1,11 +1,6 @@
 import { notFound } from "next/navigation";
-import {
-  BarChart3,
-  CheckCircle2,
-  ExternalLink,
-  Plus,
-  XCircle,
-} from "lucide-react";
+import { BarChart3, CheckCircle2, Plus, XCircle } from "lucide-react";
+import { VorschauButton } from "@/components/admin/VorschauButton";
 import {
   Card,
   CardContent,
@@ -142,12 +137,8 @@ export default async function QuizBearbeitenPage({
             label: "Auswertung",
             href: `/admin/quizze/${quiz.id}/auswertung`,
           },
-          {
-            icon: <ExternalLink />,
-            label: "Vorschau",
-            href: `/quiz/${quiz.id}`,
-          },
         ]}
+        extras={<VorschauButton url={`/quiz/${quiz.id}`} />}
       />
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">

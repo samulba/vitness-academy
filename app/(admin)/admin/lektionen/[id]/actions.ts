@@ -246,19 +246,17 @@ export async function blockReihenfolge(
 
 /**
  * Bulk-Reorder fuer Drag-and-Drop von Inhalts-Bloecken.
+ * Kein revalidatePath -- siehe modulReihenfolgeBulk fuer Begruendung.
  */
 export async function blockReihenfolgeBulk(
   lessonId: string,
   neueIds: string[],
 ): Promise<{ ok: boolean; message?: string }> {
   await ensureAdmin();
-  const res = await reorderBulk({
+  return await reorderBulk({
     tabelle: "lesson_content_blocks",
     ids: neueIds,
     scopeFeld: "lesson_id",
     scopeWert: lessonId,
   });
-  revalidatePath(`/admin/lektionen/${lessonId}`);
-  revalidatePath(`/lektionen/${lessonId}`);
-  return res;
 }

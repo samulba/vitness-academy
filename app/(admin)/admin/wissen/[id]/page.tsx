@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { ExternalLink } from "lucide-react";
+import { VorschauButton } from "@/components/admin/VorschauButton";
 import { PageHeader } from "@/components/ui/page-header";
 import { ArtikelFormular } from "@/components/admin/ArtikelFormular";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
@@ -48,13 +48,7 @@ export default async function ArtikelBearbeitenPage({
         eyebrow="Artikel"
         title={artikel.title}
         description="Markdown-Body, Kategorie und Status pflegen."
-        secondaryActions={[
-          {
-            icon: <ExternalLink />,
-            label: "Vorschau",
-            href: `/wissen/${artikel.slug}`,
-          },
-        ]}
+        extras={<VorschauButton url={`/wissen/${artikel.slug}`} />}
       />
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">

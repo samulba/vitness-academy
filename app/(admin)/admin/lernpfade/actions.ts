@@ -178,19 +178,22 @@ export async function modulReihenfolge(
 /**
  * Bulk-Reorder fuer Drag-and-Drop. Bekommt die NEUE Reihenfolge der
  * Module-IDs und setzt sort_order entsprechend (10er-Schritte).
+ *
+ * Bewusst KEIN revalidatePath: das Client-Component zeigt den neuen
+ * State bereits optimistisch. Ein Layout-Refresh nach jedem Drag
+ * fuehlt sich traege an. Auf der oeffentlichen Mitarbeiter-Sicht
+ * ist die Page eh dynamisch -- die neue Reihenfolge greift beim
+ * naechsten Page-Load.
  */
 export async function modulReihenfolgeBulk(
   pfadId: string,
   neueIds: string[],
 ): Promise<{ ok: boolean; message?: string }> {
   await ensureAdmin();
-  const res = await reorderBulk({
+  return await reorderBulk({
     tabelle: "modules",
     ids: neueIds,
     scopeFeld: "learning_path_id",
     scopeWert: pfadId,
   });
-  revalidatePath(`/admin/lernpfade/${pfadId}`);
-  revalidatePath(`/lernpfade/${pfadId}`);
-  return res;
 }
