@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 const BUCKET = "avatars";
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -43,9 +43,9 @@ export async function avatarHochladen(
   const ext = datei.type.split("/")[1].replace("jpeg", "jpg");
   const pfad = `${profile.id}/${Date.now()}.${ext}`;
 
-  const admin = createAdminClient();
+  const supabase = await createClient();
   const buffer = Buffer.from(await datei.arrayBuffer());
-  const { error: uploadError } = await admin.storage
+  const { error: uploadError } = await supabase.storage
     .from(BUCKET)
     .upload(pfad, buffer, {
       contentType: datei.type,
@@ -58,7 +58,7 @@ export async function avatarHochladen(
     };
   }
 
-  const { error: updateError } = await admin
+  const { error: updateError } = await supabase
     .from("profiles")
     .update({ avatar_path: pfad })
     .eq("id", profile.id);
@@ -76,9 +76,9 @@ export async function avatarHochladen(
 
 export async function avatarEntfernen(): Promise<AvatarErgebnis> {
   const profile = await requireProfile();
-  const admin = createAdminClient();
+  const supabase = await createClient();
 
-  const { error } = await admin
+  const { error } = await supabase
     .from("profiles")
     .update({ avatar_path: null })
     .eq("id", profile.id);

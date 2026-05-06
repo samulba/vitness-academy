@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { requireProfile, requireRole } from "@/lib/auth";
 
 const FOTO_MAX_BYTES = 5 * 1024 * 1024;
@@ -37,8 +36,8 @@ export async function mangelMelden(formData: FormData): Promise<Ergebnis> {
       message: `Maximal ${FOTO_MAX_ANZAHL} Fotos pro Mangel.`,
     };
   }
+  const supabase = await createClient();
   if (validFiles.length > 0) {
-    const admin = createAdminClient();
     for (let i = 0; i < validFiles.length; i++) {
       const datei = validFiles[i];
       if (datei.size > FOTO_MAX_BYTES) {
@@ -56,7 +55,7 @@ export async function mangelMelden(formData: FormData): Promise<Ergebnis> {
       const ext = datei.type.split("/")[1].replace("jpeg", "jpg");
       const path = `${profile.id}/${Date.now()}-${i}.${ext}`;
       const buffer = Buffer.from(await datei.arrayBuffer());
-      const { error: uploadError } = await admin.storage
+      const { error: uploadError } = await supabase.storage
         .from("issue-photos")
         .upload(path, buffer, {
           contentType: datei.type,
@@ -72,7 +71,6 @@ export async function mangelMelden(formData: FormData): Promise<Ergebnis> {
     }
   }
 
-  const supabase = await createClient();
   const { data, error } = await supabase
     .from("studio_issues")
     .insert({

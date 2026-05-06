@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { requireProfile } from "@/lib/auth";
 import {
   ladeTemplateBySlug,
@@ -58,10 +57,11 @@ export async function submissionAnlegen(
   const v = validiereSubmission(tpl.fields, formData);
   if (!v.ok) return { ok: false, errors: v.errors };
 
+  const supabase = await createClient();
+
   // File-Felder: hochladen + Pfade in data einbauen.
   const fileFelder = tpl.fields.filter((f) => f.type === "file");
   if (fileFelder.length > 0) {
-    const admin = createAdminClient();
     const errors: Record<string, string> = {};
     for (const f of fileFelder) {
       const raw = formData.get(f.name);
@@ -82,7 +82,7 @@ export async function submissionAnlegen(
       const ext = dateiendung(raw.type, raw.name);
       const path = `${profile.id}/${Date.now()}-${f.name}.${ext}`;
       const buffer = Buffer.from(await raw.arrayBuffer());
-      const { error: uploadError } = await admin.storage
+      const { error: uploadError } = await supabase.storage
         .from("form-attachments")
         .upload(path, buffer, {
           contentType: raw.type || "application/octet-stream",
@@ -105,7 +105,6 @@ export async function submissionAnlegen(
     }
   }
 
-  const supabase = await createClient();
   const { data, error } = await supabase
     .from("form_submissions")
     .insert({
