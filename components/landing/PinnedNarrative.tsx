@@ -99,38 +99,91 @@ export function PinnedNarrative() {
           }}
         />
 
-        {/* Globaler Fortschritts-Indikator oben */}
+        {/* Timeline-Indikator — durchgehende Linie + nummerierte Marker */}
         <div className="absolute left-0 right-0 top-0 z-20 px-6 pt-28 lg:px-12 2xl:px-20">
-          <div className="mx-auto flex max-w-[1600px] items-center gap-4">
-            {PHASEN.map((p, i) => {
-              const istAktiv = i === aktuellerIdx;
-              const istVorbei = i < aktuellerIdx;
-              return (
-                <div key={p.marker} className="flex flex-1 flex-col gap-2">
-                  <div className="h-[2px] w-full overflow-hidden rounded-full bg-white/10">
-                    <div
-                      className="h-full origin-left rounded-full bg-[hsl(var(--primary))] transition-transform duration-500 ease-out"
-                      style={{
-                        transform: `scaleX(${
-                          istVorbei ? 1 : istAktiv ? aktuelleSubProgress : 0
-                        })`,
-                      }}
-                    />
-                  </div>
-                  <span
-                    className={
-                      istAktiv
-                        ? "text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-cream))]"
-                        : istVorbei
-                        ? "text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.5)]"
-                        : "text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.25)]"
-                    }
-                  >
-                    {p.marker}
-                  </span>
-                </div>
-              );
-            })}
+          <div className="mx-auto max-w-[1600px]">
+            <div className="relative">
+              {/* Background-Linie — durchgehend */}
+              <div
+                aria-hidden
+                className="absolute left-[1.25rem] right-[1.25rem] top-[1.25rem] h-px bg-white/10"
+              />
+              {/* Fill-Linie — folgt Gesamt-Progress, KEIN Transition damit kein Jitter */}
+              <div
+                aria-hidden
+                className="absolute left-[1.25rem] right-[1.25rem] top-[1.25rem] h-px origin-left"
+                style={{
+                  background:
+                    "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--brand-pink)))",
+                  transform: `scaleX(${progress})`,
+                  willChange: "transform",
+                }}
+              />
+
+              {/* Marker-Reihe */}
+              <ol className="relative flex items-start justify-between">
+                {PHASEN.map((p, i) => {
+                  const istAktiv = i === aktuellerIdx;
+                  const istVorbei = i < aktuellerIdx;
+                  return (
+                    <li
+                      key={p.marker}
+                      className="flex flex-col items-center gap-3"
+                    >
+                      {/* Nummerierter Marker */}
+                      <span
+                        className={
+                          istVorbei || istAktiv
+                            ? "relative flex h-10 w-10 items-center justify-center rounded-full border border-[hsl(var(--primary))] bg-[hsl(var(--brand-ink))] text-[10px] font-mono font-semibold tracking-wider text-[hsl(var(--brand-cream))] transition-colors duration-300"
+                            : "relative flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-[hsl(var(--brand-ink))] text-[10px] font-mono font-semibold tracking-wider text-[hsl(var(--brand-cream)/0.4)] transition-colors duration-300"
+                        }
+                      >
+                        {istAktiv && (
+                          <span
+                            aria-hidden
+                            className="absolute inset-[-4px] rounded-full"
+                            style={{
+                              boxShadow:
+                                "0 0 0 1px hsl(var(--primary) / 0.3), 0 0 16px hsl(var(--primary) / 0.5)",
+                              animation:
+                                "marker-pulse 2.4s ease-in-out infinite",
+                            }}
+                          />
+                        )}
+                        {istVorbei ? (
+                          <svg
+                            viewBox="0 0 12 12"
+                            className="h-3.5 w-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M2.5 6.5l2.5 2.5L9.5 3.5" />
+                          </svg>
+                        ) : (
+                          String(i + 1).padStart(2, "0")
+                        )}
+                      </span>
+
+                      {/* Label */}
+                      <span
+                        className={
+                          istAktiv
+                            ? "text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-cream))] transition-colors duration-300 sm:text-[11px]"
+                            : istVorbei
+                            ? "text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.6)] transition-colors duration-300 sm:text-[11px]"
+                            : "text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.3)] transition-colors duration-300 sm:text-[11px]"
+                        }
+                      >
+                        {p.marker}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
           </div>
         </div>
 
@@ -175,6 +228,16 @@ export function PinnedNarrative() {
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes marker-pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%      { opacity: 0.6; transform: scale(1.08); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [style*="marker-pulse"] { animation: none !important; }
+        }
+      `}</style>
     </section>
   );
 }
