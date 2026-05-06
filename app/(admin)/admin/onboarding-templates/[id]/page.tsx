@@ -4,8 +4,10 @@ import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ladeTemplate } from "@/lib/onboarding-templates";
+import { ladeChecklistItems } from "@/lib/onboarding-checklist";
 import { TemplateForm, type PfadOption } from "../TemplateForm";
 import { templateAktualisieren, templateLoeschen } from "../actions";
+import { ChecklistItemsListe } from "../ChecklistItemsListe";
 
 export default async function TemplateBearbeitenPage({
   params,
@@ -21,19 +23,21 @@ export default async function TemplateBearbeitenPage({
   // Aktive Lernpfade für Auswahl + alle vom Template referenzierten
   // (auch archivierte!), damit beim Speichern keine versteckte
   // Datenloeschung passiert.
-  const [{ data: aktive }, { data: referenziert }] = await Promise.all([
-    supabase
-      .from("learning_paths")
-      .select("id, title, description, status")
-      .eq("status", "aktiv")
-      .order("sort_order", { ascending: true }),
-    template.lernpfad_ids.length > 0
-      ? supabase
-          .from("learning_paths")
-          .select("id, title, description, status")
-          .in("id", template.lernpfad_ids)
-      : Promise.resolve({ data: [] as unknown[] }),
-  ]);
+  const [{ data: aktive }, { data: referenziert }, checklistItems] =
+    await Promise.all([
+      supabase
+        .from("learning_paths")
+        .select("id, title, description, status")
+        .eq("status", "aktiv")
+        .order("sort_order", { ascending: true }),
+      template.lernpfad_ids.length > 0
+        ? supabase
+            .from("learning_paths")
+            .select("id, title, description, status")
+            .in("id", template.lernpfad_ids)
+        : Promise.resolve({ data: [] as unknown[] }),
+      ladeChecklistItems(id),
+    ]);
 
   type Roh = {
     id: string;
@@ -65,7 +69,7 @@ export default async function TemplateBearbeitenPage({
   const loeschen = templateLoeschen.bind(null, id);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="space-y-6">
       <PageHeader
         breadcrumbs={[
           { label: "Verwaltung", href: "/admin" },
@@ -93,6 +97,18 @@ export default async function TemplateBearbeitenPage({
           lernpfade={lernpfade}
         />
       </div>
+
+      <ChecklistItemsListe
+        templateId={id}
+        items={checklistItems.map((i) => ({
+          id: i.id,
+          label: i.label,
+          beschreibung: i.beschreibung,
+          sort_order: i.sort_order,
+        }))}
+        titel="Checklist für dieses Template"
+        beschreibung={`Items, die NUR Mitarbeiter mit diesem Template sehen — z.B. „Trainerausweis erhalten" für Trainer-Onboarding. Reihenfolge per Drag-Handle.`}
+      />
 
       <div className="overflow-hidden rounded-xl border border-destructive/25 bg-destructive/[0.03] p-6">
         <h2 className="text-sm font-semibold tracking-tight text-destructive">

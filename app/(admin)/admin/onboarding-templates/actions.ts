@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { reorderBulk } from "@/lib/admin/reorder";
 import { istUUID } from "@/lib/utils";
 import type { Rolle } from "@/lib/rollen";
 
@@ -84,4 +85,137 @@ export async function templateLoeschen(id: string): Promise<void> {
   revalidatePath("/admin/onboarding-templates");
   revalidatePath("/admin/benutzer/neu");
   redirect("/admin/onboarding-templates?toast=deleted");
+}
+
+// =============================================================
+// Checklist-Items pro Template
+// =============================================================
+
+/**
+ * Anlegen eines Checklist-Items fuer ein bestimmtes Template ODER
+ * Standard (template_id null). Sort-Order wird automatisch ans
+ * Ende gesetzt.
+ */
+export async function checklistItemAnlegenFuer(
+  templateId: string | null,
+  formData: FormData,
+): Promise<void> {
+  await requireRole(["admin", "superadmin"]);
+  const label = String(formData.get("label") ?? "").trim();
+  const beschreibung =
+    String(formData.get("beschreibung") ?? "").trim() || null;
+  if (!label) {
+    redirect(
+      templateId
+        ? `/admin/onboarding-templates/${templateId}?toast=error`
+        : "/admin/onboarding-templates?toast=error",
+    );
+  }
+
+  const supabase = await createClient();
+  // sort_order = max + 10 (10er-Schritte fuer Drag-and-Drop-Spielraum)
+  let q = supabase
+    .from("onboarding_checklist_items")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1);
+  q = templateId ? q.eq("template_id", templateId) : q.is("template_id", null);
+  const { data: maxRow } = await q.maybeSingle();
+  const sort_order = ((maxRow?.sort_order as number | undefined) ?? 0) + 10;
+
+  const { error } = await supabase.from("onboarding_checklist_items").insert({
+    template_id: templateId,
+    label,
+    beschreibung,
+    sort_order,
+  });
+  if (error) {
+    console.error("[checklistItemAnlegenFuer]", error);
+    redirect(
+      templateId
+        ? `/admin/onboarding-templates/${templateId}?toast=error`
+        : "/admin/onboarding-templates?toast=error",
+    );
+  }
+
+  revalidatePath("/admin/onboarding-templates");
+  if (templateId) revalidatePath(`/admin/onboarding-templates/${templateId}`);
+  revalidatePath("/admin/benutzer");
+  redirect(
+    templateId
+      ? `/admin/onboarding-templates/${templateId}?toast=created`
+      : "/admin/onboarding-templates?toast=created",
+  );
+}
+
+export async function checklistItemAktualisieren(
+  itemId: string,
+  formData: FormData,
+): Promise<void> {
+  await requireRole(["admin", "superadmin"]);
+  const label = String(formData.get("label") ?? "").trim();
+  const beschreibung =
+    String(formData.get("beschreibung") ?? "").trim() || null;
+  if (!label) return;
+
+  const supabase = await createClient();
+  const { data: bestehend } = await supabase
+    .from("onboarding_checklist_items")
+    .select("template_id")
+    .eq("id", itemId)
+    .maybeSingle();
+  const tid = (bestehend?.template_id as string | null | undefined) ?? null;
+
+  const { error } = await supabase
+    .from("onboarding_checklist_items")
+    .update({ label, beschreibung })
+    .eq("id", itemId);
+  if (error) {
+    console.error("[checklistItemAktualisieren]", error);
+  }
+
+  revalidatePath("/admin/onboarding-templates");
+  if (tid) revalidatePath(`/admin/onboarding-templates/${tid}`);
+  revalidatePath("/admin/benutzer");
+}
+
+export async function checklistItemLoeschenFuer(
+  itemId: string,
+): Promise<void> {
+  await requireRole(["admin", "superadmin"]);
+  const supabase = await createClient();
+  const { data: item } = await supabase
+    .from("onboarding_checklist_items")
+    .select("template_id")
+    .eq("id", itemId)
+    .maybeSingle();
+  const tid = (item?.template_id as string | null | undefined) ?? null;
+
+  const { error } = await supabase
+    .from("onboarding_checklist_items")
+    .delete()
+    .eq("id", itemId);
+  if (error) {
+    console.error("[checklistItemLoeschenFuer]", error);
+  }
+
+  revalidatePath("/admin/onboarding-templates");
+  if (tid) revalidatePath(`/admin/onboarding-templates/${tid}`);
+  revalidatePath("/admin/benutzer");
+}
+
+/**
+ * Bulk-Reorder fuer Drag-and-Drop. Kein revalidatePath (wie bei
+ * Modulen/Lektionen) -- lokaler Client-State zeigt schon korrekt.
+ * Items haben eindeutige UUIDs, der Scope (templateId) wird nicht
+ * im Update gebraucht -- nur beim Filtern in der UI.
+ */
+export async function checklistItemReihenfolgeBulk(
+  neueIds: string[],
+): Promise<{ ok: boolean; message?: string }> {
+  await requireRole(["admin", "superadmin"]);
+  return await reorderBulk({
+    tabelle: "onboarding_checklist_items",
+    ids: neueIds,
+  });
 }

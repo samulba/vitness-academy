@@ -428,6 +428,33 @@ export async function checklistTogglen(
   revalidatePath("/admin/benutzer");
 }
 
+/**
+ * Setzt das Onboarding-Template eines Mitarbeiters nachtraeglich.
+ * Empfange "" oder UUID; Leer bedeutet "kein Template -> nur Standard-
+ * Items sichtbar".
+ */
+export async function templateZuweisen(
+  benutzerId: string,
+  templateId: string | null,
+): Promise<void> {
+  await ensureAdmin();
+  const tid =
+    templateId !== null && templateId !== "" && istUUID(templateId)
+      ? templateId
+      : null;
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ template_id: tid })
+    .eq("id", benutzerId);
+  if (error) {
+    console.error("[templateZuweisen]", error);
+  }
+  revalidatePath(`/admin/benutzer/${benutzerId}`);
+  revalidatePath("/admin/benutzer");
+}
+
 export async function checklistItemAnlegen(
   formData: FormData,
 ): Promise<void> {

@@ -10,7 +10,8 @@ type ReorderTabelle =
   | "practical_tasks"
   | "quiz_questions"
   | "quiz_options"
-  | "quizzes";
+  | "quizzes"
+  | "onboarding_checklist_items";
 
 /**
  * Bulk-Reorder: setzt die sort_order der uebergebenen IDs auf ihren
@@ -50,17 +51,7 @@ export async function reorderBulk(opts: {
  * Hinweis: keine echte Transaktion, aber idempotent genug für Admin-Reorder.
  */
 export async function reorderSwap(opts: {
-  tabelle:
-    | "learning_paths"
-    | "modules"
-    | "lessons"
-    | "lesson_content_blocks"
-    | "knowledge_categories"
-    | "knowledge_articles"
-    | "practical_tasks"
-    | "quiz_questions"
-    | "quiz_options"
-    | "quizzes";
+  tabelle: ReorderTabelle;
   id: string;
   richtung: "hoch" | "runter";
   scopeFeld?:

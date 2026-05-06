@@ -28,6 +28,8 @@ import { ladeChecklistFuerMitarbeiter } from "@/lib/onboarding-checklist";
 import { AktivitaetsHeatmap } from "@/components/charts/AktivitaetsHeatmap";
 import { NotizenThread } from "@/components/benutzer/NotizenThread";
 import { OnboardingChecklist } from "@/components/benutzer/OnboardingChecklist";
+import { TemplateAuswahl } from "@/components/benutzer/TemplateAuswahl";
+import { ladeTemplatesFuerForm } from "@/lib/onboarding-templates";
 import { requireRole } from "@/lib/auth";
 import { formatDatum, formatProzent, rolleLabel } from "@/lib/format";
 import {
@@ -61,11 +63,12 @@ type Profil = {
   created_at: string;
   archived_at: string | null;
   avatar_path: string | null;
+  template_id: string | null;
   email: string | null;
 };
 
 const FELDER_VOLL =
-  "id, full_name, first_name, last_name, phone, role, location_id, kann_provisionen, personalnummer, geburtsdatum, eintritt_am, austritt_am, vertragsart, wochenstunden, tags, interne_notiz, created_at, archived_at, avatar_path";
+  "id, full_name, first_name, last_name, phone, role, location_id, kann_provisionen, personalnummer, geburtsdatum, eintritt_am, austritt_am, vertragsart, wochenstunden, tags, interne_notiz, created_at, archived_at, avatar_path, template_id";
 const FELDER_OHNE_NEU =
   "id, full_name, first_name, last_name, phone, role, location_id, kann_provisionen, personalnummer, created_at, archived_at, avatar_path";
 const FELDER_BASIS =
@@ -125,6 +128,7 @@ async function ladeProfil(id: string): Promise<Profil | null> {
     created_at: row.created_at as string,
     archived_at: (row.archived_at as string | null) ?? null,
     avatar_path: (row.avatar_path as string | null) ?? null,
+    template_id: (row.template_id as string | null) ?? null,
     email: null,
   };
 }
@@ -227,6 +231,7 @@ export default async function BenutzerBearbeitenPage({
   const aktivitaetsMap = await ladeAktivitaetsMap(id);
   const notizen = await ladeNotizen(id);
   const checklistItems = await ladeChecklistFuerMitarbeiter(id);
+  const templates = await ladeTemplatesFuerForm();
 
   if (!profil) notFound();
 
@@ -515,11 +520,20 @@ export default async function BenutzerBearbeitenPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Onboarding</CardTitle>
-          <CardDescription>
-            Schritte für den Einstieg ins Studio. Items pflegt Admin in
-            Onboarding-Templates.
-          </CardDescription>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle>Onboarding</CardTitle>
+              <CardDescription>
+                Sichtbar sind Standard-Items + Items des aktiven Templates.
+                Items pflegt Admin in Onboarding-Templates.
+              </CardDescription>
+            </div>
+            <TemplateAuswahl
+              benutzerId={profil.id}
+              aktivesTemplate={profil.template_id}
+              templates={templates.map((t) => ({ id: t.id, name: t.name }))}
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <OnboardingChecklist
