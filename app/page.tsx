@@ -38,7 +38,10 @@ export default async function RootPage() {
 
 function Bausteine() {
   return (
-    <section className="bg-[hsl(var(--brand-cream))] text-foreground">
+    <section
+      id="bausteine"
+      className="scroll-mt-24 bg-[hsl(var(--brand-cream))] text-foreground"
+    >
       <div className="mx-auto max-w-[1600px] px-6 py-32 lg:px-12 lg:py-48 2xl:px-20">
         {/* Header */}
         <div className="flex flex-col justify-between gap-10 lg:flex-row lg:items-end">
@@ -351,7 +354,10 @@ function WissenVisual() {
 
 function Closer() {
   return (
-    <section className="relative isolate overflow-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
+    <section
+      id="studio"
+      className="relative isolate scroll-mt-24 overflow-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]"
+    >
       {/* Magenta-Glow */}
       <div
         aria-hidden

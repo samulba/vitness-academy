@@ -1,27 +1,69 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Smartphone, Sparkles, Clock } from "lucide-react";
 
 const HEAD_LINES: string[][] = [
   ["Wir", "sind", "froh,"],
   ["dass", "du", "da", "bist."],
 ];
 
+const FEATURE_PILLS = [
+  { Icon: Smartphone, label: "Im Browser. Auf jedem Gerät." },
+  { Icon: Sparkles, label: "Mehr als nur Lesen." },
+  { Icon: Clock, label: "In deinem Tempo." },
+];
+
 export function AnimatedHero() {
   let wordIdx = 0;
 
   return (
-    <section className="relative isolate flex min-h-[100svh] flex-col bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
-      {/* Ein einziger ruhiger Lichtkegel oben rechts */}
+    <section className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
+      {/* Glow oben rechts (Brand-Pink) */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 right-[-10%] h-[700px] w-[700px] rounded-full opacity-[0.28] blur-[120px]"
+        className="hero-glow-1 pointer-events-none absolute -top-40 right-[-10%] h-[700px] w-[700px] rounded-full opacity-[0.30] blur-[120px]"
         style={{
           background:
             "radial-gradient(closest-side, hsl(var(--brand-pink)), transparent)",
         }}
       />
+      {/* Glow unten links (Magenta-Primary) */}
+      <div
+        aria-hidden
+        className="hero-glow-2 pointer-events-none absolute -bottom-32 left-[-15%] h-[560px] w-[560px] rounded-full opacity-[0.18] blur-[120px]"
+        style={{
+          background:
+            "radial-gradient(closest-side, hsl(var(--primary)), transparent)",
+        }}
+      />
+
+      {/* Subtiles Grid-Pattern */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            "linear-gradient(hsl(var(--brand-cream)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--brand-cream)) 1px, transparent 1px)",
+          backgroundSize: "88px 88px",
+          maskImage:
+            "radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 75%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 75%)",
+        }}
+      />
+
+      {/* Right-Side-Decorator: vertikale Linie mit Marker-Punkten */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-12 top-1/2 hidden -translate-y-1/2 flex-col items-center gap-3 text-[10px] font-mono uppercase tracking-[0.2em] text-[hsl(var(--brand-cream)/0.3)] xl:flex 2xl:right-20"
+      >
+        <span>01</span>
+        <span className="h-12 w-px bg-[hsl(var(--brand-cream)/0.18)]" />
+        <span className="h-2 w-2 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_12px_hsl(var(--primary))]" />
+        <span className="h-24 w-px bg-[hsl(var(--brand-cream)/0.18)]" />
+        <span>04</span>
+      </div>
 
       {/* === Inhalt === */}
       <div className="relative z-10 flex flex-1 flex-col px-6 pt-44 lg:px-12 lg:pt-56 2xl:px-20">
@@ -90,10 +132,28 @@ export function AnimatedHero() {
           </p>
         </div>
 
-        {/* CTA */}
-        <div className="word-reveal mt-16">
+        {/* Feature-Pills */}
+        <div className="word-reveal mt-10">
           <div
-            style={{ animationDelay: "1300ms" }}
+            style={{ animationDelay: "1250ms" }}
+            className="flex flex-wrap gap-2"
+          >
+            {FEATURE_PILLS.map(({ Icon, label }) => (
+              <span
+                key={label}
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs text-[hsl(var(--brand-cream)/0.75)] backdrop-blur-sm"
+              >
+                <Icon className="h-3.5 w-3.5 text-[hsl(var(--brand-pink))]" />
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="word-reveal mt-12">
+          <div
+            style={{ animationDelay: "1400ms" }}
             className="flex flex-col items-start gap-y-8 sm:flex-row sm:items-center sm:gap-x-16"
           >
             <Link
@@ -115,10 +175,14 @@ export function AnimatedHero() {
         {/* Spacer */}
         <div className="flex-1 min-h-32" />
 
-        {/* Bottom-Bar */}
+        {/* Bottom-Bar mit Live-Status */}
         <div className="mb-8 flex items-end justify-between gap-6 border-t border-white/10 pt-8 text-xs text-[hsl(var(--brand-cream)/0.4)]">
-          <span className="uppercase tracking-[0.18em]">
-            Interne Lernplattform
+          <span className="inline-flex items-center gap-2.5 uppercase tracking-[0.18em]">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--primary)/0.5)]" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[hsl(var(--primary))]" />
+            </span>
+            Live · Studio Mitte
           </span>
           <span className="hidden font-mono sm:block">
             v · {new Date().getFullYear()}
@@ -145,6 +209,23 @@ export function AnimatedHero() {
         @keyframes underline-grow {
           from { transform: scaleX(0); }
           to   { transform: scaleX(1); }
+        }
+        @keyframes hero-glow-pulse-1 {
+          0%, 100% { opacity: 0.30; transform: translate(0, 0); }
+          50%      { opacity: 0.38; transform: translate(-20px, 10px); }
+        }
+        @keyframes hero-glow-pulse-2 {
+          0%, 100% { opacity: 0.18; transform: translate(0, 0); }
+          50%      { opacity: 0.26; transform: translate(15px, -10px); }
+        }
+        .hero-glow-1 {
+          animation: hero-glow-pulse-1 12s ease-in-out infinite;
+        }
+        .hero-glow-2 {
+          animation: hero-glow-pulse-2 14s ease-in-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .hero-glow-1, .hero-glow-2 { animation: none; }
         }
       `}</style>
     </section>
