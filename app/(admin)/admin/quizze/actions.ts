@@ -77,7 +77,7 @@ export async function quizAktualisieren(
   if (lesson_id && module_id) return;
 
   const supabase = await createClient();
-  await supabase
+  const { error: updError } = await supabase
     .from("quizzes")
     .update({
       title,
@@ -88,6 +88,10 @@ export async function quizAktualisieren(
       status: String(formData.get("status") ?? "aktiv"),
     })
     .eq("id", id);
+  if (updError) {
+    console.error("[quizAktualisieren]", updError);
+    redirect(`/admin/quizze/${id}?toast=error`);
+  }
 
   revalidatePath("/admin/quizze");
   revalidatePath(`/admin/quizze/${id}`);
@@ -98,7 +102,11 @@ export async function quizAktualisieren(
 export async function quizLoeschen(id: string): Promise<void> {
   await ensureAdmin();
   const supabase = await createClient();
-  await supabase.from("quizzes").delete().eq("id", id);
+  const { error } = await supabase.from("quizzes").delete().eq("id", id);
+  if (error) {
+    console.error("[quizLoeschen]", error);
+    redirect(`/admin/quizze/${id}?toast=error`);
+  }
   revalidatePath("/admin/quizze");
   redirect("/admin/quizze?toast=deleted");
 }
@@ -128,12 +136,15 @@ export async function frageAnlegen(
     .maybeSingle();
   const sort_order = ((maxRow?.sort_order as number | undefined) ?? 0) + 1;
 
-  await supabase.from("quiz_questions").insert({
+  const { error: insError } = await supabase.from("quiz_questions").insert({
     quiz_id: quizId,
     prompt,
     question_type,
     sort_order,
   });
+  if (insError) {
+    console.error("[frageAnlegen]", insError);
+  }
 
   revalidatePath(`/admin/quizze/${quizId}`);
   revalidatePath(`/quiz/${quizId}`);
@@ -153,10 +164,13 @@ export async function frageAktualisieren(
       : "single";
 
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("quiz_questions")
     .update({ prompt, question_type })
     .eq("id", frageId);
+  if (error) {
+    console.error("[frageAktualisieren]", error);
+  }
 
   revalidatePath(`/admin/quizze/${quizId}`);
   revalidatePath(`/quiz/${quizId}`);
@@ -168,7 +182,13 @@ export async function frageLoeschen(
 ): Promise<void> {
   await ensureAdmin();
   const supabase = await createClient();
-  await supabase.from("quiz_questions").delete().eq("id", frageId);
+  const { error } = await supabase
+    .from("quiz_questions")
+    .delete()
+    .eq("id", frageId);
+  if (error) {
+    console.error("[frageLoeschen]", error);
+  }
   revalidatePath(`/admin/quizze/${quizId}`);
   revalidatePath(`/quiz/${quizId}`);
 }
@@ -213,12 +233,15 @@ export async function optionAnlegen(
     .maybeSingle();
   const sort_order = ((maxRow?.sort_order as number | undefined) ?? 0) + 1;
 
-  await supabase.from("quiz_options").insert({
+  const { error: insError } = await supabase.from("quiz_options").insert({
     question_id: frageId,
     label,
     is_correct,
     sort_order,
   });
+  if (insError) {
+    console.error("[optionAnlegen]", insError);
+  }
 
   revalidatePath(`/admin/quizze/${quizId}`);
   revalidatePath(`/quiz/${quizId}`);
@@ -235,10 +258,13 @@ export async function optionAktualisieren(
   const is_correct = formData.get("is_correct") === "on";
 
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("quiz_options")
     .update({ label, is_correct })
     .eq("id", optionId);
+  if (error) {
+    console.error("[optionAktualisieren]", error);
+  }
 
   revalidatePath(`/admin/quizze/${quizId}`);
   revalidatePath(`/quiz/${quizId}`);
@@ -250,7 +276,13 @@ export async function optionLoeschen(
 ): Promise<void> {
   await ensureAdmin();
   const supabase = await createClient();
-  await supabase.from("quiz_options").delete().eq("id", optionId);
+  const { error } = await supabase
+    .from("quiz_options")
+    .delete()
+    .eq("id", optionId);
+  if (error) {
+    console.error("[optionLoeschen]", error);
+  }
   revalidatePath(`/admin/quizze/${quizId}`);
   revalidatePath(`/quiz/${quizId}`);
 }

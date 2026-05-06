@@ -84,12 +84,15 @@ export async function lektionAnlegen(
     .maybeSingle();
   const sort_order = ((maxRow?.sort_order as number | undefined) ?? 0) + 1;
 
-  await supabase.from("lessons").insert({
+  const { error } = await supabase.from("lessons").insert({
     module_id: modulId,
     title,
     summary,
     sort_order,
   });
+  if (error) {
+    console.error("[lektionAnlegen]", error);
+  }
 
   revalidatePath(`/admin/module/${modulId}`);
 }
@@ -121,7 +124,10 @@ export async function lektionLoeschen(
 ): Promise<void> {
   await ensureAdmin();
   const supabase = await createClient();
-  await supabase.from("lessons").delete().eq("id", lessonId);
+  const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
+  if (error) {
+    console.error("[lektionLoeschen]", error);
+  }
   revalidatePath(`/admin/module/${modulId}`);
 }
 
