@@ -29,7 +29,7 @@ function slugify(s: string): string {
 export async function kategorieAnlegen(formData: FormData): Promise<void> {
   await ensureAdmin();
   const name = String(formData.get("name") ?? "").trim();
-  if (!name) return;
+  if (!name) redirect("/admin/wissen?toast=name-fehlt");
   const slugInput = String(formData.get("slug") ?? "").trim();
   const slug = slugify(slugInput || name);
   const description = String(formData.get("description") ?? "").trim() || null;
@@ -43,15 +43,20 @@ export async function kategorieAnlegen(formData: FormData): Promise<void> {
     .maybeSingle();
   const sort_order = ((maxRow?.sort_order as number | undefined) ?? 0) + 1;
 
-  await supabase.from("knowledge_categories").insert({
+  const { error } = await supabase.from("knowledge_categories").insert({
     name,
     slug,
     description,
     sort_order,
   });
+  if (error) {
+    console.error("[kategorieAnlegen]", error);
+    redirect("/admin/wissen?toast=error");
+  }
 
   revalidatePath("/admin/wissen");
   revalidatePath("/wissen");
+  redirect("/admin/wissen?toast=created");
 }
 
 export async function kategorieAktualisieren(
@@ -60,27 +65,40 @@ export async function kategorieAktualisieren(
 ): Promise<void> {
   await ensureAdmin();
   const name = String(formData.get("name") ?? "").trim();
-  if (!name) return;
+  if (!name) redirect("/admin/wissen?toast=name-fehlt");
   const slugInput = String(formData.get("slug") ?? "").trim();
   const slug = slugify(slugInput || name);
   const description = String(formData.get("description") ?? "").trim() || null;
 
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("knowledge_categories")
     .update({ name, slug, description })
     .eq("id", id);
+  if (error) {
+    console.error("[kategorieAktualisieren]", error);
+    redirect("/admin/wissen?toast=error");
+  }
 
   revalidatePath("/admin/wissen");
   revalidatePath("/wissen");
+  redirect("/admin/wissen?toast=saved");
 }
 
 export async function kategorieLoeschen(id: string): Promise<void> {
   await ensureAdmin();
   const supabase = await createClient();
-  await supabase.from("knowledge_categories").delete().eq("id", id);
+  const { error } = await supabase
+    .from("knowledge_categories")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    console.error("[kategorieLoeschen]", error);
+    redirect("/admin/wissen?toast=error");
+  }
   revalidatePath("/admin/wissen");
   revalidatePath("/wissen");
+  redirect("/admin/wissen?toast=deleted");
 }
 
 // =========================================================
@@ -89,7 +107,7 @@ export async function kategorieLoeschen(id: string): Promise<void> {
 export async function artikelAnlegen(formData: FormData): Promise<void> {
   const profile = await ensureAdmin();
   const title = String(formData.get("title") ?? "").trim();
-  if (!title) return;
+  if (!title) redirect("/admin/wissen/neu?toast=titel-fehlt");
   const slugInput = String(formData.get("slug") ?? "").trim();
   const slug = slugify(slugInput || title);
   const summary = String(formData.get("summary") ?? "").trim() || null;
@@ -107,7 +125,7 @@ export async function artikelAnlegen(formData: FormData): Promise<void> {
     .maybeSingle();
   const sort_order = ((maxRow?.sort_order as number | undefined) ?? 0) + 1;
 
-  const { data: neu } = await supabase
+  const { data: neu, error } = await supabase
     .from("knowledge_articles")
     .insert({
       title,
@@ -121,10 +139,14 @@ export async function artikelAnlegen(formData: FormData): Promise<void> {
     })
     .select("id")
     .single();
+  if (error || !neu?.id) {
+    console.error("[artikelAnlegen]", error);
+    redirect("/admin/wissen/neu?toast=error");
+  }
 
   revalidatePath("/admin/wissen");
   revalidatePath("/wissen");
-  if (neu?.id) redirect(`/admin/wissen/${neu.id}?toast=created`);
+  redirect(`/admin/wissen/${neu.id}?toast=created`);
 }
 
 export async function artikelAktualisieren(
@@ -133,7 +155,7 @@ export async function artikelAktualisieren(
 ): Promise<void> {
   await ensureAdmin();
   const title = String(formData.get("title") ?? "").trim();
-  if (!title) return;
+  if (!title) redirect(`/admin/wissen/${id}?toast=titel-fehlt`);
   const slugInput = String(formData.get("slug") ?? "").trim();
   const slug = slugify(slugInput || title);
   const summary = String(formData.get("summary") ?? "").trim() || null;
@@ -143,10 +165,14 @@ export async function artikelAktualisieren(
     String(formData.get("category_id") ?? "").trim() || null;
 
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("knowledge_articles")
     .update({ title, slug, summary, body, status, category_id })
     .eq("id", id);
+  if (error) {
+    console.error("[artikelAktualisieren]", error);
+    redirect(`/admin/wissen/${id}?toast=error`);
+  }
 
   revalidatePath("/admin/wissen");
   revalidatePath(`/admin/wissen/${id}`);
@@ -158,7 +184,14 @@ export async function artikelAktualisieren(
 export async function artikelLoeschen(id: string): Promise<void> {
   await ensureAdmin();
   const supabase = await createClient();
-  await supabase.from("knowledge_articles").delete().eq("id", id);
+  const { error } = await supabase
+    .from("knowledge_articles")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    console.error("[artikelLoeschen]", error);
+    redirect(`/admin/wissen/${id}?toast=error`);
+  }
   revalidatePath("/admin/wissen");
   revalidatePath("/wissen");
   redirect("/admin/wissen?toast=deleted");

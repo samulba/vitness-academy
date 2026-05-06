@@ -47,7 +47,14 @@ export async function satzAnlegen(formData: FormData): Promise<void> {
 export async function satzLoeschen(id: string): Promise<void> {
   await requireRole(["admin", "superadmin"]);
   const supabase = await createClient();
-  await supabase.from("commission_rates").delete().eq("id", id);
+  const { error } = await supabase
+    .from("commission_rates")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    console.error("[satzLoeschen]", error);
+    redirect("/admin/provisionen/saetze?toast=error");
+  }
   revalidatePath("/admin/provisionen/saetze");
   revalidatePath("/provisionen");
   redirect("/admin/provisionen/saetze?toast=deleted");
@@ -100,7 +107,14 @@ export async function personalSatzLoeschen(
 ): Promise<void> {
   await requireRole(["admin", "superadmin"]);
   const supabase = await createClient();
-  await supabase.from("commission_rates_personal").delete().eq("id", id);
+  const { error } = await supabase
+    .from("commission_rates_personal")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    console.error("[personalSatzLoeschen]", error);
+    redirect(`/admin/provisionen/saetze/${vertrieblerId}?toast=error`);
+  }
   revalidatePath(`/admin/provisionen/saetze/${vertrieblerId}`);
   revalidatePath("/admin/provisionen/saetze");
   revalidatePath("/admin/provisionen");
@@ -179,7 +193,18 @@ export async function bonusStufeLoeschen(id: string): Promise<void> {
     .maybeSingle();
   const vid = row?.vertriebler_id as string | null | undefined;
 
-  await supabase.from("commission_bonus_stufen").delete().eq("id", id);
+  const { error } = await supabase
+    .from("commission_bonus_stufen")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    console.error("[bonusStufeLoeschen]", error);
+    redirect(
+      vid
+        ? `/admin/provisionen/saetze/${vid}?toast=error`
+        : "/admin/provisionen/saetze?toast=error",
+    );
+  }
 
   revalidatePath("/admin/provisionen/saetze");
   if (vid) revalidatePath(`/admin/provisionen/saetze/${vid}`);
@@ -246,7 +271,14 @@ export async function targetLoeschen(
 ): Promise<void> {
   await requireRole(["admin", "superadmin"]);
   const supabase = await createClient();
-  await supabase.from("commission_targets").delete().eq("id", id);
+  const { error } = await supabase
+    .from("commission_targets")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    console.error("[targetLoeschen]", error);
+    redirect(`/admin/provisionen/saetze/${vertrieblerId}?toast=error`);
+  }
   revalidatePath(`/admin/provisionen/saetze/${vertrieblerId}`);
   revalidatePath("/provisionen");
   redirect(`/admin/provisionen/saetze/${vertrieblerId}?toast=deleted`);

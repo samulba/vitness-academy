@@ -8,7 +8,7 @@ import { requireRole } from "@/lib/auth";
 export async function standortAnlegen(formData: FormData): Promise<void> {
   await requireRole(["admin", "superadmin"]);
   const name = String(formData.get("name") ?? "").trim();
-  if (!name) return;
+  if (!name) redirect("/admin/standorte/neu?toast=name-fehlt");
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -17,6 +17,7 @@ export async function standortAnlegen(formData: FormData): Promise<void> {
     .select("id")
     .single();
   if (error || !data) {
+    console.error("[standortAnlegen]", error);
     redirect("/admin/standorte/neu?toast=error");
   }
 
@@ -31,10 +32,17 @@ export async function standortAktualisieren(
 ): Promise<void> {
   await requireRole(["admin", "superadmin"]);
   const name = String(formData.get("name") ?? "").trim();
-  if (!name) return;
+  if (!name) redirect(`/admin/standorte/${id}?toast=name-fehlt`);
 
   const supabase = await createClient();
-  await supabase.from("locations").update({ name }).eq("id", id);
+  const { error } = await supabase
+    .from("locations")
+    .update({ name })
+    .eq("id", id);
+  if (error) {
+    console.error("[standortAktualisieren]", error);
+    redirect(`/admin/standorte/${id}?toast=error`);
+  }
   revalidatePath("/admin/standorte");
   revalidatePath(`/admin/standorte/${id}`);
   redirect(`/admin/standorte/${id}?toast=saved`);
@@ -43,7 +51,11 @@ export async function standortAktualisieren(
 export async function standortLoeschen(id: string): Promise<void> {
   await requireRole(["admin", "superadmin"]);
   const supabase = await createClient();
-  await supabase.from("locations").delete().eq("id", id);
+  const { error } = await supabase.from("locations").delete().eq("id", id);
+  if (error) {
+    console.error("[standortLoeschen]", error);
+    redirect(`/admin/standorte/${id}?toast=error`);
+  }
   revalidatePath("/admin/standorte");
   revalidatePath("/admin");
   redirect("/admin/standorte?toast=deleted");
