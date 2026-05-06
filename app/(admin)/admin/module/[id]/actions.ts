@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, istAdmin } from "@/lib/auth";
-import { reorderSwap } from "@/lib/admin/reorder";
+import { reorderBulk, reorderSwap } from "@/lib/admin/reorder";
 
 async function ensureAdmin() {
   const p = await getCurrentProfile();
@@ -94,6 +94,27 @@ export async function lektionAnlegen(
   revalidatePath(`/admin/module/${modulId}`);
 }
 
+export async function lektionAktualisieren(
+  modulId: string,
+  lessonId: string,
+  formData: FormData,
+): Promise<void> {
+  await ensureAdmin();
+  const title = String(formData.get("title") ?? "").trim();
+  const summary = String(formData.get("summary") ?? "").trim() || null;
+  if (!title) return;
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("lessons")
+    .update({ title, summary })
+    .eq("id", lessonId);
+  if (error) {
+    console.error("[lektionAktualisieren]", error);
+  }
+  revalidatePath(`/admin/module/${modulId}`);
+}
+
 export async function lektionLoeschen(
   modulId: string,
   lessonId: string,
@@ -118,4 +139,21 @@ export async function lektionReihenfolge(
     scopeWert: modulId,
   });
   revalidatePath(`/admin/module/${modulId}`);
+}
+
+/**
+ * Bulk-Reorder fuer Drag-and-Drop. Kein revalidatePath -- lokaler
+ * State im Client zeigt schon korrekt, DB-Persistierung im Hintergrund.
+ */
+export async function lektionReihenfolgeBulk(
+  modulId: string,
+  neueIds: string[],
+): Promise<{ ok: boolean; message?: string }> {
+  await ensureAdmin();
+  return await reorderBulk({
+    tabelle: "lessons",
+    ids: neueIds,
+    scopeFeld: "module_id",
+    scopeWert: modulId,
+  });
 }

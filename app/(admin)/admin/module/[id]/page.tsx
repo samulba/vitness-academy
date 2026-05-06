@@ -1,31 +1,14 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ExternalLink, Pencil, Plus } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { ReihenfolgeButtons } from "@/components/admin/ReihenfolgeButtons";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { SpeichernButton } from "@/components/admin/SpeichernButton";
 import { BildUpload } from "@/components/admin/BildUpload";
 import { createClient } from "@/lib/supabase/server";
-import {
-  lektionAnlegen,
-  lektionLoeschen,
-  lektionReihenfolge,
-  modulAktualisieren,
-  modulLoeschen,
-} from "./actions";
+import { modulAktualisieren, modulLoeschen } from "./actions";
+import { LektionenListe, type Lektion } from "./LektionenListe";
 
-type Lektion = { id: string; title: string; summary: string | null; sort_order: number };
 type ModulDetail = {
   id: string;
   title: string;
@@ -57,7 +40,14 @@ async function ladeModul(id: string): Promise<ModulDetail | null> {
     learning_path_id: string;
     hero_image_path: string | null;
     learning_paths: { title: string } | null;
-    lessons: { id: string; title: string; summary: string | null; sort_order: number }[] | null;
+    lessons:
+      | {
+          id: string;
+          title: string;
+          summary: string | null;
+          sort_order: number;
+        }[]
+      | null;
   };
   const r = data as unknown as Roh;
 
@@ -70,7 +60,8 @@ async function ladeModul(id: string): Promise<ModulDetail | null> {
     learning_path_title: r.learning_paths?.title ?? "",
     lessons: (r.lessons ?? [])
       .slice()
-      .sort((a, b) => a.sort_order - b.sort_order),
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((l) => ({ id: l.id, title: l.title, summary: l.summary })),
   };
 }
 
@@ -85,7 +76,6 @@ export default async function ModulBearbeitenPage({
 
   const aktualisieren = modulAktualisieren.bind(null, modul.id);
   const loeschen = modulLoeschen.bind(null, modul.id);
-  const lektionNeu = lektionAnlegen.bind(null, modul.id);
 
   return (
     <div className="space-y-6">
@@ -101,17 +91,19 @@ export default async function ModulBearbeitenPage({
         ]}
         eyebrow="Modul"
         title={modul.title}
-        description="Stammdaten und Lektionen-Liste pflegen. Hero-Bild gibt's in der Section unten."
+        description="Stammdaten, Hero-Bild und Lektionen pflegen."
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Stammdaten</CardTitle>
-          <CardDescription>Titel und Beschreibung des Moduls.</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <header className="mb-5">
+          <h2 className="text-base font-semibold tracking-tight">Stammdaten</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Titel, Beschreibung und Hero-Bild des Moduls.
+          </p>
+        </header>
+        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <form action={aktualisieren} className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="title">Titel</Label>
               <Input
                 id="title"
@@ -121,7 +113,7 @@ export default async function ModulBearbeitenPage({
                 defaultValue={modul.title}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="description">Beschreibung</Label>
               <textarea
                 id="description"
@@ -140,122 +132,17 @@ export default async function ModulBearbeitenPage({
               <SpeichernButton />
             </div>
           </form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Bild</CardTitle>
-          <CardDescription>
-            Optionales Hero-Bild für dieses Modul. Wird Mitarbeiter:innen
-            angezeigt.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <BildUpload
-            scope="module"
-            id={modul.id}
-            aktuellerPfad={modul.hero_image_path}
-          />
-        </CardContent>
-      </Card>
-
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold">Lektionen</h2>
-
-        {modul.lessons.length === 0 ? (
-          <Card>
-            <CardContent className="py-6 text-center text-sm text-muted-foreground">
-              Noch keine Lektionen – leg unten deine erste Lektion an.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {modul.lessons.map((l, idx) => (
-              <Card key={l.id}>
-                <CardContent className="flex flex-wrap items-start justify-between gap-3 py-4">
-                  <div className="flex items-start gap-3 min-w-0">
-                    <ReihenfolgeButtons
-                      hoch={lektionReihenfolge.bind(null, modul.id, l.id, "hoch")}
-                      runter={lektionReihenfolge.bind(
-                        null,
-                        modul.id,
-                        l.id,
-                        "runter",
-                      )}
-                      hochDeaktiviert={idx === 0}
-                      runterDeaktiviert={idx === modul.lessons.length - 1}
-                    />
-                    <div className="min-w-0">
-                      <div className="font-medium">{l.title}</div>
-                      {l.summary ? (
-                        <p className="line-clamp-2 text-xs text-muted-foreground">
-                          {l.summary}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={`/lektionen/${l.id}`}>
-                        <ExternalLink className="h-3.5 w-3.5" />
-                        Vorschau
-                      </Link>
-                    </Button>
-                    <Button asChild size="sm">
-                      <Link href={`/admin/lektionen/${l.id}`}>
-                        <Pencil className="h-3.5 w-3.5" />
-                        Inhalte bearbeiten
-                      </Link>
-                    </Button>
-                    <LoeschenButton
-                      action={lektionLoeschen.bind(null, modul.id, l.id)}
-                      label="Löschen"
-                      bestaetigung="Lektion inkl. Inhalts-Blöcken und Fortschritten wirklich löschen?"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div>
+            <BildUpload
+              scope="module"
+              id={modul.id}
+              aktuellerPfad={modul.hero_image_path}
+            />
           </div>
-        )}
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Neue Lektion anlegen</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form action={lektionNeu} className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="lekt-title">Titel</Label>
-                <Input
-                  id="lekt-title"
-                  name="title"
-                  required
-                  maxLength={150}
-                  placeholder="z.B. Begrüßung am Empfang"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lekt-summary">Kurzbeschreibung</Label>
-                <textarea
-                  id="lekt-summary"
-                  name="summary"
-                  rows={2}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  placeholder="Optional, taucht in Listen auf."
-                />
-              </div>
-              <div className="flex justify-end">
-                <Button type="submit" size="sm">
-                  <Plus className="h-4 w-4" />
-                  Lektion hinzufügen
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+        </div>
       </section>
+
+      <LektionenListe modulId={modul.id} lektionen={modul.lessons} />
     </div>
   );
 }
