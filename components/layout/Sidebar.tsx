@@ -20,9 +20,11 @@ import {
   Megaphone,
   MessageCircle,
   Settings,
+  Shield,
   ShieldCheck,
   Sparkles,
   TrendingUp,
+  User,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -174,6 +176,7 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const showAdmin = istFuehrungskraftOderHoeher(rolle);
+  const adminMode = pathname === "/admin" || pathname.startsWith("/admin/");
   const offen = aktiverGruppenId(pathname);
   const [openGroup, setOpenGroup] = useState<string | null>(offen);
 
@@ -195,6 +198,12 @@ export function Sidebar({
           {notificationSlot}
         </div>
 
+        {/* Mode-Toggle (Mitarbeiter / Verwaltung) -- nur fuer
+            fuehrungskraft+, weil Mitarbeiter keinen Verwaltungs-Modus
+            haben. Aktiver Modus wird aus dem Pathname abgeleitet,
+            damit Browser-Back/Direkt-Links funktionieren. */}
+        {showAdmin && <ModeToggle adminMode={adminMode} />}
+
         {/* Standort-Switcher (nur wenn >=2 Studios) */}
         {standortSlot && <div className="px-3 pt-3">{standortSlot}</div>}
 
@@ -205,39 +214,8 @@ export function Sidebar({
 
         {/* Nav scrollbar */}
         <nav className="flex-1 overflow-y-auto px-2 py-4 text-sm">
-          <ul className="space-y-0.5">
-            <li>
-              <NavLink eintrag={MEIN_TAG} pathname={pathname} />
-            </li>
-          </ul>
-          <NavGruppe
-            label="Studio"
-            eintraege={STUDIO_NAV}
-            pathname={pathname}
-            className="mt-5"
-          />
-          {kannProvisionen && (
-            <NavGruppe
-              label="Verkauf"
-              eintraege={VERKAUF_NAV}
-              pathname={pathname}
-              className="mt-5"
-            />
-          )}
-          <NavGruppe
-            label="Team"
-            eintraege={TEAM_NAV}
-            pathname={pathname}
-            className="mt-5"
-          />
-          <NavGruppe
-            label="Lernen"
-            eintraege={LERNEN_NAV}
-            pathname={pathname}
-            className="mt-5"
-          />
-          {showAdmin && (
-            <div className="mt-5">
+          {showAdmin && adminMode ? (
+            <>
               <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 {istAdmin(rolle) ? "Verwaltung" : "Team"}
               </p>
@@ -257,7 +235,41 @@ export function Sidebar({
                   />
                 ))}
               </div>
-            </div>
+            </>
+          ) : (
+            <>
+              <ul className="space-y-0.5">
+                <li>
+                  <NavLink eintrag={MEIN_TAG} pathname={pathname} />
+                </li>
+              </ul>
+              <NavGruppe
+                label="Studio"
+                eintraege={STUDIO_NAV}
+                pathname={pathname}
+                className="mt-5"
+              />
+              {kannProvisionen && (
+                <NavGruppe
+                  label="Verkauf"
+                  eintraege={VERKAUF_NAV}
+                  pathname={pathname}
+                  className="mt-5"
+                />
+              )}
+              <NavGruppe
+                label="Team"
+                eintraege={TEAM_NAV}
+                pathname={pathname}
+                className="mt-5"
+              />
+              <NavGruppe
+                label="Lernen"
+                eintraege={LERNEN_NAV}
+                pathname={pathname}
+                className="mt-5"
+              />
+            </>
           )}
         </nav>
 
@@ -304,6 +316,47 @@ export function Sidebar({
         </Link>
       </div>
     </aside>
+  );
+}
+
+function ModeToggle({ adminMode }: { adminMode: boolean }) {
+  return (
+    <div className="border-b border-border px-3 py-2.5">
+      <div
+        role="tablist"
+        aria-label="App-Modus"
+        className="flex items-center gap-1 rounded-full border border-border bg-muted/40 p-0.5"
+      >
+        <Link
+          href="/dashboard"
+          role="tab"
+          aria-selected={!adminMode}
+          className={cn(
+            "inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium transition-colors",
+            !adminMode
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <User className="h-3.5 w-3.5" strokeWidth={1.75} />
+          Mitarbeiter
+        </Link>
+        <Link
+          href="/admin"
+          role="tab"
+          aria-selected={adminMode}
+          className={cn(
+            "inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium transition-colors",
+            adminMode
+              ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <Shield className="h-3.5 w-3.5" strokeWidth={1.75} />
+          Verwaltung
+        </Link>
+      </div>
+    </div>
   );
 }
 
