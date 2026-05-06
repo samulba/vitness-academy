@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
+import { istNextJsControlFlow } from "@/lib/admin/safe-loader";
 import { ladeGeburtstageNaechste } from "@/lib/mitarbeiter-stammdaten";
 import { formatDatum } from "@/lib/format";
 import { PageHeader } from "@/components/ui/page-header";
@@ -43,6 +44,36 @@ async function ladePuls() {
   const heute = startOfTodayIso();
   const woche = startOfWeekIso();
 
+  // Eine RPC statt 9 separate Counts -- spart 8x Roundtrip-Latenz.
+  // Defensive Fallback (alte 9-Query-Variante) falls Migration 0048
+  // noch nicht eingespielt ist.
+  try {
+    const { data, error } = await supabase.rpc("get_studio_pulse", {
+      heute,
+      woche,
+    });
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    if (row) {
+      return {
+        mitarbeiter: Number(row.mitarbeiter ?? 0),
+        lernpfade: Number(row.lernpfade ?? 0),
+        lektionenHeute: Number(row.lektionen_heute ?? 0),
+        maengelOffen: Number(row.maengel_offen ?? 0),
+        maengelHeute: Number(row.maengel_heute ?? 0),
+        submissionsOffen: Number(row.submissions_offen ?? 0),
+        submissionsHeute: Number(row.submissions_heute ?? 0),
+        aufgabenOffen: Number(row.aufgaben_offen ?? 0),
+        aktiveDieseWoche: Number(row.aktive_diese_woche ?? 0),
+      };
+    }
+  } catch (e) {
+    if (istNextJsControlFlow(e)) throw e;
+    console.warn("[ladePuls] RPC fehlgeschlagen, fallback auf Einzel-Counts", e);
+  }
+
+  // Fallback: 9 separate Counts (langsam, aber funktioniert auch
+  // ohne Migration 0048).
   const [
     { count: anzMitarbeiter },
     { count: anzLernpfade },

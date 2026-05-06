@@ -140,8 +140,11 @@ export async function profilAktualisieren(
 
   revalidatePath("/admin/benutzer");
   revalidatePath(`/admin/benutzer/${benutzerId}`);
-  // Sidebar muss neu rendern (Provisionen-Sektion erscheint/verschwindet)
-  revalidatePath("/", "layout");
+  // Hinweis: Layout-Revalidate war frueher hier wegen Sidebar-
+  // Provisionen-Section. Da die Sidebar sich an die OWN-User-Session
+  // bindet (via Layout mit force-dynamic), wirkt sich ein fremdes
+  // Profile-Update sowieso erst bei dessen naechstem Request aus.
+  // Eingespart: ~50-100ms purge-Aufwand pro Speichern.
   redirect(`/admin/benutzer/${benutzerId}?toast=saved`);
 }
 
