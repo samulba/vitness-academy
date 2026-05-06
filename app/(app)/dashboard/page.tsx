@@ -269,19 +269,19 @@ export default async function DashboardPage() {
               <Link
                 key={qa.href}
                 href={qa.href}
-                className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)] sm:flex-col sm:items-start sm:gap-3 sm:rounded-2xl sm:p-5"
+                className="group flex flex-col items-start gap-2.5 rounded-xl border border-border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)] sm:gap-3 sm:rounded-2xl sm:p-5"
               >
-                <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg sm:h-10 sm:w-10 sm:rounded-xl ${qa.tint}`}
-                >
-                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
-                </span>
-                <div className="flex w-full min-w-0 items-center justify-between gap-1 sm:items-end">
-                  <span className="truncate text-[13px] font-semibold leading-tight sm:text-sm">
-                    {qa.label}
+                <div className="flex w-full items-start justify-between gap-2">
+                  <span
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg sm:h-10 sm:w-10 sm:rounded-xl ${qa.tint}`}
+                  >
+                    <Icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
                   </span>
                   <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))] sm:h-4 sm:w-4" />
                 </div>
+                <span className="text-[13px] font-semibold leading-tight sm:text-sm">
+                  {qa.label}
+                </span>
               </Link>
             );
           })}
