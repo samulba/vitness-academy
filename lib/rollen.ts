@@ -12,6 +12,7 @@ export type Profil = {
   archived_at: string | null;
   avatar_path: string | null;
   kann_provisionen: boolean;
+  template_id: string | null;
 };
 
 export function istAdmin(role: Rolle | undefined | null): boolean {

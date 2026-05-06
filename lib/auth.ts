@@ -24,27 +24,40 @@ export async function getCurrentProfile(): Promise<Profil | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Erst mit kann_provisionen versuchen, fallback ohne falls Migration
-  // 0034 noch nicht eingespielt ist.
+  // Drei-Stufen-Fallback fuer Migrations-Lag:
+  //   Voll  = mit template_id (Migration 0050)
+  //   Mid   = mit kann_provisionen (Migration 0034) ohne template_id
+  //   Basis = ohne beides
   let row: Record<string, unknown> | null = null;
-  const erst = await supabase
+  const voll = await supabase
     .from("profiles")
     .select(
-      "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path, kann_provisionen",
+      "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path, kann_provisionen, template_id",
     )
     .eq("id", user.id)
     .maybeSingle();
-  if (erst.data) {
-    row = erst.data as Record<string, unknown>;
+  if (voll.data) {
+    row = voll.data as Record<string, unknown>;
   } else {
-    const fb = await supabase
+    const mid = await supabase
       .from("profiles")
       .select(
-        "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path",
+        "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path, kann_provisionen",
       )
       .eq("id", user.id)
       .maybeSingle();
-    if (fb.data) row = fb.data as Record<string, unknown>;
+    if (mid.data) {
+      row = mid.data as Record<string, unknown>;
+    } else {
+      const basis = await supabase
+        .from("profiles")
+        .select(
+          "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path",
+        )
+        .eq("id", user.id)
+        .maybeSingle();
+      if (basis.data) row = basis.data as Record<string, unknown>;
+    }
   }
   if (!row) return null;
 
@@ -60,6 +73,7 @@ export async function getCurrentProfile(): Promise<Profil | null> {
     archived_at: (row.archived_at as string | null) ?? null,
     avatar_path: (row.avatar_path as string | null) ?? null,
     kann_provisionen: Boolean(row.kann_provisionen),
+    template_id: (row.template_id as string | null) ?? null,
   };
 }
 

@@ -46,6 +46,10 @@ export async function mitarbeiterAnlegen(
     const v = String(formData.get("primary_standort") ?? "").trim();
     return istUUID(v) && standortIds.includes(v) ? v : null;
   })();
+  const templateId = (() => {
+    const v = String(formData.get("template_id") ?? "").trim();
+    return istUUID(v) ? v : null;
+  })();
 
   if (firstName.length === 0 && lastName.length === 0) {
     return {
@@ -92,10 +96,23 @@ export async function mitarbeiterAnlegen(
   if (primaryStandort) {
     profileUpdate.location_id = primaryStandort;
   }
-  const { error: profileError } = await admin
+  if (templateId) {
+    profileUpdate.template_id = templateId;
+  }
+  let { error: profileError } = await admin
     .from("profiles")
     .update(profileUpdate)
     .eq("id", userId);
+  // Defensive: wenn Migration 0050 noch nicht eingespielt -> ohne template_id retry
+  if (profileError && templateId) {
+    const { template_id: _ignore, ...ohneTemplate } = profileUpdate;
+    void _ignore;
+    const retry = await admin
+      .from("profiles")
+      .update(ohneTemplate)
+      .eq("id", userId);
+    profileError = retry.error;
+  }
   if (profileError) {
     return {
       ok: false,

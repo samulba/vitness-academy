@@ -156,6 +156,14 @@ export function NeuerBenutzerForm({
         titel="Persönliche Daten"
         beschreibung="Vor- und Nachname, dienstliche E-Mail."
       >
+        {/* Hidden -- template_id wird beim Anlegen ins Profil persistiert
+            damit spaeter Template-spezifische Checklist-Items gefiltert
+            werden koennen. "__leer" = kein Template gewaehlt. */}
+        <input
+          type="hidden"
+          name="template_id"
+          value={aktivesTemplate === "__leer" ? "" : aktivesTemplate}
+        />
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="first_name">Vorname</Label>

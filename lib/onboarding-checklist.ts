@@ -40,8 +40,9 @@ export async function ladeChecklistItems(
 
 /**
  * Lädt für eine:n Mitarbeiter:in alle relevanten Items + Progress.
- * Relevant = global (template_id null) — für Multi-Template-Setup
- * später kann man hier per profile.template_id filtern.
+ * Relevant = global (template_id null) ODER passend zu profile.template_id.
+ * Damit sieht ein "Trainer"-Mitarbeiter nur die Trainer-Items, nicht die
+ * vom Service-Template.
  */
 export async function ladeChecklistFuerMitarbeiter(
   mitarbeiterId: string,
@@ -49,13 +50,30 @@ export async function ladeChecklistFuerMitarbeiter(
   try {
     const supabase = await createClient();
 
-    // Alle Items (Template-spezifische + globale). Für Phase 13C nehmen
-    // wir alle Items zusammen -- Studio kann eigene Templates später
-    // pflegen, jetzt erstmal Defaults.
-    const { data: items, error: e1 } = await supabase
+    // Profile holen damit wir das aktive Template kennen.
+    // Defensive: bei fehlender Spalte (Migration 0050 nicht eingespielt)
+    // fallen wir auf "alle Items zusammen" zurueck.
+    let templateId: string | null = null;
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("template_id")
+      .eq("id", mitarbeiterId)
+      .maybeSingle();
+    if (prof) {
+      templateId = (prof.template_id as string | null) ?? null;
+    }
+
+    // Items: globale (template_id NULL) plus die zum aktiven Template.
+    let q = supabase
       .from("onboarding_checklist_items")
       .select("id, template_id, label, beschreibung, sort_order")
       .order("sort_order", { ascending: true });
+    if (templateId) {
+      q = q.or(`template_id.is.null,template_id.eq.${templateId}`);
+    } else {
+      q = q.is("template_id", null);
+    }
+    const { data: items, error: e1 } = await q;
     if (e1) {
       console.error("[ladeChecklist] items error:", e1);
       return [];
@@ -112,7 +130,8 @@ export async function ladeChecklistFuerMitarbeiter(
 
 /**
  * Zähler-Helper für Liste: wie viele Items sind erledigt für diese:n
- * Mitarbeiter:in? Für Status-Pill in Liste.
+ * Mitarbeiter:in? Pro Mitarbeiter individueller Gesamt-Count, weil
+ * jeder ein anderes Template haben kann.
  */
 export async function ladeChecklistStatusBatch(
   mitarbeiterIds: string[],
@@ -121,23 +140,79 @@ export async function ladeChecklistStatusBatch(
   if (mitarbeiterIds.length === 0) return map;
   try {
     const supabase = await createClient();
-    const { data: items } = await supabase
+
+    // Alle Items einmal laden (deutlich kleiner als Mitarbeiter × Items)
+    const { data: itemsRaw } = await supabase
       .from("onboarding_checklist_items")
-      .select("id");
-    const gesamt = (items ?? []).length;
-    if (gesamt === 0) return map;
+      .select("id, template_id");
+    type ItemRoh = { id: string; template_id: string | null };
+    const items = (itemsRaw ?? []) as ItemRoh[];
+    if (items.length === 0) {
+      for (const id of mitarbeiterIds) map.set(id, { erledigt: 0, gesamt: 0 });
+      return map;
+    }
+
+    const globaleItemIds = new Set(
+      items.filter((i) => !i.template_id).map((i) => i.id),
+    );
+    const itemsProTemplate = new Map<string, Set<string>>();
+    for (const i of items) {
+      if (!i.template_id) continue;
+      if (!itemsProTemplate.has(i.template_id)) {
+        itemsProTemplate.set(i.template_id, new Set());
+      }
+      itemsProTemplate.get(i.template_id)!.add(i.id);
+    }
+
+    // Profile-Templates fuer alle Mitarbeiter laden (defensive bei
+    // fehlender Spalte: behandeln als "kein Template" -> globale Items)
+    const profileTemplate = new Map<string, string | null>();
+    const profRes = await supabase
+      .from("profiles")
+      .select("id, template_id")
+      .in("id", mitarbeiterIds);
+    type ProfRoh = { id: string; template_id: string | null };
+    for (const p of ((profRes.data ?? []) as ProfRoh[])) {
+      profileTemplate.set(p.id, p.template_id ?? null);
+    }
+    for (const id of mitarbeiterIds) {
+      if (!profileTemplate.has(id)) profileTemplate.set(id, null);
+    }
+
+    // Pro Mitarbeiter: gesamt = globale Items + Items des Templates
+    function gesamtFuer(mitarbeiterId: string): { ids: Set<string>; count: number } {
+      const ids = new Set<string>(globaleItemIds);
+      const tid = profileTemplate.get(mitarbeiterId);
+      if (tid) {
+        const tplItems = itemsProTemplate.get(tid);
+        if (tplItems) for (const x of tplItems) ids.add(x);
+      }
+      return { ids, count: ids.size };
+    }
+
     const { data: progress } = await supabase
       .from("mitarbeiter_onboarding_progress")
-      .select("mitarbeiter_id, erledigt_am")
+      .select("mitarbeiter_id, item_id, erledigt_am")
       .in("mitarbeiter_id", mitarbeiterIds)
       .not("erledigt_am", "is", null);
-    type R = { mitarbeiter_id: string; erledigt_am: string | null };
+    type ProgRoh = {
+      mitarbeiter_id: string;
+      item_id: string;
+      erledigt_am: string | null;
+    };
+
+    // Init
+    const relevantPerMa = new Map<string, Set<string>>();
     for (const id of mitarbeiterIds) {
-      map.set(id, { erledigt: 0, gesamt });
+      const { ids, count } = gesamtFuer(id);
+      relevantPerMa.set(id, ids);
+      map.set(id, { erledigt: 0, gesamt: count });
     }
-    for (const p of (progress ?? []) as R[]) {
+    // Erledigt-Zaehler nur fuer Items die fuer den Mitarbeiter relevant sind
+    for (const p of (progress ?? []) as ProgRoh[]) {
       const cur = map.get(p.mitarbeiter_id);
-      if (cur) cur.erledigt += 1;
+      const rel = relevantPerMa.get(p.mitarbeiter_id);
+      if (cur && rel && rel.has(p.item_id)) cur.erledigt += 1;
     }
     return map;
   } catch (e) {
