@@ -418,7 +418,7 @@ export default async function ProvisionenAdminPage({
       )}
 
       <div className="flex justify-end">
-        <Button asChild variant="outline" className="h-9 rounded-lg">
+        <Button asChild variant="outline" className="h-9">
           <a href={`/api/admin/provisionen/csv?monat=${monat}`}>
             CSV exportieren
           </a>
