@@ -90,15 +90,15 @@ export function StandortSwitcher({
         onClick={() => !nurEinStudio && setOpen((o) => !o)}
         disabled={pending || nurEinStudio}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium transition-colors",
+          "inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-[12px] font-medium transition-colors",
           !nurEinStudio && "hover:border-[hsl(var(--brand-pink)/0.4)]",
           nurEinStudio && "cursor-default opacity-90",
           pending && "opacity-60",
         )}
         title={nurEinStudio ? "Aktuelles Studio" : "Studio wechseln"}
       >
-        <MapPin className="h-3 w-3 text-muted-foreground" />
-        <span className="max-w-[100px] truncate">{aktiv.name}</span>
+        <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="max-w-[120px] truncate">{aktiv.name}</span>
         {!nurEinStudio && (
           <ChevronsUpDown className="h-3 w-3 text-muted-foreground" />
         )}

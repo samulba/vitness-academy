@@ -114,10 +114,14 @@ export function NotificationBell({
       {open && (
         <div
           className={cn(
-            "absolute z-50 w-[380px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-border bg-popover shadow-lg",
+            "z-50 overflow-hidden rounded-xl border border-border bg-popover shadow-lg",
+            // Mobile: fixed unter Topbar mit ~8px Margin links/rechts
+            "fixed left-2 right-2 top-[60px]",
+            // sm+: zurueck zum absoluten Popover
+            "sm:absolute sm:left-auto sm:right-auto sm:top-full sm:mt-2 sm:w-[380px] sm:max-w-[calc(100vw-2rem)]",
             placement === "side-right"
-              ? "left-full top-0 ml-2"
-              : "right-0 top-full mt-2",
+              ? "sm:left-full sm:top-0 sm:ml-2"
+              : "sm:right-0",
           )}
         >
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
