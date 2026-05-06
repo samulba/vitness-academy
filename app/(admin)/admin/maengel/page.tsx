@@ -11,12 +11,19 @@ import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
 import { requireRole } from "@/lib/auth";
 import { ladeMaengel } from "@/lib/maengel";
 import { getAktiverStandort } from "@/lib/standort-context";
+import { tagesCounts, trendAusVerlauf } from "@/lib/admin/sparklines";
 import { MaengelTable } from "./MaengelTable";
 
 export default async function MaengelAdminPage() {
   await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const aktiv = await getAktiverStandort();
   const locId = aktiv?.id ?? null;
+  const sparkGemeldet = await tagesCounts("studio_issues", "created_at");
+  const sparkBehoben = await tagesCounts("studio_issues", "resolved_at", 7, (q) =>
+    q.eq("status", "behoben"),
+  );
+  const trendGemeldet = trendAusVerlauf(sparkGemeldet);
+  const trendBehoben = trendAusVerlauf(sparkBehoben);
   const offen = await ladeMaengel({
     status: ["offen", "in_bearbeitung"],
     locationId: locId,
@@ -43,6 +50,12 @@ export default async function MaengelAdminPage() {
           label="Aktuell offen"
           value={offen.length}
           icon={<AlertTriangle />}
+          trend={
+            sparkGemeldet.some((v) => v > 0)
+              ? { ...trendGemeldet, hint: "gemeldet 7 Tage" }
+              : undefined
+          }
+          sparklineData={sparkGemeldet}
         />
         <StatCard
           label="In Bearbeitung"
@@ -50,9 +63,15 @@ export default async function MaengelAdminPage() {
           icon={<Wrench />}
         />
         <StatCard
-          label="Behoben gesamt"
+          label="Behoben"
           value={behoben}
           icon={<CheckCircle2 />}
+          trend={
+            sparkBehoben.some((v) => v > 0)
+              ? { ...trendBehoben, hint: "behoben 7 Tage" }
+              : undefined
+          }
+          sparklineData={sparkBehoben}
         />
         <StatCard
           label="Gesamt erfasst"

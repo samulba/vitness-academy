@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
 import { istNextJsControlFlow } from "@/lib/admin/safe-loader";
 import { ladeGeburtstageNaechste } from "@/lib/mitarbeiter-stammdaten";
+import { tagesCounts, trendAusVerlauf } from "@/lib/admin/sparklines";
 import { formatDatum } from "@/lib/format";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
@@ -261,13 +262,33 @@ function relativeZeit(iso: string): string {
 
 export default async function AdminDashboardPage() {
   await requireRole(["admin", "superadmin", "fuehrungskraft"]);
-  const [puls, maengel, submissions, mitarbeiter, geburtstage] = await Promise.all([
+  const [
+    puls,
+    maengel,
+    submissions,
+    mitarbeiter,
+    geburtstage,
+    sparkMaengel,
+    sparkSubmissions,
+    sparkAufgaben,
+    sparkLektionen,
+  ] = await Promise.all([
     ladePuls(),
     ladeAktiveMaengel(),
     ladeFrischeSubmissions(),
     ladeAktiveMitarbeiter(),
     ladeGeburtstageNaechste(14),
+    tagesCounts("studio_issues", "created_at"),
+    tagesCounts("form_submissions", "submitted_at"),
+    tagesCounts("studio_tasks", "created_at"),
+    tagesCounts("user_lesson_progress", "completed_at", 7, (q) =>
+      q.eq("status", "abgeschlossen"),
+    ),
   ]);
+  const trendMaengel = trendAusVerlauf(sparkMaengel);
+  const trendSubmissions = trendAusVerlauf(sparkSubmissions);
+  const trendAufgaben = trendAusVerlauf(sparkAufgaben);
+  const trendLektionen = trendAusVerlauf(sparkLektionen);
 
   const todoSumme =
     puls.maengelOffen + puls.submissionsOffen + puls.aufgabenOffen;
@@ -286,14 +307,11 @@ export default async function AdminDashboardPage() {
           value={puls.maengelOffen}
           icon={<AlertTriangle />}
           trend={
-            puls.maengelHeute > 0
-              ? {
-                  value: puls.maengelHeute,
-                  direction: "up",
-                  hint: "heute neu gemeldet",
-                }
+            sparkMaengel.some((v) => v > 0)
+              ? { ...trendMaengel, hint: "letzte 7 Tage" }
               : undefined
           }
+          sparklineData={sparkMaengel}
           href="/admin/maengel"
         />
         <StatCard
@@ -301,20 +319,23 @@ export default async function AdminDashboardPage() {
           value={puls.submissionsOffen}
           icon={<Inbox />}
           trend={
-            puls.submissionsHeute > 0
-              ? {
-                  value: puls.submissionsHeute,
-                  direction: "up",
-                  hint: "heute eingegangen",
-                }
+            sparkSubmissions.some((v) => v > 0)
+              ? { ...trendSubmissions, hint: "letzte 7 Tage" }
               : undefined
           }
+          sparklineData={sparkSubmissions}
           href="/admin/formulare/eingaenge"
         />
         <StatCard
           label="Aufgaben offen"
           value={puls.aufgabenOffen}
           icon={<ListTodo />}
+          trend={
+            sparkAufgaben.some((v) => v > 0)
+              ? { ...trendAufgaben, hint: "letzte 7 Tage" }
+              : undefined
+          }
+          sparklineData={sparkAufgaben}
           href="/admin/aufgaben"
         />
         <StatCard
@@ -322,14 +343,11 @@ export default async function AdminDashboardPage() {
           value={puls.aktiveDieseWoche}
           icon={<Sparkles />}
           trend={
-            puls.lektionenHeute > 0
-              ? {
-                  value: puls.lektionenHeute,
-                  direction: "up",
-                  hint: "Lektionen heute",
-                }
+            sparkLektionen.some((v) => v > 0)
+              ? { ...trendLektionen, hint: "Lektionen-Abschlüsse" }
               : undefined
           }
+          sparklineData={sparkLektionen}
           href="/admin/fortschritt"
         />
       </StatGrid>

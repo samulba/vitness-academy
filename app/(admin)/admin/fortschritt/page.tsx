@@ -20,6 +20,7 @@ import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { createClient } from "@/lib/supabase/server";
 import { alsArray, istNextJsControlFlow } from "@/lib/admin/safe-loader";
+import { tagesCounts, trendAusVerlauf } from "@/lib/admin/sparklines";
 import { formatProzent, rolleLabel } from "@/lib/format";
 
 type Mitarbeiter = {
@@ -158,12 +159,28 @@ async function ladeFortschrittEintraege(): Promise<
 }
 
 export default async function FortschrittPage() {
-  const [mitarbeiter, lernpfade, zuweisungen, fortschritt] = await Promise.all([
+  const [
+    mitarbeiter,
+    lernpfade,
+    zuweisungen,
+    fortschritt,
+    sparkLektionen,
+    sparkMitarbeiter,
+    sparkZuweisungen,
+  ] = await Promise.all([
     ladeAlleMitarbeiter(),
     ladeAlleLernpfade(),
     ladeZuweisungen(),
     ladeFortschrittEintraege(),
+    tagesCounts("user_lesson_progress", "completed_at", 7, (q) =>
+      q.eq("status", "abgeschlossen"),
+    ),
+    tagesCounts("profiles", "created_at"),
+    tagesCounts("user_learning_path_assignments", "assigned_at"),
   ]);
+  const trendLektionen = trendAusVerlauf(sparkLektionen);
+  const trendMitarbeiter = trendAusVerlauf(sparkMitarbeiter);
+  const trendZuweisungen = trendAusVerlauf(sparkZuweisungen);
 
   // Pro Mitarbeiter pro Lernpfad: berechnen ob zugewiesen + Fortschritt
   function zelle(userId: string, pfad: Lernpfad): FortschrittZelle | null {
@@ -224,16 +241,38 @@ export default async function FortschrittPage() {
       />
 
       <StatGrid cols={4}>
-        <StatCard label="Mitarbeiter" value={mitarbeiter.length} icon={<Users />} />
+        <StatCard
+          label="Mitarbeiter"
+          value={mitarbeiter.length}
+          icon={<Users />}
+          trend={
+            sparkMitarbeiter.some((v) => v > 0)
+              ? { ...trendMitarbeiter, hint: "Neue 7 Tage" }
+              : undefined
+          }
+          sparklineData={sparkMitarbeiter}
+        />
         <StatCard
           label="Lernpfade aktiv"
           value={lernpfade.length}
           icon={<GraduationCap />}
+          trend={
+            sparkZuweisungen.some((v) => v > 0)
+              ? { ...trendZuweisungen, hint: "Zuweisungen 7 Tage" }
+              : undefined
+          }
+          sparklineData={sparkZuweisungen}
         />
         <StatCard
           label="Ø Fortschritt"
           value={`${totalProzent}%`}
           icon={<Activity />}
+          trend={
+            sparkLektionen.some((v) => v > 0)
+              ? { ...trendLektionen, hint: "Lektionen abgeschlossen" }
+              : undefined
+          }
+          sparklineData={sparkLektionen}
         />
         <StatCard
           label="Fertig"
