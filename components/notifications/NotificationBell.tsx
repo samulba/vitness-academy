@@ -8,6 +8,7 @@ import {
   CheckSquare,
   FileText,
   Heart,
+  Inbox,
   ListTodo,
   Megaphone,
   MessageCircle,
@@ -28,6 +29,7 @@ import { useRelativeZeit } from "@/lib/hooks/useRelativeZeit";
 const ICON_MAP = {
   wrench: Wrench,
   "file-text": FileText,
+  inbox: Inbox,
   "check-square": CheckSquare,
   "list-todo": ListTodo,
   megaphone: Megaphone,

@@ -9,6 +9,7 @@
 export type NotificationType =
   | "mangel_status"
   | "submission_status"
+  | "submission_neu"
   | "praxis_decision"
   | "aufgabe_neu"
   | "info_neu"
@@ -29,6 +30,7 @@ export type Notification = {
 const TYP_ICON: Record<NotificationType, string> = {
   mangel_status: "wrench",
   submission_status: "file-text",
+  submission_neu: "inbox",
   praxis_decision: "check-square",
   aufgabe_neu: "list-todo",
   info_neu: "megaphone",
