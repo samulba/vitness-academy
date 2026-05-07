@@ -76,7 +76,7 @@ export function AnimatedHero() {
   return (
     <section
       ref={sectionRef}
-      className="group/hero relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]"
+      className="group/hero relative isolate flex min-h-screen flex-col overflow-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))] [min-height:100svh] lg:h-screen lg:[height:100svh] lg:min-h-0"
     >
       {/* Mouse-Spotlight (nur Desktop, hidden auf Touch via media-Query unten) */}
       <div
@@ -124,7 +124,7 @@ export function AnimatedHero() {
 
 
       {/* === Inhalt === */}
-      <div className="relative z-10 flex flex-1 flex-col px-6 pt-28 sm:pt-32 lg:px-12 lg:pt-44 2xl:px-20">
+      <div className="relative z-10 flex flex-1 flex-col px-6 pt-28 sm:pt-32 lg:px-12 lg:pt-32 xl:pt-40 2xl:px-20">
         {/* Eyebrow */}
         <div className="word-reveal">
           <span
@@ -141,7 +141,7 @@ export function AnimatedHero() {
           <div className="lg:col-span-7">
 
         {/* Headline */}
-        <h1 className="mt-8 max-w-[16ch] text-balance font-semibold leading-[0.92] tracking-[-0.04em] text-[clamp(2.75rem,11vw,8.75rem)] sm:mt-12">
+        <h1 className="mt-6 max-w-[16ch] text-balance font-semibold leading-[0.92] tracking-[-0.04em] text-[clamp(2.5rem,8vw,6.5rem)] sm:mt-10">
           {HEAD_LINES.map((line, lineIdx) => (
             <span key={lineIdx} className="block">
               {line.map((w, i) => {
@@ -183,10 +183,10 @@ export function AnimatedHero() {
         </h1>
 
         {/* Subline */}
-        <div className="word-reveal mt-8 max-w-2xl sm:mt-14">
+        <div className="word-reveal mt-6 max-w-2xl sm:mt-8 lg:mt-10">
           <p
             style={{ animationDelay: "1100ms" }}
-            className="text-pretty text-base leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:text-lg lg:text-xl"
+            className="text-pretty text-base leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:text-lg"
           >
             Hier lernst du, wie wir bei Vitness arbeiten —
             Theke, Trainingsfläche, Reha, Verkauf. In deinem Tempo.
@@ -195,7 +195,7 @@ export function AnimatedHero() {
         </div>
 
         {/* Feature-Pills */}
-        <div className="word-reveal mt-6 sm:mt-10">
+        <div className="word-reveal mt-5 sm:mt-7">
           <div
             style={{ animationDelay: "1250ms" }}
             className="flex flex-wrap gap-2"
@@ -213,7 +213,7 @@ export function AnimatedHero() {
         </div>
 
         {/* CTA */}
-        <div className="word-reveal mt-8 sm:mt-12">
+        <div className="word-reveal mt-6 sm:mt-8">
           <div
             style={{ animationDelay: "1400ms" }}
             className="flex flex-col items-stretch gap-y-5 sm:flex-row sm:items-center sm:gap-x-16"
@@ -406,9 +406,9 @@ function HeroPreviewCard() {
           }}
         />
 
-        <div className="rounded-2xl border border-white/12 bg-[hsl(var(--brand-ink)/0.7)] p-5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] backdrop-blur-xl">
+        <div className="rounded-2xl border border-white/12 bg-[hsl(var(--brand-ink)/0.7)] p-4 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] backdrop-blur-xl">
           {/* Header: Avatar + Greeting */}
-          <div className="flex items-center gap-3 border-b border-white/[0.08] pb-4">
+          <div className="flex items-center gap-3 border-b border-white/[0.08] pb-3">
             <span
               className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white shadow-[0_4px_12px_-2px_hsl(var(--primary)/0.6)]"
               style={{
@@ -433,7 +433,7 @@ function HeroPreviewCard() {
           </div>
 
           {/* Stats-Pill-Row */}
-          <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="mt-3 grid grid-cols-3 gap-2">
             {[
               { label: "Aufgaben", wert: "3" },
               { label: "Anfragen", wert: "1" },
@@ -454,7 +454,7 @@ function HeroPreviewCard() {
           </div>
 
           {/* Aktuelle Lektion */}
-          <div className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
+          <div className="mt-3 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
                 Theke und Empfang
