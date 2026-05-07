@@ -1,11 +1,20 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { AlertCircle, Check, Paperclip, Upload, X } from "lucide-react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import {
+  AlertCircle,
+  CalendarRange,
+  Check,
+  Paperclip,
+  Upload,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { formatDatum } from "@/lib/format";
+import { taglistVonBis, wochentagKurz } from "@/lib/datum";
 import type { FormField } from "@/lib/formulare";
 import {
   submissionAnlegen,
@@ -73,6 +82,11 @@ function FieldRenderer({
   // File bekommt eine eigene Drop-Zone-Optik
   if (f.type === "file") {
     return <FileDropzone field={f} error={error} />;
+  }
+
+  // Vertretungs-Plan: pro Tag im verlinkten Datum-Range eine Reihe
+  if (f.type === "vertretungs_plan") {
+    return <VertretungsPlanRenderer field={f} error={error} />;
   }
 
   const labelEl = (
@@ -324,4 +338,164 @@ function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+const PAUSCHAL_THRESHOLD_TAGE = 30;
+
+function VertretungsPlanRenderer({
+  field: f,
+  error,
+}: {
+  field: FormField;
+  error?: string;
+}) {
+  const fromName = f.linked_dates?.from ?? "von";
+  const toName = f.linked_dates?.to ?? "bis";
+
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [von, setVon] = useState("");
+  const [bis, setBis] = useState("");
+  const [pauschal, setPauschal] = useState(false);
+
+  // Liest die aktuellen Werte der zwei date-Inputs aus der Form
+  // und re-rendert wenn sie sich aendern. Uncontrolled-Pattern:
+  // wir greifen aktiv via querySelector statt Lift-State-Refactor.
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    const form = wrapper.closest("form");
+    if (!form) return;
+
+    const fromInput = form.elements.namedItem(fromName) as
+      | HTMLInputElement
+      | null;
+    const toInput = form.elements.namedItem(toName) as HTMLInputElement | null;
+    if (!fromInput || !toInput) return;
+
+    function lesen() {
+      setVon(fromInput!.value || "");
+      setBis(toInput!.value || "");
+    }
+    lesen();
+    fromInput.addEventListener("change", lesen);
+    fromInput.addEventListener("input", lesen);
+    toInput.addEventListener("change", lesen);
+    toInput.addEventListener("input", lesen);
+    return () => {
+      fromInput.removeEventListener("change", lesen);
+      fromInput.removeEventListener("input", lesen);
+      toInput.removeEventListener("change", lesen);
+      toInput.removeEventListener("input", lesen);
+    };
+  }, [fromName, toName]);
+
+  const tage = useMemo(() => taglistVonBis(von, bis), [von, bis]);
+  const beideGesetzt = von.length > 0 && bis.length > 0;
+  const rangeOk = tage.length > 0;
+  const langerRange = tage.length > PAUSCHAL_THRESHOLD_TAGE;
+
+  return (
+    <div ref={wrapperRef} className="space-y-2">
+      <Label className="text-sm font-medium">
+        {f.label}
+        {f.required && (
+          <span className="ml-1 text-[hsl(var(--destructive))]">*</span>
+        )}
+      </Label>
+
+      {f.help && (
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          {f.help}
+        </p>
+      )}
+
+      {!beideGesetzt && (
+        <div className="flex items-start gap-3 rounded-xl border border-dashed border-border bg-muted/30 p-4">
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]">
+            <CalendarRange className="h-4 w-4" />
+          </span>
+          <div className="text-xs leading-relaxed text-muted-foreground">
+            Erst <span className="font-semibold text-foreground">Datum von</span>{" "}
+            und <span className="font-semibold text-foreground">Datum bis</span>{" "}
+            ausfüllen — dann erscheint hier eine Reihe pro Tag.
+          </div>
+        </div>
+      )}
+
+      {beideGesetzt && !rangeOk && (
+        <div className="rounded-xl border border-[hsl(var(--warning)/0.4)] bg-[hsl(var(--warning)/0.06)] px-4 py-3 text-xs text-muted-foreground">
+          <span className="font-semibold text-[hsl(var(--warning))]">
+            Hinweis:
+          </span>{" "}
+          &bdquo;Bis&ldquo;-Datum liegt vor &bdquo;Von&ldquo;-Datum.
+        </div>
+      )}
+
+      {rangeOk && langerRange && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[hsl(var(--brand-pink)/0.3)] bg-[hsl(var(--brand-pink)/0.06)] px-4 py-3 text-xs">
+          <span className="text-muted-foreground">
+            Längerer Zeitraum ({tage.length} Tage). Pro Tag eintragen oder
+            pauschal?
+          </span>
+          <button
+            type="button"
+            onClick={() => setPauschal((p) => !p)}
+            className="rounded-full border border-[hsl(var(--brand-pink)/0.4)] bg-background px-3 py-1 font-semibold text-[hsl(var(--brand-pink))] transition-colors hover:bg-[hsl(var(--brand-pink)/0.08)]"
+          >
+            {pauschal ? "Pro Tag eintragen" : "Pauschal eintragen"}
+          </button>
+        </div>
+      )}
+
+      {rangeOk && pauschal && (
+        <div className="rounded-xl border border-border bg-card p-4">
+          <Label
+            htmlFor={`${f.name}__pauschal`}
+            className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+          >
+            Vertretung pauschal
+          </Label>
+          <Input
+            id={`${f.name}__pauschal`}
+            name={`${f.name}__pauschal`}
+            type="text"
+            placeholder="z.B. Tom übernimmt alle Schichten"
+            className="mt-2 h-11 rounded-lg px-3.5"
+          />
+        </div>
+      )}
+
+      {rangeOk && !pauschal && (
+        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+          {tage.map((tag) => (
+            <li
+              key={tag}
+              className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:gap-4"
+            >
+              <div className="flex items-center gap-2 sm:w-32 sm:shrink-0">
+                <span className="rounded-full bg-[hsl(var(--brand-pink)/0.12)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+                  {wochentagKurz(tag)}
+                </span>
+                <span className="text-sm font-medium tabular-nums">
+                  {formatDatum(tag)}
+                </span>
+              </div>
+              <Input
+                name={`${f.name}__${tag}`}
+                type="text"
+                placeholder="Vertretung (Name) — leer wenn noch unklar"
+                className="h-10 flex-1 rounded-lg px-3.5"
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {error && (
+        <p className="text-xs font-medium text-[hsl(var(--destructive))]">
+          {error}
+        </p>
+      )}
+    </div>
+  );
 }
