@@ -5,6 +5,7 @@ import { StatusPill } from "@/components/admin/StatusPill";
 import { requireRole } from "@/lib/auth";
 import {
   istFileWert,
+  istVertretungsPlan,
   ladeSubmission,
   ladeTemplate,
   STATUS_LABEL,
@@ -12,6 +13,7 @@ import {
 } from "@/lib/formulare";
 import { formatDatum } from "@/lib/format";
 import { DownloadLink } from "@/components/formulare/DownloadLink";
+import { VertretungsPlanTabelle } from "@/components/formulare/VertretungsPlanTabelle";
 import { submissionStatusSetzen } from "../../actions";
 
 function StatusBadge({ status }: { status: SubmissionStatus }) {
@@ -71,13 +73,20 @@ export default async function EingangsDetailPage({
           {(tpl?.fields ?? []).map((f) => {
             const wert = s.data[f.name];
             const istDatei = f.type === "file" || istFileWert(wert);
+            const istPlan =
+              f.type === "vertretungs_plan" && istVertretungsPlan(wert);
             return (
-              <div key={f.name}>
+              <div
+                key={f.name}
+                className={istPlan ? "sm:col-span-2" : undefined}
+              >
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   {f.label}
                 </dt>
                 <dd className="mt-1 break-words text-[13px] font-medium">
-                  {istDatei ? (
+                  {istPlan ? (
+                    <VertretungsPlanTabelle eintraege={wert} />
+                  ) : istDatei ? (
                     istFileWert(wert) ? (
                       <DownloadLink wert={wert} />
                     ) : (
