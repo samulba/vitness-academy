@@ -451,6 +451,15 @@
     }
   }
 
+  /* Globaler Schutz vor versehentlichem Horizontal-Scroll auf Mobile.
+   * Wenn irgendein Child intrinsisch breiter wird als der Viewport
+   * (z.B. lange Wortketten, fixe Pixel-Breiten in Mock-Visuals),
+   * wird er clean geclippt statt eine Sideways-Scrollbar auszuloesen. */
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
   /* Reveal-Klassen (gesteuert vom Reveal-Component) */
   .reveal-init {
     opacity: 0;
