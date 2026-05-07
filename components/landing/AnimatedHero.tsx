@@ -122,20 +122,9 @@ export function AnimatedHero() {
         }}
       />
 
-      {/* Right-Side-Decorator: vertikale Linie mit Marker-Punkten */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute right-12 top-1/2 hidden -translate-y-1/2 flex-col items-center gap-3 text-[10px] font-mono uppercase tracking-[0.2em] text-[hsl(var(--brand-cream)/0.3)] xl:flex 2xl:right-20"
-      >
-        <span>01</span>
-        <span className="h-12 w-px bg-[hsl(var(--brand-cream)/0.18)]" />
-        <span className="h-2 w-2 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_12px_hsl(var(--primary))]" />
-        <span className="h-24 w-px bg-[hsl(var(--brand-cream)/0.18)]" />
-        <span>04</span>
-      </div>
 
       {/* === Inhalt === */}
-      <div className="relative z-10 flex flex-1 flex-col px-6 pt-28 sm:pt-32 lg:px-12 lg:pt-56 2xl:px-20">
+      <div className="relative z-10 flex flex-1 flex-col px-6 pt-28 sm:pt-32 lg:px-12 lg:pt-44 2xl:px-20">
         {/* Eyebrow */}
         <div className="word-reveal">
           <span
@@ -146,6 +135,10 @@ export function AnimatedHero() {
             Vitness Crew · Onboarding
           </span>
         </div>
+
+        {/* Zwei-Spalten-Layout auf lg+: Headline links, Preview-Card rechts */}
+        <div className="lg:grid lg:grid-cols-12 lg:items-center lg:gap-12">
+          <div className="lg:col-span-7">
 
         {/* Headline */}
         <h1 className="mt-8 max-w-[16ch] text-balance font-semibold leading-[0.92] tracking-[-0.04em] text-[clamp(2.75rem,11vw,8.75rem)] sm:mt-12">
@@ -227,10 +220,10 @@ export function AnimatedHero() {
           >
             <Link
               href="/login"
-              className="group inline-flex items-center justify-center gap-3 rounded-full bg-[hsl(var(--primary))] px-8 py-4 text-base font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.02]"
+              className="group inline-flex items-center justify-center gap-3 rounded-full bg-[hsl(var(--primary))] px-8 py-4 text-base font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.55)] transition-all duration-200 hover:bg-[hsl(var(--primary)/0.9)] hover:shadow-[0_16px_40px_-10px_hsl(var(--primary)/0.7)]"
             >
               Anmelden
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
             <a
               href="#story"
@@ -238,6 +231,13 @@ export function AnimatedHero() {
             >
               Wie das hier funktioniert ↓
             </a>
+          </div>
+        </div>
+          </div>
+
+          {/* Rechte Spalte: Floating Preview-Card mit Tilt */}
+          <div className="hidden lg:col-span-5 lg:block">
+            <HeroPreviewCard />
           </div>
         </div>
 
@@ -304,5 +304,182 @@ export function AnimatedHero() {
         }
       `}</style>
     </section>
+  );
+}
+
+/* -------------------------------------------------------------------- */
+/* HeroPreviewCard - schwebende Preview-Card mit Cursor-Tilt             */
+/* -------------------------------------------------------------------- */
+
+function HeroPreviewCard() {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Cursor-Tilt: berechnet rotateX/rotateY basierend auf Mausposition
+  // relativ zur Card. Smooth via lerp + requestAnimationFrame.
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let targetRX = 0;
+    let targetRY = 0;
+    let currentRX = 0;
+    let currentRY = 0;
+    let raf = 0;
+    let active = false;
+
+    function tick() {
+      currentRX += (targetRX - currentRX) * 0.12;
+      currentRY += (targetRY - currentRY) * 0.12;
+      card!.style.transform = `perspective(1200px) rotateX(${currentRX}deg) rotateY(${currentRY}deg)`;
+      raf = requestAnimationFrame(tick);
+    }
+
+    function onMove(e: PointerEvent) {
+      const rect = card!.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      // Max ~7deg Tilt, mit Mass an Distanz zur Card-Mitte
+      targetRY = ((e.clientX - cx) / rect.width) * 14;
+      targetRX = -((e.clientY - cy) / rect.height) * 14;
+      if (!active) {
+        active = true;
+        raf = requestAnimationFrame(tick);
+      }
+    }
+
+    function onLeave() {
+      targetRX = 0;
+      targetRY = 0;
+      // Tick laeuft weiter bis Position bei 0/0 ist, dann stoppt
+      // sich's (currentRX/RY werden ~0 dank lerp)
+    }
+
+    // Auf das Section-Element hoeren damit Card auch bei
+    // Cursor-Bewegung "ueber Hero" reagiert, nicht nur direkt drueber
+    const section = card.closest("section");
+    if (!section) return;
+
+    section.addEventListener("pointermove", onMove);
+    section.addEventListener("pointerleave", onLeave);
+
+    return () => {
+      section.removeEventListener("pointermove", onMove);
+      section.removeEventListener("pointerleave", onLeave);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return (
+    <div
+      className="word-reveal"
+      style={{ animationDelay: "1500ms", perspective: "1200px" }}
+    >
+      <div
+        ref={cardRef}
+        className="hero-preview-card relative will-change-transform"
+        style={{ transformStyle: "preserve-3d" }}
+      >
+        {/* Glow hinter der Card */}
+        <div
+          aria-hidden
+          className="absolute -inset-6 -z-10 rounded-[2.5rem] opacity-50 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(closest-side, hsl(var(--primary) / 0.5), transparent)",
+          }}
+        />
+
+        <div className="rounded-2xl border border-white/12 bg-[hsl(var(--brand-ink)/0.7)] p-5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] backdrop-blur-xl">
+          {/* Header: Avatar + Greeting */}
+          <div className="flex items-center gap-3 border-b border-white/[0.08] pb-4">
+            <span
+              className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white shadow-[0_4px_12px_-2px_hsl(var(--primary)/0.6)]"
+              style={{
+                background:
+                  "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--brand-pink)) 100%)",
+              }}
+            >
+              LM
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-cream)/0.5)]">
+                Mein Tag
+              </p>
+              <p className="mt-0.5 text-sm font-semibold">
+                Hallo, Lisa.
+              </p>
+            </div>
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--primary)/0.5)]" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[hsl(var(--primary))]" />
+            </span>
+          </div>
+
+          {/* Stats-Pill-Row */}
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {[
+              { label: "Aufgaben", wert: "3" },
+              { label: "Anfragen", wert: "1" },
+              { label: "Lernpfad", wert: "47%" },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-2.5 py-2"
+              >
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-cream)/0.45)]">
+                  {s.label}
+                </p>
+                <p className="mt-1 text-lg font-semibold tabular-nums">
+                  {s.wert}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Aktuelle Lektion */}
+          <div className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+                Theke und Empfang
+              </span>
+              <span className="text-[10px] tabular-nums text-[hsl(var(--brand-cream)/0.45)]">
+                11 / 16
+              </span>
+            </div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: "68%",
+                  background:
+                    "linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--brand-pink)) 100%)",
+                  boxShadow: "0 0 12px hsl(var(--primary) / 0.6)",
+                }}
+              />
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-white">
+                <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none">
+                  <path d="M2 6.5l2.5 2.5L10 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </span>
+              <span className="text-xs text-[hsl(var(--brand-cream)/0.7)] line-through">
+                Begrüßung am Empfang
+              </span>
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-white">
+                <span className="h-1.5 w-1.5 rounded-full bg-white" />
+              </span>
+              <span className="text-xs font-medium">Standard Check-in</span>
+              <span className="ml-auto rounded-full border border-[hsl(var(--primary))] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[hsl(var(--primary))]">
+                Jetzt
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

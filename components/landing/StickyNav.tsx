@@ -87,10 +87,10 @@ export function StickyNav() {
           <div className="flex items-center gap-2">
             <Link
               href="/login"
-              className="group hidden items-center gap-1.5 rounded-full bg-[hsl(var(--primary))] px-4 py-2 text-sm font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.02] sm:inline-flex"
+              className="group hidden items-center gap-1.5 rounded-full bg-[hsl(var(--primary))] px-4 py-2 text-sm font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_4px_14px_-4px_hsl(var(--primary)/0.5)] transition-all duration-200 hover:bg-[hsl(var(--primary)/0.9)] hover:shadow-[0_10px_30px_-8px_hsl(var(--primary)/0.6)] sm:inline-flex"
             >
               Anmelden
-              <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+              <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
 
             {/* Mobile-Menue-Button */}
