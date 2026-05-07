@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { ArrowRight, Smartphone, Sparkles, Clock } from "lucide-react";
 
 const HEAD_LINES: string[][] = [
@@ -16,9 +17,77 @@ const FEATURE_PILLS = [
 
 export function AnimatedHero() {
   let wordIdx = 0;
+  const sectionRef = useRef<HTMLElement>(null);
+  const spotlightRef = useRef<HTMLDivElement>(null);
+
+  // Mouse-Spotlight: ein Magenta-Light folgt der Cursor-Position
+  // sanft via requestAnimationFrame + lerp. CSS-Custom-Properties
+  // damit kein React-Re-Render bei jeder Mausbewegung.
+  useEffect(() => {
+    const section = sectionRef.current;
+    const spotlight = spotlightRef.current;
+    if (!section || !spotlight) return;
+
+    // Reduced-Motion respektieren
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let targetX = 50;
+    let targetY = 50;
+    let currentX = 50;
+    let currentY = 50;
+    let active = false;
+    let raf = 0;
+
+    function tick() {
+      // Lerp fuer smoothes Folgen (15% Schritt pro Frame)
+      currentX += (targetX - currentX) * 0.15;
+      currentY += (targetY - currentY) * 0.15;
+      spotlight!.style.setProperty("--mx", `${currentX}%`);
+      spotlight!.style.setProperty("--my", `${currentY}%`);
+      raf = requestAnimationFrame(tick);
+    }
+
+    function onMove(e: PointerEvent) {
+      const rect = section!.getBoundingClientRect();
+      targetX = ((e.clientX - rect.left) / rect.width) * 100;
+      targetY = ((e.clientY - rect.top) / rect.height) * 100;
+      if (!active) {
+        active = true;
+        spotlight!.style.opacity = "1";
+        raf = requestAnimationFrame(tick);
+      }
+    }
+
+    function onLeave() {
+      spotlight!.style.opacity = "0";
+      active = false;
+      cancelAnimationFrame(raf);
+    }
+
+    section.addEventListener("pointermove", onMove);
+    section.addEventListener("pointerleave", onLeave);
+    return () => {
+      section.removeEventListener("pointermove", onMove);
+      section.removeEventListener("pointerleave", onLeave);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
 
   return (
-    <section className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
+    <section
+      ref={sectionRef}
+      className="group/hero relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]"
+    >
+      {/* Mouse-Spotlight (nur Desktop, hidden auf Touch via media-Query unten) */}
+      <div
+        ref={spotlightRef}
+        aria-hidden
+        className="hero-spotlight pointer-events-none absolute inset-0 z-[1] opacity-0 transition-opacity duration-300"
+        style={{
+          background:
+            "radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), hsl(var(--primary) / 0.18), transparent 70%)",
+        }}
+      />
       {/* Glow oben rechts (Brand-Pink) */}
       <div
         aria-hidden
@@ -226,6 +295,12 @@ export function AnimatedHero() {
         }
         @media (prefers-reduced-motion: reduce) {
           .hero-glow-1, .hero-glow-2 { animation: none; }
+        }
+        /* Spotlight nur auf Desktop (Hover-faehige Pointer) — auf
+         * Touch-Devices kein Cursor → keinen Sinn die Mouse-Effekte
+         * mitzuladen. */
+        @media (hover: none) {
+          .hero-spotlight { display: none; }
         }
       `}</style>
     </section>

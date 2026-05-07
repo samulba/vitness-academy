@@ -90,7 +90,7 @@ export function StickyNav() {
               className="group hidden items-center gap-1.5 rounded-full bg-[hsl(var(--primary))] px-4 py-2 text-sm font-semibold text-[hsl(var(--primary-foreground))] transition-transform hover:scale-[1.02] sm:inline-flex"
             >
               Anmelden
-              <ArrowRight className="h-3.5 w-3.5 -translate-x-0.5 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+              <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
             </Link>
 
             {/* Mobile-Menue-Button */}
