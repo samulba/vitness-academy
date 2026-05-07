@@ -449,32 +449,42 @@ function VertretungsPlanRenderer({
   }
 
   // Date-Inputs der Form lesen (uncontrolled-Pattern via DOM).
+  // Nutzt querySelector statt form.elements.namedItem (robuster) und
+  // Listener auf Form-Level (Capture-Phase) damit auch dynamisch
+  // erscheinende Inputs zuverlaessig gehoert werden.
   useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
     const form = wrapper.closest("form");
     if (!form) return;
 
-    const fromInput = form.elements.namedItem(fromName) as
-      | HTMLInputElement
-      | null;
-    const toInput = form.elements.namedItem(toName) as HTMLInputElement | null;
-    if (!fromInput || !toInput) return;
-
     function lesen() {
-      setVon(fromInput!.value || "");
-      setBis(toInput!.value || "");
+      const fromEl = form!.querySelector<HTMLInputElement>(
+        `input[name="${fromName}"]`,
+      );
+      const toEl = form!.querySelector<HTMLInputElement>(
+        `input[name="${toName}"]`,
+      );
+      setVon(fromEl?.value ?? "");
+      setBis(toEl?.value ?? "");
     }
+
     lesen();
-    fromInput.addEventListener("change", lesen);
-    fromInput.addEventListener("input", lesen);
-    toInput.addEventListener("change", lesen);
-    toInput.addEventListener("input", lesen);
+
+    // Form-Level-Listener (Capture-Phase) – feuert fuer JEDES
+    // change/input-Event eines Form-Childs. Filter nicht noetig,
+    // lesen() ist schnell und idempotent.
+    form.addEventListener("change", lesen, true);
+    form.addEventListener("input", lesen, true);
+
+    // Fallback-Polling damit sich auch dann updated, wenn ein Browser
+    // mal kein change-Event feuert (Safari + Picker-Cancel).
+    const interval = window.setInterval(lesen, 500);
+
     return () => {
-      fromInput.removeEventListener("change", lesen);
-      fromInput.removeEventListener("input", lesen);
-      toInput.removeEventListener("change", lesen);
-      toInput.removeEventListener("input", lesen);
+      form.removeEventListener("change", lesen, true);
+      form.removeEventListener("input", lesen, true);
+      window.clearInterval(interval);
     };
   }, [fromName, toName]);
 
