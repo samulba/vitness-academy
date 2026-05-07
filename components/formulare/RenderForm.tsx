@@ -385,6 +385,17 @@ function DateInputMitLoeschen({ field }: { field: FormField }) {
 }
 
 const PAUSCHAL_THRESHOLD_TAGE = 30;
+const ARBEITSTAGE_STORAGE_KEY = "vitness:arbeitstage_wochentage";
+const DEFAULT_ARBEITSTAGE: number[] = [1, 2, 3, 4, 5]; // Mo-Fr
+const WOCHENTAGE_LABELS: Array<{ idx: number; label: string }> = [
+  { idx: 1, label: "Mo" },
+  { idx: 2, label: "Di" },
+  { idx: 3, label: "Mi" },
+  { idx: 4, label: "Do" },
+  { idx: 5, label: "Fr" },
+  { idx: 6, label: "Sa" },
+  { idx: 0, label: "So" },
+];
 
 function VertretungsPlanRenderer({
   field: f,
@@ -400,10 +411,74 @@ function VertretungsPlanRenderer({
   const [von, setVon] = useState("");
   const [bis, setBis] = useState("");
   const [pauschal, setPauschal] = useState(false);
+  // Wochentage an denen ich normalerweise arbeite (0=So..6=Sa).
+  // Persistiert in localStorage damit User es nicht jedes Mal neu setzt.
+  const [arbeitsWochentage, setArbeitsWochentage] = useState<Set<number>>(
+    () => new Set(DEFAULT_ARBEITSTAGE),
+  );
+  // Per-Tag explizite Overrides ("frei" oder "arbeit") wenn der User
+  // einen einzelnen Tag abweichend vom Wochentag-Default markiert.
+  const [overrides, setOverrides] = useState<
+    Record<string, "frei" | "arbeit">
+  >({});
 
-  // Liest die aktuellen Werte der zwei date-Inputs aus der Form
-  // und re-rendert wenn sie sich aendern. Uncontrolled-Pattern:
-  // wir greifen aktiv via querySelector statt Lift-State-Refactor.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(ARBEITSTAGE_STORAGE_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr) && arr.every((n) => typeof n === "number")) {
+          setArbeitsWochentage(new Set(arr));
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  function toggleWochentag(wt: number) {
+    setArbeitsWochentage((prev) => {
+      const next = new Set(prev);
+      if (next.has(wt)) next.delete(wt);
+      else next.add(wt);
+      try {
+        window.localStorage.setItem(
+          ARBEITSTAGE_STORAGE_KEY,
+          JSON.stringify([...next].sort()),
+        );
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }
+
+  function istFrei(tag: string): boolean {
+    const o = overrides[tag];
+    if (o === "frei") return true;
+    if (o === "arbeit") return false;
+    const wt = new Date(`${tag}T00:00:00Z`).getUTCDay();
+    return !arbeitsWochentage.has(wt);
+  }
+
+  function toggleTagFrei(tag: string) {
+    const aktuellFrei = istFrei(tag);
+    const wt = new Date(`${tag}T00:00:00Z`).getUTCDay();
+    const wtDefaultFrei = !arbeitsWochentage.has(wt);
+    const neuFrei = !aktuellFrei;
+    setOverrides((prev) => {
+      const next = { ...prev };
+      if (neuFrei === wtDefaultFrei) {
+        delete next[tag]; // zurueck zum Wochentag-Default
+      } else {
+        next[tag] = neuFrei ? "frei" : "arbeit";
+      }
+      return next;
+    });
+  }
+
+  // Date-Inputs der Form lesen (uncontrolled-Pattern via DOM).
   useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
@@ -437,6 +512,11 @@ function VertretungsPlanRenderer({
   const beideGesetzt = von.length > 0 && bis.length > 0;
   const rangeOk = tage.length > 0;
   const langerRange = tage.length > PAUSCHAL_THRESHOLD_TAGE;
+  const arbeitstageImRange = useMemo(
+    () => tage.filter((t) => !istFrei(t)).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tage, arbeitsWochentage, overrides],
+  );
 
   return (
     <div ref={wrapperRef} className="space-y-2">
@@ -475,10 +555,43 @@ function VertretungsPlanRenderer({
         </div>
       )}
 
+      {rangeOk && (
+        <div className="rounded-xl border border-border bg-muted/20 p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Ich arbeite normalerweise an diesen Tagen
+          </p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            Tage die du nicht aktivierst, gelten als &bdquo;Arbeite ich
+            nicht&ldquo; — keine Vertretung nötig.
+          </p>
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {WOCHENTAGE_LABELS.map((w) => {
+              const aktiv = arbeitsWochentage.has(w.idx);
+              return (
+                <button
+                  key={w.idx}
+                  type="button"
+                  onClick={() => toggleWochentag(w.idx)}
+                  className={cn(
+                    "h-8 w-10 rounded-md border text-xs font-semibold transition-colors",
+                    aktiv
+                      ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))]"
+                      : "border-border bg-background text-muted-foreground hover:bg-muted",
+                  )}
+                >
+                  {w.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {rangeOk && langerRange && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[hsl(var(--brand-pink)/0.3)] bg-[hsl(var(--brand-pink)/0.06)] px-4 py-3 text-xs">
           <span className="text-muted-foreground">
-            Längerer Zeitraum ({tage.length} Tage). Pro Tag eintragen oder
+            Längerer Zeitraum ({tage.length} Tage, davon{" "}
+            {arbeitstageImRange} Arbeitstage). Pro Tag eintragen oder
             pauschal?
           </span>
           <button
@@ -510,29 +623,87 @@ function VertretungsPlanRenderer({
       )}
 
       {rangeOk && !pauschal && (
-        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
-          {tage.map((tag) => (
-            <li
-              key={tag}
-              className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:gap-4"
-            >
-              <div className="flex items-center gap-2 sm:w-32 sm:shrink-0">
-                <span className="rounded-full bg-[hsl(var(--brand-pink)/0.12)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
-                  {wochentagKurz(tag)}
-                </span>
-                <span className="text-sm font-medium tabular-nums">
-                  {formatDatum(tag)}
-                </span>
-              </div>
-              <Input
-                name={`${f.name}__${tag}`}
-                type="text"
-                placeholder="Vertretung (Name) — leer wenn noch unklar"
-                className="h-10 flex-1 rounded-lg px-3.5"
-              />
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+            {tage.map((tag) => {
+              const frei = istFrei(tag);
+              return (
+                <li
+                  key={tag}
+                  className={cn(
+                    "flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:gap-4",
+                    frei && "bg-muted/30",
+                  )}
+                >
+                  <div className="flex items-center gap-2 sm:w-32 sm:shrink-0">
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                        frei
+                          ? "bg-muted text-muted-foreground"
+                          : "bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]",
+                      )}
+                    >
+                      {wochentagKurz(tag)}
+                    </span>
+                    <span
+                      className={cn(
+                        "text-sm tabular-nums",
+                        frei
+                          ? "text-muted-foreground"
+                          : "font-medium",
+                      )}
+                    >
+                      {formatDatum(tag)}
+                    </span>
+                  </div>
+
+                  {frei ? (
+                    <>
+                      <input
+                        type="hidden"
+                        name={`${f.name}__${tag}__frei`}
+                        value="on"
+                      />
+                      <span className="flex-1 text-xs italic text-muted-foreground">
+                        Arbeite ich nicht
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleTagFrei(tag)}
+                        className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        Doch arbeiten?
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Input
+                        name={`${f.name}__${tag}`}
+                        type="text"
+                        placeholder="Vertretung (Name) — leer wenn noch unklar"
+                        className="h-10 flex-1 rounded-lg px-3.5"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => toggleTagFrei(tag)}
+                        className="shrink-0 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        Frei
+                      </button>
+                    </>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          {arbeitstageImRange === 0 && (
+            <p className="text-[11px] text-muted-foreground">
+              Hinweis: An keinem Tag im Zeitraum arbeitest du normalerweise —
+              also keine Vertretung nötig.
+            </p>
+          )}
+        </>
       )}
 
       {error && (

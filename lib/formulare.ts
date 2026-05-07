@@ -202,10 +202,11 @@ export function validiereSubmission(
     if (f.type === "vertretungs_plan") {
       // Renderer schickt entweder
       //   - einen "pauschal"-Mode: ${name}__pauschal als Single-String, oder
-      //   - eine Reihe pro Tag: ${name}__YYYY-MM-DD je leeres oder befuelltes Input.
+      //   - eine Reihe pro Tag: ${name}__YYYY-MM-DD je leeres/befuelltes
+      //     Input + optional ${name}__YYYY-MM-DD__frei als Checkbox.
       // Beides resultiert in einem strukturierten Array — pauschal als
       // ein einziger Eintrag mit tag = "" (Sentinel), Tagesreihen als
-      // sortierte Liste.
+      // sortierte Liste mit optionalem frei-Flag.
       const pauschal = formData.get(`${f.name}__pauschal`);
       if (typeof pauschal === "string" && pauschal.trim().length > 0) {
         data[f.name] = [{ tag: "", person: pauschal.trim() }];
@@ -213,17 +214,37 @@ export function validiereSubmission(
       }
       const prefix = `${f.name}__`;
       const tagRegex = /^\d{4}-\d{2}-\d{2}$/;
-      const eintraege: { tag: string; person: string }[] = [];
+      const freiSet = new Set<string>();
+      const personMap = new Map<string, string>();
       for (const [key, value] of formData.entries()) {
         if (!key.startsWith(prefix)) continue;
-        const tag = key.slice(prefix.length);
-        if (!tagRegex.test(tag)) continue; // ignoriert __pauschal etc.
-        const person =
-          typeof value === "string" ? value.trim() : "";
-        eintraege.push({ tag, person });
+        const rest = key.slice(prefix.length);
+        if (rest.endsWith("__frei")) {
+          const tag = rest.slice(0, -"__frei".length);
+          if (tagRegex.test(tag) && value === "on") freiSet.add(tag);
+          continue;
+        }
+        if (!tagRegex.test(rest)) continue; // ignoriert __pauschal etc.
+        const person = typeof value === "string" ? value.trim() : "";
+        personMap.set(rest, person);
+      }
+      const eintraege: { tag: string; person: string; frei?: boolean }[] = [];
+      // Alle Tage die irgendeine Spur hinterlassen (text-input ODER
+      // frei-checkbox) werden gespeichert
+      const alleTage = new Set<string>([...personMap.keys(), ...freiSet]);
+      for (const tag of alleTage) {
+        const istFrei = freiSet.has(tag);
+        eintraege.push({
+          tag,
+          person: istFrei ? "" : personMap.get(tag) ?? "",
+          ...(istFrei ? { frei: true } : {}),
+        });
       }
       eintraege.sort((a, b) => a.tag.localeCompare(b.tag));
-      if (f.required && eintraege.every((e) => e.person.length === 0)) {
+      if (
+        f.required &&
+        eintraege.every((e) => e.frei || e.person.length === 0)
+      ) {
         errors[f.name] = `${f.label} muss mindestens eine Vertretung enthalten.`;
         continue;
       }

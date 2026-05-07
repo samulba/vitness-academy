@@ -52,11 +52,17 @@ export function istFileWert(v: unknown): v is FileWert {
 }
 
 /**
- * Eintrag im Vertretungs-Plan: ein Tag im Urlaubszeitraum + die
- * zugewiesene Vertretung (frei eingegebener Name; leer wenn noch
- * nicht gefunden).
+ * Eintrag im Vertretungs-Plan: ein Tag im Urlaubszeitraum.
+ *  - frei = true: Mitarbeiter:in arbeitet an dem Tag eh nicht
+ *    (z.B. Minijobler nur Samstags). Person bleibt leer.
+ *  - frei = false / undefined: Arbeitstag, person ist der Name
+ *    der Vertretung (oder leer wenn noch nicht gefunden).
  */
-export type VertretungsTag = { tag: string; person: string };
+export type VertretungsTag = {
+  tag: string;
+  person: string;
+  frei?: boolean;
+};
 
 export function istVertretungsPlan(v: unknown): v is VertretungsTag[] {
   return (

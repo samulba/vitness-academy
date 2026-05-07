@@ -40,8 +40,12 @@ export function VertretungsPlanTabelle({
     );
   }
 
-  const abgedeckt = eintraege.filter((e) => e.person.trim().length > 0).length;
-  const total = eintraege.length;
+  const arbeitstage = eintraege.filter((e) => !e.frei);
+  const abgedeckt = arbeitstage.filter(
+    (e) => e.person.trim().length > 0,
+  ).length;
+  const totalArbeit = arbeitstage.length;
+  const freiTage = eintraege.length - totalArbeit;
 
   return (
     <div className="space-y-2">
@@ -49,18 +53,37 @@ export function VertretungsPlanTabelle({
         {eintraege.map((e) => (
           <li
             key={e.tag}
-            className="flex flex-col gap-1 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-4"
+            className={
+              "flex flex-col gap-1 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-4 " +
+              (e.frei ? "bg-muted/30" : "")
+            }
           >
             <div className="flex items-center gap-2 sm:w-32 sm:shrink-0">
-              <span className="rounded-full bg-[hsl(var(--brand-pink)/0.12)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+              <span
+                className={
+                  "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider " +
+                  (e.frei
+                    ? "bg-muted text-muted-foreground"
+                    : "bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]")
+                }
+              >
                 {wochentagKurz(e.tag)}
               </span>
-              <span className="text-sm font-medium tabular-nums">
+              <span
+                className={
+                  "text-sm tabular-nums " +
+                  (e.frei ? "text-muted-foreground" : "font-medium")
+                }
+              >
                 {formatDatum(e.tag)}
               </span>
             </div>
             <div className="flex-1">
-              {e.person.trim().length > 0 ? (
+              {e.frei ? (
+                <span className="text-xs italic text-muted-foreground">
+                  Arbeitet nicht an diesem Tag
+                </span>
+              ) : e.person.trim().length > 0 ? (
                 <span className="text-sm font-medium">{e.person}</span>
               ) : (
                 <span className="text-sm italic text-muted-foreground">
@@ -72,16 +95,26 @@ export function VertretungsPlanTabelle({
         ))}
       </ul>
       <p className="text-[11px] text-muted-foreground">
-        <span
-          className={
-            abgedeckt === total
-              ? "font-semibold text-[hsl(var(--success))]"
-              : "font-semibold text-[hsl(var(--brand-pink))]"
-          }
-        >
-          {abgedeckt} / {total}
-        </span>{" "}
-        {total === 1 ? "Tag" : "Tage"} mit Vertretung abgedeckt
+        {totalArbeit === 0 ? (
+          <span className="font-semibold text-[hsl(var(--success))]">
+            Keine Arbeitstage betroffen — keine Vertretung nötig.
+          </span>
+        ) : (
+          <>
+            <span
+              className={
+                abgedeckt === totalArbeit
+                  ? "font-semibold text-[hsl(var(--success))]"
+                  : "font-semibold text-[hsl(var(--brand-pink))]"
+              }
+            >
+              {abgedeckt} / {totalArbeit}
+            </span>{" "}
+            {totalArbeit === 1 ? "Arbeitstag" : "Arbeitstage"} mit Vertretung
+            abgedeckt
+            {freiTage > 0 && ` · ${freiTage} freie ${freiTage === 1 ? "Tag" : "Tage"}`}
+          </>
+        )}
       </p>
     </div>
   );
