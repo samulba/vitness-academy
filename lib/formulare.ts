@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 // Server-Code kann weiter aus @/lib/formulare importieren wie bisher.
 export {
   istFileWert,
+  istVertretungsPlan,
   STATUS_LABEL,
   type FieldType,
   type FileWert,
@@ -12,6 +13,7 @@ export {
   type Submission,
   type SubmissionStatus,
   type Template,
+  type VertretungsTag,
 } from "@/lib/formulare-types";
 
 import type {
@@ -195,6 +197,37 @@ export function validiereSubmission(
       if (f.required && istLeer) {
         errors[f.name] = `${f.label} ist Pflicht.`;
       }
+      continue;
+    }
+    if (f.type === "vertretungs_plan") {
+      // Renderer schickt entweder
+      //   - einen "pauschal"-Mode: ${name}__pauschal als Single-String, oder
+      //   - eine Reihe pro Tag: ${name}__YYYY-MM-DD je leeres oder befuelltes Input.
+      // Beides resultiert in einem strukturierten Array — pauschal als
+      // ein einziger Eintrag mit tag = "" (Sentinel), Tagesreihen als
+      // sortierte Liste.
+      const pauschal = formData.get(`${f.name}__pauschal`);
+      if (typeof pauschal === "string" && pauschal.trim().length > 0) {
+        data[f.name] = [{ tag: "", person: pauschal.trim() }];
+        continue;
+      }
+      const prefix = `${f.name}__`;
+      const tagRegex = /^\d{4}-\d{2}-\d{2}$/;
+      const eintraege: { tag: string; person: string }[] = [];
+      for (const [key, value] of formData.entries()) {
+        if (!key.startsWith(prefix)) continue;
+        const tag = key.slice(prefix.length);
+        if (!tagRegex.test(tag)) continue; // ignoriert __pauschal etc.
+        const person =
+          typeof value === "string" ? value.trim() : "";
+        eintraege.push({ tag, person });
+      }
+      eintraege.sort((a, b) => a.tag.localeCompare(b.tag));
+      if (f.required && eintraege.every((e) => e.person.length === 0)) {
+        errors[f.name] = `${f.label} muss mindestens eine Vertretung enthalten.`;
+        continue;
+      }
+      data[f.name] = eintraege;
       continue;
     }
     const raw = formData.get(f.name);

@@ -14,7 +14,8 @@ export type FieldType =
   | "select"
   | "checkbox"
   | "radio"
-  | "file";
+  | "file"
+  | "vertretungs_plan";
 
 export type FormField = {
   name: string;
@@ -26,6 +27,12 @@ export type FormField = {
   options?: string[];
   accept?: string;
   max_size_mb?: number;
+  /**
+   * Nur fuer type "vertretungs_plan": Namen der zwei date-Felder
+   * im selben Template, deren Range die Tagesreihen erzeugt.
+   * Default: { from: "von", to: "bis" }.
+   */
+  linked_dates?: { from: string; to: string };
 };
 
 export type FileWert = {
@@ -41,6 +48,26 @@ export function istFileWert(v: unknown): v is FileWert {
     v !== null &&
     "path" in v &&
     typeof (v as FileWert).path === "string"
+  );
+}
+
+/**
+ * Eintrag im Vertretungs-Plan: ein Tag im Urlaubszeitraum + die
+ * zugewiesene Vertretung (frei eingegebener Name; leer wenn noch
+ * nicht gefunden).
+ */
+export type VertretungsTag = { tag: string; person: string };
+
+export function istVertretungsPlan(v: unknown): v is VertretungsTag[] {
+  return (
+    Array.isArray(v) &&
+    v.every(
+      (e) =>
+        typeof e === "object" &&
+        e !== null &&
+        typeof (e as VertretungsTag).tag === "string" &&
+        typeof (e as VertretungsTag).person === "string",
+    )
   );
 }
 

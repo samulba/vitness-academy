@@ -16,6 +16,7 @@ const TYP_LABEL: Record<FieldType, string> = {
   radio: "Radio (Single Choice)",
   checkbox: "Checkbox (Ja/Nein)",
   file: "Datei-Upload (PDF / Bild)",
+  vertretungs_plan: "Vertretungs-Plan (pro Tag)",
 };
 
 function leeresFeld(): FormField {
