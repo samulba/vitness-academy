@@ -25,7 +25,7 @@ export default async function RootPage() {
   }
 
   return (
-    <main className="theme-dark-locked overflow-x-hidden bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
+    <main className="theme-dark-locked bg-[hsl(var(--brand-ink))] text-[hsl(var(--brand-cream))]">
       <StickyNav />
       <AnimatedHero />
       <PinnedNarrative />
@@ -45,6 +45,7 @@ function Bausteine() {
     <section
       id="bausteine"
       className="theme-light-locked scroll-mt-24 bg-[hsl(var(--brand-cream))] text-foreground"
+      style={{ overflowX: "clip" }}
     >
       <div className="mx-auto max-w-[1600px] px-6 py-24 lg:px-12 lg:py-32 2xl:px-20">
         {/* Header */}
