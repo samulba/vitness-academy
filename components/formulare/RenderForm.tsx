@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
-import { AlertCircle } from "lucide-react";
+import { useActionState, useState } from "react";
+import { AlertCircle, Check, Paperclip, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import type { FormField } from "@/lib/formulare";
 import {
   submissionAnlegen,
@@ -28,23 +29,23 @@ export function RenderForm({
   const message = state && !state.ok ? state.message : null;
 
   return (
-    <form action={runAction} className="space-y-5">
+    <form action={runAction} className="space-y-6">
       {fields.map((f) => (
         <FieldRenderer key={f.name} field={f} error={errors[f.name]} />
       ))}
 
       {message && (
-        <p className="inline-flex items-center gap-2 rounded-md bg-[hsl(var(--destructive)/0.1)] px-3 py-2 text-xs font-medium text-[hsl(var(--destructive))]">
+        <p className="inline-flex items-center gap-2 rounded-lg border border-[hsl(var(--destructive)/0.3)] bg-[hsl(var(--destructive)/0.08)] px-3 py-2 text-xs font-medium text-[hsl(var(--destructive))]">
           <AlertCircle className="h-3.5 w-3.5" />
           {message}
         </p>
       )}
 
-      <div className="flex items-center gap-3 border-t border-border pt-4">
+      <div className="flex items-center gap-3 border-t border-border pt-5">
         <Button
           type="submit"
           disabled={pending}
-          className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/0.9)]"
+          className="bg-[hsl(var(--primary))] px-6 text-[hsl(var(--primary-foreground))] shadow-[0_4px_14px_-4px_hsl(var(--primary)/0.5)] hover:bg-[hsl(var(--primary)/0.9)]"
         >
           {pending ? "Sende …" : "Absenden"}
         </Button>
@@ -61,8 +62,21 @@ function FieldRenderer({
   error?: string;
 }) {
   const required = f.required;
+
+  // Checkbox bekommt Card-Toggle-Look, NICHT die Standard Label-oben Struktur
+  if (f.type === "checkbox") {
+    return (
+      <CheckboxCard field={f} error={error} />
+    );
+  }
+
+  // File bekommt eine eigene Drop-Zone-Optik
+  if (f.type === "file") {
+    return <FileDropzone field={f} error={error} />;
+  }
+
   const labelEl = (
-    <Label htmlFor={f.name}>
+    <Label htmlFor={f.name} className="text-sm font-medium">
       {f.label}
       {required && <span className="ml-1 text-[hsl(var(--destructive))]">*</span>}
     </Label>
@@ -77,7 +91,7 @@ function FieldRenderer({
         required={required}
         placeholder={f.placeholder}
         rows={4}
-        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 shadow-sm transition-colors focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.15)]"
       />
     );
   } else if (f.type === "select") {
@@ -87,7 +101,7 @@ function FieldRenderer({
         name={f.name}
         required={required}
         defaultValue=""
-        className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+        className="h-11 w-full rounded-lg border border-input bg-background px-3.5 transition-colors focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.15)]"
       >
         <option value="">— bitte wählen —</option>
         {(f.options ?? []).map((o) => (
@@ -99,11 +113,11 @@ function FieldRenderer({
     );
   } else if (f.type === "radio") {
     input = (
-      <div className="space-y-1.5">
+      <div className="grid gap-2">
         {(f.options ?? []).map((o) => (
           <label
             key={o}
-            className="flex cursor-pointer items-center gap-2 text-sm"
+            className="group flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5 transition-colors has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--primary)/0.06)] hover:border-[hsl(var(--primary)/0.4)]"
           >
             <input
               type="radio"
@@ -112,22 +126,10 @@ function FieldRenderer({
               required={required}
               className="h-4 w-4 accent-[hsl(var(--primary))]"
             />
-            <span>{o}</span>
+            <span className="text-sm">{o}</span>
           </label>
         ))}
       </div>
-    );
-  } else if (f.type === "checkbox") {
-    input = (
-      <label className="flex cursor-pointer items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          id={f.name}
-          name={f.name}
-          className="h-4 w-4 accent-[hsl(var(--primary))]"
-        />
-        <span>Ja</span>
-      </label>
     );
   } else if (f.type === "date") {
     input = (
@@ -137,6 +139,7 @@ function FieldRenderer({
         type="date"
         required={required}
         placeholder={f.placeholder}
+        className="h-11 rounded-lg px-3.5 transition-colors focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.15)]"
       />
     );
   } else if (f.type === "number") {
@@ -147,25 +150,8 @@ function FieldRenderer({
         type="number"
         required={required}
         placeholder={f.placeholder}
+        className="h-11 rounded-lg px-3.5"
       />
-    );
-  } else if (f.type === "file") {
-    const accept = f.accept ?? "application/pdf,image/jpeg,image/png,image/webp";
-    const maxMb = f.max_size_mb ?? 5;
-    input = (
-      <div className="space-y-1">
-        <input
-          id={f.name}
-          name={f.name}
-          type="file"
-          required={required}
-          accept={accept}
-          className="block w-full cursor-pointer rounded-md border border-input bg-background text-sm shadow-sm file:mr-3 file:cursor-pointer file:rounded-l-md file:border-0 file:border-r file:border-input file:bg-muted/40 file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-muted"
-        />
-        <p className="text-[11px] text-muted-foreground">
-          Max. {maxMb} MB · Erlaubt: {accept.replace(/application\//g, "")}
-        </p>
-      </div>
     );
   } else {
     input = (
@@ -175,6 +161,7 @@ function FieldRenderer({
         type="text"
         required={required}
         placeholder={f.placeholder}
+        className="h-11 rounded-lg px-3.5 transition-colors focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.15)]"
       />
     );
   }
@@ -184,7 +171,7 @@ function FieldRenderer({
       {labelEl}
       {input}
       {f.help && (
-        <p className="text-xs text-muted-foreground">{f.help}</p>
+        <p className="text-xs leading-relaxed text-muted-foreground">{f.help}</p>
       )}
       {error && (
         <p className="text-xs font-medium text-[hsl(var(--destructive))]">
@@ -193,4 +180,148 @@ function FieldRenderer({
       )}
     </div>
   );
+}
+
+function CheckboxCard({
+  field: f,
+  error,
+}: {
+  field: FormField;
+  error?: string;
+}) {
+  return (
+    <div className="space-y-1">
+      <label
+        htmlFor={f.name}
+        className="group flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card p-4 transition-colors has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--primary)/0.05)] hover:border-[hsl(var(--primary)/0.4)]"
+      >
+        <span className="relative mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 border-input bg-background transition-colors group-has-[:checked]:border-[hsl(var(--primary))] group-has-[:checked]:bg-[hsl(var(--primary))]">
+          <input
+            type="checkbox"
+            id={f.name}
+            name={f.name}
+            className="absolute inset-0 cursor-pointer opacity-0"
+          />
+          <Check className="h-3 w-3 text-white opacity-0 transition-opacity group-has-[:checked]:opacity-100" strokeWidth={3} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium leading-tight">{f.label}</p>
+          {f.help && (
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {f.help}
+            </p>
+          )}
+        </div>
+      </label>
+      {error && (
+        <p className="text-xs font-medium text-[hsl(var(--destructive))]">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function FileDropzone({
+  field: f,
+  error,
+}: {
+  field: FormField;
+  error?: string;
+}) {
+  const accept = f.accept ?? "application/pdf,image/jpeg,image/png,image/webp";
+  const maxMb = f.max_size_mb ?? 5;
+  const [datei, setDatei] = useState<File | null>(null);
+
+  const acceptKurz = accept
+    .replace(/application\/pdf/g, "PDF")
+    .replace(/image\/jpeg/g, "JPG")
+    .replace(/image\/png/g, "PNG")
+    .replace(/image\/webp/g, "WEBP")
+    .replace(/image\//g, "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={f.name} className="text-sm font-medium">
+        {f.label}
+        {f.required && (
+          <span className="ml-1 text-[hsl(var(--destructive))]">*</span>
+        )}
+      </Label>
+
+      <label
+        htmlFor={f.name}
+        className={cn(
+          "group relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-card px-4 py-6 text-center transition-colors hover:border-[hsl(var(--primary)/0.5)] hover:bg-[hsl(var(--primary)/0.03)]",
+          datei ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.04)]" : "border-input",
+        )}
+      >
+        <input
+          id={f.name}
+          name={f.name}
+          type="file"
+          required={f.required}
+          accept={accept}
+          onChange={(e) => setDatei(e.target.files?.[0] ?? null)}
+          className="absolute inset-0 cursor-pointer opacity-0"
+        />
+        {datei ? (
+          <>
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[hsl(var(--primary)/0.12)] text-[hsl(var(--primary))]">
+              <Paperclip className="h-4 w-4" />
+            </span>
+            <p className="text-sm font-semibold leading-tight">{datei.name}</p>
+            <p className="text-[11px] text-muted-foreground">
+              {formatBytes(datei.size)} · {datei.type || "Datei"}
+            </p>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setDatei(null);
+                const inp = document.getElementById(f.name) as HTMLInputElement | null;
+                if (inp) inp.value = "";
+              }}
+              className="mt-1 inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-[hsl(var(--destructive)/0.4)] hover:text-[hsl(var(--destructive))]"
+            >
+              <X className="h-3 w-3" />
+              Entfernen
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors group-hover:bg-[hsl(var(--primary)/0.12)] group-hover:text-[hsl(var(--primary))]">
+              <Upload className="h-4 w-4" />
+            </span>
+            <p className="text-sm font-medium">
+              Datei wählen <span className="text-muted-foreground">oder hier ablegen</span>
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {acceptKurz} · max. {maxMb} MB
+            </p>
+          </>
+        )}
+      </label>
+
+      {f.help && (
+        <p className="text-xs leading-relaxed text-muted-foreground">{f.help}</p>
+      )}
+      {error && (
+        <p className="text-xs font-medium text-[hsl(var(--destructive))]">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
