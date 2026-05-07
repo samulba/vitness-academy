@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { useActionState, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
   CalendarPlus,
@@ -38,10 +38,41 @@ export function RenderForm({
   const errors = state && !state.ok ? state.errors ?? {} : {};
   const message = state && !state.ok ? state.message : null;
 
+  // Sammle alle Date-Field-Namen die von einem vertretungs_plan via
+  // linked_dates referenziert werden — fuer DIE muessen wir
+  // controlled-state fuehren, damit der Plan-Renderer die aktuellen
+  // Werte direkt aus React bekommt (statt unzuverlaessigem DOM-Polling).
+  const trackedDateNames = useMemo(() => {
+    const set = new Set<string>();
+    for (const f of fields) {
+      if (f.type === "vertretungs_plan") {
+        const ld = f.linked_dates ?? { from: "von", to: "bis" };
+        set.add(ld.from);
+        set.add(ld.to);
+      }
+    }
+    return set;
+  }, [fields]);
+
+  const [trackedValues, setTrackedValues] = useState<Record<string, string>>(
+    {},
+  );
+
+  function setTracked(name: string, value: string) {
+    setTrackedValues((prev) => ({ ...prev, [name]: value }));
+  }
+
   return (
     <form action={runAction} className="space-y-6">
       {fields.map((f) => (
-        <FieldRenderer key={f.name} field={f} error={errors[f.name]} />
+        <FieldRenderer
+          key={f.name}
+          field={f}
+          error={errors[f.name]}
+          trackedDateNames={trackedDateNames}
+          trackedValues={trackedValues}
+          setTracked={setTracked}
+        />
       ))}
 
       {message && (
@@ -55,7 +86,7 @@ export function RenderForm({
         <Button
           type="submit"
           disabled={pending}
-          className="bg-[hsl(var(--primary))] px-6 text-[hsl(var(--primary-foreground))] shadow-[0_4px_14px_-4px_hsl(var(--primary)/0.5)] hover:bg-[hsl(var(--primary)/0.9)]"
+          className="bg-[hsl(var(--primary))] px-6 py-2.5 text-[hsl(var(--primary-foreground))] shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.55)] transition-all hover:bg-[hsl(var(--primary)/0.9)] hover:shadow-[0_16px_40px_-10px_hsl(var(--primary)/0.7)]"
         >
           {pending ? "Sende …" : "Absenden"}
         </Button>
@@ -67,9 +98,15 @@ export function RenderForm({
 function FieldRenderer({
   field: f,
   error,
+  trackedDateNames,
+  trackedValues,
+  setTracked,
 }: {
   field: FormField;
   error?: string;
+  trackedDateNames: Set<string>;
+  trackedValues: Record<string, string>;
+  setTracked: (name: string, value: string) => void;
 }) {
   const required = f.required;
 
@@ -87,7 +124,13 @@ function FieldRenderer({
 
   // Vertretungs-Plan: pro Tag im verlinkten Datum-Range eine Reihe
   if (f.type === "vertretungs_plan") {
-    return <VertretungsPlanRenderer field={f} error={error} />;
+    return (
+      <VertretungsPlanRenderer
+        field={f}
+        error={error}
+        trackedValues={trackedValues}
+      />
+    );
   }
 
   const labelEl = (
@@ -132,33 +175,59 @@ function FieldRenderer({
         {(f.options ?? []).map((o) => (
           <label
             key={o}
-            className="group flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5 transition-colors has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--primary)/0.06)] hover:border-[hsl(var(--primary)/0.4)]"
+            className="group relative flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-all has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--primary)/0.05)] has-[:checked]:shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.25)] hover:border-[hsl(var(--primary)/0.4)]"
           >
             <input
               type="radio"
               name={f.name}
               value={o}
               required={required}
-              className="h-4 w-4 accent-[hsl(var(--primary))]"
+              className="peer sr-only"
             />
-            <span className="text-sm">{o}</span>
+            {/* Custom-Radio-Indicator: hohler Kreis → gefuellter
+                Magenta-Punkt bei Auswahl */}
+            <span
+              aria-hidden
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-input bg-background transition-colors group-has-[:checked]:border-[hsl(var(--primary))]"
+            >
+              <span className="h-2.5 w-2.5 scale-0 rounded-full bg-[hsl(var(--primary))] transition-transform duration-150 group-has-[:checked]:scale-100" />
+            </span>
+            <span className="text-sm font-medium group-has-[:checked]:text-[hsl(var(--primary))]">
+              {o}
+            </span>
           </label>
         ))}
       </div>
     );
   } else if (f.type === "date") {
-    input = f.required ? (
-      <Input
-        id={f.name}
-        name={f.name}
-        type="date"
-        required
-        placeholder={f.placeholder}
-        className="h-11 rounded-lg px-3.5 transition-colors focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.15)]"
-      />
-    ) : (
-      <OptionalesDatum field={f} />
-    );
+    const istTracked = trackedDateNames.has(f.name);
+    if (istTracked) {
+      input = (
+        <Input
+          id={f.name}
+          name={f.name}
+          type="date"
+          required={f.required}
+          placeholder={f.placeholder}
+          value={trackedValues[f.name] ?? ""}
+          onChange={(e) => setTracked(f.name, e.target.value)}
+          className="h-11 rounded-lg px-3.5 transition-colors focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.15)]"
+        />
+      );
+    } else if (f.required) {
+      input = (
+        <Input
+          id={f.name}
+          name={f.name}
+          type="date"
+          required
+          placeholder={f.placeholder}
+          className="h-11 rounded-lg px-3.5 transition-colors focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.15)]"
+        />
+      );
+    } else {
+      input = <OptionalesDatum field={f} />;
+    }
   } else if (f.type === "number") {
     input = (
       <Input
@@ -424,16 +493,20 @@ const PAUSCHAL_THRESHOLD_TAGE = 30;
 function VertretungsPlanRenderer({
   field: f,
   error,
+  trackedValues,
 }: {
   field: FormField;
   error?: string;
+  trackedValues: Record<string, string>;
 }) {
   const fromName = f.linked_dates?.from ?? "von";
   const toName = f.linked_dates?.to ?? "bis";
 
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const [von, setVon] = useState("");
-  const [bis, setBis] = useState("");
+  // von/bis kommen jetzt direkt aus dem RenderForm-Parent-State.
+  // Kein DOM-Polling mehr noetig — die linked-Date-Inputs sind
+  // controlled und schreiben in trackedValues bei jedem onChange.
+  const von = trackedValues[fromName] ?? "";
+  const bis = trackedValues[toName] ?? "";
   const [pauschal, setPauschal] = useState(false);
   // Pro Tag: explizit als "frei" markiert (= "Arbeite ich nicht"). Default
   // ist "offen" (Arbeitstag, Vertretung evtl. noch nicht gesetzt).
@@ -448,46 +521,6 @@ function VertretungsPlanRenderer({
     });
   }
 
-  // Date-Inputs der Form lesen (uncontrolled-Pattern via DOM).
-  // Nutzt querySelector statt form.elements.namedItem (robuster) und
-  // Listener auf Form-Level (Capture-Phase) damit auch dynamisch
-  // erscheinende Inputs zuverlaessig gehoert werden.
-  useEffect(() => {
-    const wrapper = wrapperRef.current;
-    if (!wrapper) return;
-    const form = wrapper.closest("form");
-    if (!form) return;
-
-    function lesen() {
-      const fromEl = form!.querySelector<HTMLInputElement>(
-        `input[name="${fromName}"]`,
-      );
-      const toEl = form!.querySelector<HTMLInputElement>(
-        `input[name="${toName}"]`,
-      );
-      setVon(fromEl?.value ?? "");
-      setBis(toEl?.value ?? "");
-    }
-
-    lesen();
-
-    // Form-Level-Listener (Capture-Phase) – feuert fuer JEDES
-    // change/input-Event eines Form-Childs. Filter nicht noetig,
-    // lesen() ist schnell und idempotent.
-    form.addEventListener("change", lesen, true);
-    form.addEventListener("input", lesen, true);
-
-    // Fallback-Polling damit sich auch dann updated, wenn ein Browser
-    // mal kein change-Event feuert (Safari + Picker-Cancel).
-    const interval = window.setInterval(lesen, 500);
-
-    return () => {
-      form.removeEventListener("change", lesen, true);
-      form.removeEventListener("input", lesen, true);
-      window.clearInterval(interval);
-    };
-  }, [fromName, toName]);
-
   const tage = useMemo(() => taglistVonBis(von, bis), [von, bis]);
   const beideGesetzt = von.length > 0 && bis.length > 0;
   const rangeOk = tage.length > 0;
@@ -495,7 +528,7 @@ function VertretungsPlanRenderer({
   const arbeitstageImRange = tage.filter((t) => !freiTage.has(t)).length;
 
   return (
-    <div ref={wrapperRef} className="space-y-2">
+    <div className="space-y-2">
       <Label className="text-sm font-medium">
         {f.label}
         {f.required && (
