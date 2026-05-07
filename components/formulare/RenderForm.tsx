@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
+  CalendarPlus,
   CalendarRange,
   Check,
   Paperclip,
@@ -146,7 +147,18 @@ function FieldRenderer({
       </div>
     );
   } else if (f.type === "date") {
-    input = <DateInputMitLoeschen field={f} />;
+    input = f.required ? (
+      <Input
+        id={f.name}
+        name={f.name}
+        type="date"
+        required
+        placeholder={f.placeholder}
+        className="h-11 rounded-lg px-3.5 transition-colors focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.15)]"
+      />
+    ) : (
+      <OptionalesDatum field={f} />
+    );
   } else if (f.type === "number") {
     input = (
       <Input
@@ -332,54 +344,77 @@ function formatBytes(bytes: number): string {
 }
 
 /**
- * Date-Input mit "Löschen"-Knopf rechts. Browser füllen leere Date-
- * Inputs gerne mit dem heutigen Datum auf (besonders Safari beim
- * ersten Klick). Optionale Felder bekommen daher einen × Button
- * der den Wert wieder leert.
+ * Optional-Date-Input mit explizitem Aktivieren-Schritt. Default-State
+ * zeigt KEIN Input-Feld sondern einen dashed-Button "Datum eintragen".
+ * Erst nach Klick erscheint das echte Date-Input — so kann der User
+ * gar nicht erst "aus Versehen" mit dem Browser-Default-Datum (heute)
+ * abschicken.
+ *
+ * Wenn aktiviert: zusaetzlicher "Entfernen"-Button daneben um wieder
+ * in den leeren Default-Zustand zurueckzukommen.
  */
-function DateInputMitLoeschen({ field }: { field: FormField }) {
+function OptionalesDatum({ field }: { field: FormField }) {
+  const [aktiviert, setAktiviert] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
-  const [hatWert, setHatWert] = useState(false);
 
-  function aktualisieren() {
-    setHatWert(Boolean(ref.current?.value));
+  function aktivieren() {
+    setAktiviert(true);
+    // Nach Render Focus + nativen Picker oeffnen (mobile-friendly)
+    setTimeout(() => {
+      const el = ref.current;
+      if (!el) return;
+      el.focus();
+      // showPicker() ist relativ neu, in Try/Catch wegen Browser-Support
+      try {
+        el.showPicker?.();
+      } catch {
+        // ignore
+      }
+    }, 0);
   }
 
-  function loeschen() {
-    if (!ref.current) return;
-    ref.current.value = "";
-    // change-Event manuell triggern damit eventuelle Listener
-    // (z.B. VertretungsPlanRenderer auf von/bis) reagieren.
-    ref.current.dispatchEvent(new Event("change", { bubbles: true }));
-    setHatWert(false);
+  function deaktivieren() {
+    if (ref.current) {
+      ref.current.value = "";
+      // change-Event triggern damit VertretungsPlanRenderer (linked_dates)
+      // den Wert verliert
+      ref.current.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    setAktiviert(false);
+  }
+
+  if (!aktiviert) {
+    return (
+      <button
+        type="button"
+        onClick={aktivieren}
+        className="group flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-input bg-background/40 text-sm text-muted-foreground transition-colors hover:border-[hsl(var(--primary)/0.5)] hover:bg-[hsl(var(--primary)/0.04)] hover:text-foreground"
+      >
+        <CalendarPlus className="h-4 w-4" />
+        <span>Datum eintragen</span>
+      </button>
+    );
   }
 
   return (
-    <div className="relative">
+    <div className="flex gap-2">
       <Input
         ref={ref}
         id={field.name}
         name={field.name}
         type="date"
-        required={field.required}
         placeholder={field.placeholder}
-        onChange={aktualisieren}
-        onInput={aktualisieren}
-        className={cn(
-          "h-11 rounded-lg px-3.5 transition-colors focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.15)]",
-          hatWert && !field.required && "pr-10",
-        )}
+        className="h-11 flex-1 rounded-lg px-3.5 transition-colors focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.15)]"
       />
-      {hatWert && !field.required && (
-        <button
-          type="button"
-          onClick={loeschen}
-          aria-label="Datum löschen"
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={deaktivieren}
+        title="Datum wieder entfernen"
+        className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-background px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-[hsl(var(--destructive)/0.4)] hover:text-[hsl(var(--destructive))]"
+      >
+        <X className="h-3.5 w-3.5" />
+        Entfernen
+      </button>
     </div>
   );
 }
