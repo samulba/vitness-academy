@@ -385,17 +385,6 @@ function DateInputMitLoeschen({ field }: { field: FormField }) {
 }
 
 const PAUSCHAL_THRESHOLD_TAGE = 30;
-const ARBEITSTAGE_STORAGE_KEY = "vitness:arbeitstage_wochentage";
-const DEFAULT_ARBEITSTAGE: number[] = [1, 2, 3, 4, 5]; // Mo-Fr
-const WOCHENTAGE_LABELS: Array<{ idx: number; label: string }> = [
-  { idx: 1, label: "Mo" },
-  { idx: 2, label: "Di" },
-  { idx: 3, label: "Mi" },
-  { idx: 4, label: "Do" },
-  { idx: 5, label: "Fr" },
-  { idx: 6, label: "Sa" },
-  { idx: 0, label: "So" },
-];
 
 function VertretungsPlanRenderer({
   field: f,
@@ -411,69 +400,15 @@ function VertretungsPlanRenderer({
   const [von, setVon] = useState("");
   const [bis, setBis] = useState("");
   const [pauschal, setPauschal] = useState(false);
-  // Wochentage an denen ich normalerweise arbeite (0=So..6=Sa).
-  // Persistiert in localStorage damit User es nicht jedes Mal neu setzt.
-  const [arbeitsWochentage, setArbeitsWochentage] = useState<Set<number>>(
-    () => new Set(DEFAULT_ARBEITSTAGE),
-  );
-  // Per-Tag explizite Overrides ("frei" oder "arbeit") wenn der User
-  // einen einzelnen Tag abweichend vom Wochentag-Default markiert.
-  const [overrides, setOverrides] = useState<
-    Record<string, "frei" | "arbeit">
-  >({});
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = window.localStorage.getItem(ARBEITSTAGE_STORAGE_KEY);
-      if (raw) {
-        const arr = JSON.parse(raw);
-        if (Array.isArray(arr) && arr.every((n) => typeof n === "number")) {
-          setArbeitsWochentage(new Set(arr));
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  function toggleWochentag(wt: number) {
-    setArbeitsWochentage((prev) => {
-      const next = new Set(prev);
-      if (next.has(wt)) next.delete(wt);
-      else next.add(wt);
-      try {
-        window.localStorage.setItem(
-          ARBEITSTAGE_STORAGE_KEY,
-          JSON.stringify([...next].sort()),
-        );
-      } catch {
-        // ignore
-      }
-      return next;
-    });
-  }
-
-  function istFrei(tag: string): boolean {
-    const o = overrides[tag];
-    if (o === "frei") return true;
-    if (o === "arbeit") return false;
-    const wt = new Date(`${tag}T00:00:00Z`).getUTCDay();
-    return !arbeitsWochentage.has(wt);
-  }
+  // Pro Tag: explizit als "frei" markiert (= "Arbeite ich nicht"). Default
+  // ist "offen" (Arbeitstag, Vertretung evtl. noch nicht gesetzt).
+  const [freiTage, setFreiTage] = useState<Set<string>>(new Set());
 
   function toggleTagFrei(tag: string) {
-    const aktuellFrei = istFrei(tag);
-    const wt = new Date(`${tag}T00:00:00Z`).getUTCDay();
-    const wtDefaultFrei = !arbeitsWochentage.has(wt);
-    const neuFrei = !aktuellFrei;
-    setOverrides((prev) => {
-      const next = { ...prev };
-      if (neuFrei === wtDefaultFrei) {
-        delete next[tag]; // zurueck zum Wochentag-Default
-      } else {
-        next[tag] = neuFrei ? "frei" : "arbeit";
-      }
+    setFreiTage((prev) => {
+      const next = new Set(prev);
+      if (next.has(tag)) next.delete(tag);
+      else next.add(tag);
       return next;
     });
   }
@@ -512,11 +447,7 @@ function VertretungsPlanRenderer({
   const beideGesetzt = von.length > 0 && bis.length > 0;
   const rangeOk = tage.length > 0;
   const langerRange = tage.length > PAUSCHAL_THRESHOLD_TAGE;
-  const arbeitstageImRange = useMemo(
-    () => tage.filter((t) => !istFrei(t)).length,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tage, arbeitsWochentage, overrides],
-  );
+  const arbeitstageImRange = tage.filter((t) => !freiTage.has(t)).length;
 
   return (
     <div ref={wrapperRef} className="space-y-2">
@@ -556,35 +487,11 @@ function VertretungsPlanRenderer({
       )}
 
       {rangeOk && (
-        <div className="rounded-xl border border-border bg-muted/20 p-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Ich arbeite normalerweise an diesen Tagen
-          </p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Tage die du nicht aktivierst, gelten als &bdquo;Arbeite ich
-            nicht&ldquo; — keine Vertretung nötig.
-          </p>
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {WOCHENTAGE_LABELS.map((w) => {
-              const aktiv = arbeitsWochentage.has(w.idx);
-              return (
-                <button
-                  key={w.idx}
-                  type="button"
-                  onClick={() => toggleWochentag(w.idx)}
-                  className={cn(
-                    "h-8 w-10 rounded-md border text-xs font-semibold transition-colors",
-                    aktiv
-                      ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))]"
-                      : "border-border bg-background text-muted-foreground hover:bg-muted",
-                  )}
-                >
-                  {w.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <p className="text-[11px] text-muted-foreground">
+          Pro Tag eintragen wer dich vertritt — oder &bdquo;Frei&ldquo; wenn
+          du an dem Tag eh nicht arbeitest. Zeile leer lassen heißt: Tag ist
+          ein Arbeitstag, Vertretung steht aber noch nicht fest.
+        </p>
       )}
 
       {rangeOk && langerRange && (
@@ -626,7 +533,7 @@ function VertretungsPlanRenderer({
         <>
           <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
             {tage.map((tag) => {
-              const frei = istFrei(tag);
+              const frei = freiTage.has(tag);
               return (
                 <li
                   key={tag}
@@ -649,9 +556,7 @@ function VertretungsPlanRenderer({
                     <span
                       className={cn(
                         "text-sm tabular-nums",
-                        frei
-                          ? "text-muted-foreground"
-                          : "font-medium",
+                        frei ? "text-muted-foreground" : "font-medium",
                       )}
                     >
                       {formatDatum(tag)}
@@ -671,9 +576,9 @@ function VertretungsPlanRenderer({
                       <button
                         type="button"
                         onClick={() => toggleTagFrei(tag)}
-                        className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                        className="shrink-0 rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                       >
-                        Doch arbeiten?
+                        Doch arbeiten
                       </button>
                     </>
                   ) : (
@@ -681,13 +586,13 @@ function VertretungsPlanRenderer({
                       <Input
                         name={`${f.name}__${tag}`}
                         type="text"
-                        placeholder="Vertretung (Name) — leer wenn noch unklar"
+                        placeholder="Wer vertritt dich? (leer = noch offen)"
                         className="h-10 flex-1 rounded-lg px-3.5"
                       />
                       <button
                         type="button"
                         onClick={() => toggleTagFrei(tag)}
-                        className="shrink-0 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                        className="shrink-0 rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                       >
                         Frei
                       </button>
@@ -697,12 +602,6 @@ function VertretungsPlanRenderer({
               );
             })}
           </ul>
-          {arbeitstageImRange === 0 && (
-            <p className="text-[11px] text-muted-foreground">
-              Hinweis: An keinem Tag im Zeitraum arbeitest du normalerweise —
-              also keine Vertretung nötig.
-            </p>
-          )}
         </>
       )}
 
