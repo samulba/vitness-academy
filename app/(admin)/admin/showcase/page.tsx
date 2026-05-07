@@ -199,7 +199,7 @@ export default function ShowcasePage() {
               {
                 icon: <BookOpen />,
                 title: "Onboarding-Guide",
-                description: "Wie das Setup ablaeuft",
+                description: "Wie das Setup abläuft",
                 href: "/wissen",
               },
             ]}

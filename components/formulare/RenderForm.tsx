@@ -146,16 +146,7 @@ function FieldRenderer({
       </div>
     );
   } else if (f.type === "date") {
-    input = (
-      <Input
-        id={f.name}
-        name={f.name}
-        type="date"
-        required={required}
-        placeholder={f.placeholder}
-        className="h-11 rounded-lg px-3.5 transition-colors focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.15)]"
-      />
-    );
+    input = <DateInputMitLoeschen field={f} />;
   } else if (f.type === "number") {
     input = (
       <Input
@@ -338,6 +329,59 @@ function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/**
+ * Date-Input mit "Löschen"-Knopf rechts. Browser füllen leere Date-
+ * Inputs gerne mit dem heutigen Datum auf (besonders Safari beim
+ * ersten Klick). Optionale Felder bekommen daher einen × Button
+ * der den Wert wieder leert.
+ */
+function DateInputMitLoeschen({ field }: { field: FormField }) {
+  const ref = useRef<HTMLInputElement>(null);
+  const [hatWert, setHatWert] = useState(false);
+
+  function aktualisieren() {
+    setHatWert(Boolean(ref.current?.value));
+  }
+
+  function loeschen() {
+    if (!ref.current) return;
+    ref.current.value = "";
+    // change-Event manuell triggern damit eventuelle Listener
+    // (z.B. VertretungsPlanRenderer auf von/bis) reagieren.
+    ref.current.dispatchEvent(new Event("change", { bubbles: true }));
+    setHatWert(false);
+  }
+
+  return (
+    <div className="relative">
+      <Input
+        ref={ref}
+        id={field.name}
+        name={field.name}
+        type="date"
+        required={field.required}
+        placeholder={field.placeholder}
+        onChange={aktualisieren}
+        onInput={aktualisieren}
+        className={cn(
+          "h-11 rounded-lg px-3.5 transition-colors focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.15)]",
+          hatWert && !field.required && "pr-10",
+        )}
+      />
+      {hatWert && !field.required && (
+        <button
+          type="button"
+          onClick={loeschen}
+          aria-label="Datum löschen"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      )}
+    </div>
+  );
 }
 
 const PAUSCHAL_THRESHOLD_TAGE = 30;

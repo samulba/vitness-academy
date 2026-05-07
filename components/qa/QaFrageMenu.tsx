@@ -32,7 +32,7 @@ export function QaFrageMenu({
           <button
             type="submit"
             className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            title={resolved ? "Wieder offen" : "Als geloest markieren"}
+            title={resolved ? "Wieder offen" : "Als gelöst markieren"}
           >
             {resolved ? (
               <RotateCcw className="h-3.5 w-3.5" />
