@@ -315,48 +315,64 @@ function HeroPreviewCard() {
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Cursor-Tilt: berechnet rotateX/rotateY basierend auf Mausposition
-  // relativ zur Card. Smooth via lerp + requestAnimationFrame.
+  // relativ zur Card. Geclampt damit kein extreme-Tilt wenn der
+  // Cursor weit weg ist (z.B. ueber der Headline links).
   useEffect(() => {
     const card = cardRef.current;
     if (!card) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+    const MAX_TILT = 6; // Grad - bewusst dezent
     let targetRX = 0;
     let targetRY = 0;
     let currentRX = 0;
     let currentRY = 0;
     let raf = 0;
-    let active = false;
+
+    function clamp(v: number, min: number, max: number) {
+      return Math.max(min, Math.min(max, v));
+    }
 
     function tick() {
-      currentRX += (targetRX - currentRX) * 0.12;
-      currentRY += (targetRY - currentRY) * 0.12;
-      card!.style.transform = `perspective(1200px) rotateX(${currentRX}deg) rotateY(${currentRY}deg)`;
+      currentRX += (targetRX - currentRX) * 0.1;
+      currentRY += (targetRY - currentRY) * 0.1;
+      card!.style.transform = `perspective(1400px) rotateX(${currentRX}deg) rotateY(${currentRY}deg)`;
+      // Stoppe wenn ausreichend nah an Target (Performance)
+      if (
+        Math.abs(targetRX - currentRX) < 0.05 &&
+        Math.abs(targetRY - currentRY) < 0.05
+      ) {
+        raf = 0;
+        return;
+      }
       raf = requestAnimationFrame(tick);
+    }
+
+    function startTick() {
+      if (raf === 0) raf = requestAnimationFrame(tick);
     }
 
     function onMove(e: PointerEvent) {
       const rect = card!.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
-      // Max ~7deg Tilt, mit Mass an Distanz zur Card-Mitte
-      targetRY = ((e.clientX - cx) / rect.width) * 14;
-      targetRX = -((e.clientY - cy) / rect.height) * 14;
-      if (!active) {
-        active = true;
-        raf = requestAnimationFrame(tick);
-      }
+      // Normalisiert auf ±1 nur wenn Cursor IN Card-Bounds
+      // ist; ausserhalb wird's bei ±1 gecappt — kein Crash mehr.
+      const dx = clamp((e.clientX - cx) / (rect.width / 2), -1, 1);
+      const dy = clamp((e.clientY - cy) / (rect.height / 2), -1, 1);
+      targetRY = dx * MAX_TILT;
+      targetRX = -dy * MAX_TILT;
+      startTick();
     }
 
     function onLeave() {
       targetRX = 0;
       targetRY = 0;
-      // Tick laeuft weiter bis Position bei 0/0 ist, dann stoppt
-      // sich's (currentRX/RY werden ~0 dank lerp)
+      startTick();
     }
 
     // Auf das Section-Element hoeren damit Card auch bei
-    // Cursor-Bewegung "ueber Hero" reagiert, nicht nur direkt drueber
+    // Cursor-Bewegung "ueber Hero" reagiert.
     const section = card.closest("section");
     if (!section) return;
 
@@ -366,7 +382,7 @@ function HeroPreviewCard() {
     return () => {
       section.removeEventListener("pointermove", onMove);
       section.removeEventListener("pointerleave", onLeave);
-      cancelAnimationFrame(raf);
+      if (raf) cancelAnimationFrame(raf);
     };
   }, []);
 
