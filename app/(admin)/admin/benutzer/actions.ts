@@ -3,8 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile, istAdmin, istFuehrungskraftOderHoeher } from "@/lib/auth";
 import { istUUID } from "@/lib/utils";
+import { appUrl, sendEmail } from "@/lib/email";
+import { welcomeMail } from "@/lib/email-templates/welcome";
 import type { Rolle } from "@/lib/rollen";
 
 async function ensureAdmin() {
@@ -71,13 +74,11 @@ export async function profilAktualisieren(
   const phone = nullbarString(formData.get("phone"));
   const role = String(formData.get("role") ?? "mitarbeiter") as Rolle;
   if (!VALIDE_ROLLEN.includes(role)) return;
-  // Superadmin-Rolle nur durch Superadmin vergeben
   if (role === "superadmin" && aktuell.role !== "superadmin") return;
   const location_id = nullbarString(formData.get("location_id"));
   const kann_provisionen = formData.get("kann_provisionen") === "on";
   const personalnummer = nullbarString(formData.get("personalnummer"));
 
-  // Stammdaten (0044)
   const geburtsdatum = nullbarDate(formData.get("geburtsdatum"));
   const eintritt_am = nullbarDate(formData.get("eintritt_am"));
   const austritt_am = nullbarDate(formData.get("austritt_am"));
@@ -91,60 +92,27 @@ export async function profilAktualisieren(
   const interne_notiz = nullbarString(formData.get("interne_notiz"));
 
   const supabase = await createClient();
-  // 3-Stufen-Fallback: erst alles (0044), dann ohne 0044, dann basis.
   const voll = {
-    full_name,
-    first_name,
-    last_name,
-    phone,
-    role,
-    location_id,
-    kann_provisionen,
-    personalnummer,
-    geburtsdatum,
-    eintritt_am,
-    austritt_am,
-    vertragsart,
-    wochenstunden,
-    tags,
-    interne_notiz,
+    full_name, first_name, last_name, phone, role, location_id,
+    kann_provisionen, personalnummer, geburtsdatum, eintritt_am, austritt_am,
+    vertragsart, wochenstunden, tags, interne_notiz,
   };
   const ohneNeu = {
-    full_name,
-    first_name,
-    last_name,
-    phone,
-    role,
-    location_id,
-    kann_provisionen,
-    personalnummer,
+    full_name, first_name, last_name, phone, role, location_id,
+    kann_provisionen, personalnummer,
   };
   const basis = { full_name, role, location_id, kann_provisionen };
 
-  const erst = await supabase
-    .from("profiles")
-    .update(voll)
-    .eq("id", benutzerId);
+  const erst = await supabase.from("profiles").update(voll).eq("id", benutzerId);
   if (erst.error) {
-    const zweit = await supabase
-      .from("profiles")
-      .update(ohneNeu)
-      .eq("id", benutzerId);
+    const zweit = await supabase.from("profiles").update(ohneNeu).eq("id", benutzerId);
     if (zweit.error) {
-      await supabase
-        .from("profiles")
-        .update(basis)
-        .eq("id", benutzerId);
+      await supabase.from("profiles").update(basis).eq("id", benutzerId);
     }
   }
 
   revalidatePath("/admin/benutzer");
   revalidatePath(`/admin/benutzer/${benutzerId}`);
-  // Hinweis: Layout-Revalidate war frueher hier wegen Sidebar-
-  // Provisionen-Section. Da die Sidebar sich an die OWN-User-Session
-  // bindet (via Layout mit force-dynamic), wirkt sich ein fremdes
-  // Profile-Update sowieso erst bei dessen naechstem Request aus.
-  // Eingespart: ~50-100ms purge-Aufwand pro Speichern.
   redirect(`/admin/benutzer/${benutzerId}?toast=saved`);
 }
 
@@ -157,13 +125,11 @@ export async function lernpfadZuweisen(
   if (!learning_path_id) return;
 
   const supabase = await createClient();
-  await supabase
-    .from("user_learning_path_assignments")
-    .insert({
-      user_id: benutzerId,
-      learning_path_id,
-      assigned_by: profile.id,
-    });
+  await supabase.from("user_learning_path_assignments").insert({
+    user_id: benutzerId,
+    learning_path_id,
+    assigned_by: profile.id,
+  });
 
   revalidatePath(`/admin/benutzer/${benutzerId}`);
   revalidatePath("/dashboard");
@@ -187,10 +153,8 @@ export async function lernpfadEntziehen(
 
 export async function mitarbeiterArchivieren(benutzerId: string): Promise<void> {
   const aktuell = await ensureAdmin();
-  // Sich selbst nicht archivieren
   if (benutzerId === aktuell.id) return;
   const supabase = await createClient();
-  // Prüfen ob Ziel ein Superadmin ist -- den darf nur ein Superadmin archivieren
   const { data: ziel } = await supabase
     .from("profiles")
     .select("role")
@@ -221,7 +185,6 @@ export async function mitarbeiterReaktivieren(benutzerId: string): Promise<void>
   redirect(`/admin/benutzer/${benutzerId}?toast=restored`);
 }
 
-// Fortschritt einer User-Lektion zurücksetzen (nuetzlich beim Testen)
 export async function fortschrittZuruecksetzen(
   benutzerId: string,
   lessonId: string,
@@ -238,14 +201,6 @@ export async function fortschrittZuruecksetzen(
   revalidatePath(`/admin/benutzer/${benutzerId}`);
 }
 
-// =========================================================
-// Multi-Location-Memberships
-// =========================================================
-
-/**
- * User wird zusätzlich Mitglied in einem Standort. is_primary=false,
- * weil primary über profiles.location_id + Trigger gesetzt wird.
- */
 export async function standortHinzufuegen(
   benutzerId: string,
   formData: FormData,
@@ -266,10 +221,6 @@ export async function standortHinzufuegen(
   redirect(`/admin/benutzer/${benutzerId}?toast=saved`);
 }
 
-/**
- * Membership entfernen. Wenn es die primary war, faellt das Profile
- * auf location_id=null zurueck (Sync-Trigger geht).
- */
 export async function standortEntfernen(
   benutzerId: string,
   locationId: string,
@@ -278,8 +229,6 @@ export async function standortEntfernen(
   if (!istUUID(locationId)) return;
   const supabase = await createClient();
 
-  // Wenn primary entfernt wird, profile.location_id auf null setzen
-  // (Trigger spiegelt das in user_locations.is_primary).
   const { data: profil } = await supabase
     .from("profiles")
     .select("location_id")
@@ -302,11 +251,6 @@ export async function standortEntfernen(
   redirect(`/admin/benutzer/${benutzerId}?toast=saved`);
 }
 
-/**
- * Diesen Standort zum primary machen. Setzt profiles.location_id =
- * locationId, der Sync-Trigger übernimmt is_primary-Flags in
- * user_locations.
- */
 export async function standortAlsPrimary(
   benutzerId: string,
   locationId: string,
@@ -327,19 +271,12 @@ export async function standortAlsPrimary(
   redirect(`/admin/benutzer/${benutzerId}?toast=saved`);
 }
 
-// =============================================================
-// Notizen
-// =============================================================
-
 export async function notizAnlegen(
   benutzerId: string,
   formData: FormData,
 ): Promise<void> {
   const aktuell = await getCurrentProfile();
-  if (
-    !aktuell ||
-    !(istAdmin(aktuell.role) || istFuehrungskraftOderHoeher(aktuell.role))
-  ) {
+  if (!aktuell || !(istAdmin(aktuell.role) || istFuehrungskraftOderHoeher(aktuell.role))) {
     redirect("/admin");
   }
   const body = String(formData.get("body") ?? "").trim();
@@ -369,26 +306,18 @@ export async function notizLoeschen(
   if (!aktuell) redirect("/admin");
 
   const supabase = await createClient();
-  // RLS sorgt dafür: Autor selbst oder Admin
   await supabase.from("mitarbeiter_notizen").delete().eq("id", notizId);
 
   revalidatePath(`/admin/benutzer/${benutzerId}`);
   redirect(`/admin/benutzer/${benutzerId}?toast=deleted`);
 }
 
-// =============================================================
-// Onboarding-Checklisten
-// =============================================================
-
 export async function checklistTogglen(
   itemId: string,
   benutzerId: string,
 ): Promise<void> {
   const aktuell = await getCurrentProfile();
-  if (
-    !aktuell ||
-    !(istAdmin(aktuell.role) || istFuehrungskraftOderHoeher(aktuell.role))
-  ) {
+  if (!aktuell || !(istAdmin(aktuell.role) || istFuehrungskraftOderHoeher(aktuell.role))) {
     redirect("/admin");
   }
 
@@ -428,11 +357,6 @@ export async function checklistTogglen(
   revalidatePath("/admin/benutzer");
 }
 
-/**
- * Setzt das Onboarding-Template eines Mitarbeiters nachtraeglich.
- * Empfange "" oder UUID; Leer bedeutet "kein Template -> nur Standard-
- * Items sichtbar".
- */
 export async function templateZuweisen(
   benutzerId: string,
   templateId: string | null,
@@ -460,8 +384,7 @@ export async function checklistItemAnlegen(
 ): Promise<void> {
   await ensureAdmin();
   const label = String(formData.get("label") ?? "").trim();
-  const beschreibung =
-    String(formData.get("beschreibung") ?? "").trim() || null;
+  const beschreibung = String(formData.get("beschreibung") ?? "").trim() || null;
   const templateIdRaw = String(formData.get("template_id") ?? "").trim();
   const template_id = istUUID(templateIdRaw) ? templateIdRaw : null;
   const sortRaw = String(formData.get("sort_order") ?? "0").trim();
@@ -480,8 +403,7 @@ export async function checklistItemAnlegen(
   }
 
   revalidatePath("/admin/onboarding-templates");
-  if (template_id)
-    revalidatePath(`/admin/onboarding-templates/${template_id}`);
+  if (template_id) revalidatePath(`/admin/onboarding-templates/${template_id}`);
   revalidatePath("/admin/benutzer");
   redirect(
     template_id
@@ -510,4 +432,60 @@ export async function checklistItemLoeschen(id: string): Promise<void> {
       ? `/admin/onboarding-templates/${tid}?toast=deleted`
       : "/admin/onboarding-templates?toast=deleted",
   );
+}
+
+/**
+ * Sendet die Einladungs-Mail (Magic-Link via Supabase + Welcome-Mail
+ * via Resend) erneut an einen Mitarbeiter.
+ */
+export async function einladungErneutSenden(
+  benutzerId: string,
+): Promise<void> {
+  const aktuellerAdmin = await ensureAdmin();
+  if (!istUUID(benutzerId)) {
+    redirect(`/admin/benutzer?toast=error`);
+  }
+
+  const admin = createAdminClient();
+  const { data: userData, error: getUserErr } = await admin.auth.admin
+    .getUserById(benutzerId);
+  if (getUserErr || !userData.user) {
+    redirect(`/admin/benutzer/${benutzerId}?toast=error`);
+  }
+  const email = userData.user.email;
+  if (!email) {
+    redirect(`/admin/benutzer/${benutzerId}?toast=error`);
+  }
+
+  const { error: inviteErr } = await admin.auth.admin.inviteUserByEmail(
+    email,
+    { data: { full_name: userData.user.user_metadata?.full_name } },
+  );
+  if (inviteErr) {
+    console.error("[einladungErneutSenden] inviteUserByEmail:", inviteErr);
+    redirect(`/admin/benutzer/${benutzerId}?toast=error`);
+  }
+
+  try {
+    const base = appUrl();
+    const loginUrl = base
+      ? `${base}/login`
+      : "https://www.vitness-crew.de/login";
+    const vorname =
+      (userData.user.user_metadata?.first_name as string | undefined) ??
+      (userData.user.user_metadata?.full_name as string | undefined) ??
+      "im Team";
+    const { subject, html, text } = welcomeMail({
+      vorname,
+      loginUrl,
+      studioleitung: aktuellerAdmin.full_name ?? undefined,
+    });
+    await sendEmail({ to: email, subject, html, text });
+  } catch (e) {
+    console.warn("[einladungErneutSenden] Welcome-Mail nicht versendet:", e);
+  }
+
+  revalidatePath(`/admin/benutzer/${benutzerId}`);
+  revalidatePath("/admin/benutzer");
+  redirect(`/admin/benutzer/${benutzerId}?toast=invited`);
 }
