@@ -3,9 +3,9 @@ import {
   ArrowRight,
   ArrowUpRight,
   BookOpen,
-  CheckCircle2,
   CheckSquare,
   ClipboardList,
+  Euro,
   FileText,
   GraduationCap,
   Heart,
@@ -16,7 +16,6 @@ import {
   Stethoscope,
   Wrench,
 } from "lucide-react";
-import { PfadCard } from "@/components/lernpfad/PfadCard";
 import { requireProfile } from "@/lib/auth";
 import { ladeMeineLernpfade, offeneLektionen } from "@/lib/lernpfade";
 import { aktivitaetsStats } from "@/lib/lektion";
@@ -50,6 +49,18 @@ const QUICK_ACTIONS: {
   tint: string;
 }[] = [
   {
+    href: "/lohn",
+    label: "Schicht eintragen",
+    icon: Euro,
+    tint: "bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))]",
+  },
+  {
+    href: "/putzprotokoll",
+    label: "Putzprotokoll",
+    icon: Sparkles,
+    tint: "bg-cyan-500/10 text-cyan-600",
+  },
+  {
     href: "/formulare/krankmeldung",
     label: "Krankmeldung",
     icon: Stethoscope,
@@ -66,12 +77,6 @@ const QUICK_ACTIONS: {
     label: "Mangel melden",
     icon: Wrench,
     tint: "bg-orange-500/10 text-orange-600",
-  },
-  {
-    href: "/infos",
-    label: "Info posten",
-    icon: Megaphone,
-    tint: "bg-violet-500/10 text-violet-600",
   },
   {
     href: "/feedback",
@@ -243,15 +248,12 @@ export default async function DashboardPage() {
                 wert={aktivitaet.tageLetzte30}
               />
             )}
-            {gesamt > 0 && (
+            {gesamt > 0 && abgeschlossen < gesamt && (
               <HeroStat
                 icon={<GraduationCap className="h-3.5 w-3.5" />}
                 label="Lektionen"
                 wert={`${abgeschlossen}/${gesamt}`}
                 href="/lernpfade"
-                akzent={
-                  abgeschlossen === gesamt && gesamt > 0 ? "success" : undefined
-                }
               />
             )}
           </div>
@@ -529,101 +531,29 @@ export default async function DashboardPage() {
         </section>
       )}
 
-      {/* === Mein Lernen (kompakt) === */}
-      {(next || pfade.length > 0) && (
-        <section className="space-y-5">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-                Mein Lernen
+      {/* === Mein Lernen (kompakt) — nur wenn offene Lektion === */}
+      {next && abgeschlossen < gesamt && (
+        <section>
+          <Link
+            href={`/lektionen/${next.lesson_id}`}
+            className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)]"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))]">
+              <GraduationCap className="h-5 w-5" strokeWidth={1.75} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
+                Mein Lernen · {abgeschlossen}/{gesamt}
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-                {next ? "Heute weitermachen" : "Deine Lernpfade"}
-              </h2>
+              <p className="mt-0.5 truncate text-sm font-semibold sm:text-base">
+                {next.lesson_title}
+              </p>
+              <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                {next.path_title} · {next.module_title}
+              </p>
             </div>
-            <Link
-              href="/lernpfade"
-              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {next
-                ? `${abgeschlossen}/${gesamt} Lektionen`
-                : "Alle ansehen"}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          {next ? (
-            <Link
-              href={`/lektionen/${next.lesson_id}`}
-              className="group relative grid gap-6 overflow-hidden rounded-2xl border border-border bg-[hsl(var(--brand-ink))] p-6 text-[hsl(var(--brand-cream))] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_60px_-25px_hsl(var(--primary)/0.4)] sm:grid-cols-[1fr_auto] sm:items-center"
-            >
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -top-32 right-[-10%] h-[400px] w-[400px] rounded-full opacity-25 blur-[100px]"
-                style={{
-                  background:
-                    "radial-gradient(closest-side, hsl(var(--primary)), transparent)",
-                }}
-              />
-              <div className="relative">
-                <div className="flex flex-wrap items-center gap-2 text-xs text-[hsl(var(--brand-cream)/0.55)]">
-                  <GraduationCap className="h-3.5 w-3.5 text-[hsl(var(--primary))]" />
-                  <span>{next.path_title}</span>
-                  <span>·</span>
-                  <span>{next.module_title}</span>
-                </div>
-                <h3 className="mt-3 max-w-[36ch] text-balance font-semibold leading-tight tracking-tight text-[hsl(var(--brand-cream))] text-xl sm:text-2xl">
-                  {next.lesson_title}
-                </h3>
-                <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--brand-cream)/0.6)]">
-                  <Sparkles className="h-3 w-3 text-[hsl(var(--primary))]" />
-                  {next.status === "in_bearbeitung"
-                    ? "Du hast schon angefangen"
-                    : "Bereit zum Starten"}
-                </p>
-              </div>
-              <span className="relative flex h-12 w-12 items-center justify-center justify-self-end rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-md transition-transform group-hover:translate-x-1 group-hover:-translate-y-1">
-                <ArrowUpRight className="h-5 w-5" />
-              </span>
-            </Link>
-          ) : pfade.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {pfade.slice(0, 2).map((pfad) => (
-                <PfadCard
-                  key={pfad.id}
-                  id={pfad.id}
-                  title={pfad.title}
-                  description={pfad.description}
-                  modulAnzahl={pfad.modules.length}
-                  abgeschlossen={pfad.abgeschlossen}
-                  gesamt={pfad.gesamt}
-                  prozent={pfad.prozent}
-                  heroImagePath={pfad.hero_image_path}
-                />
-              ))}
-            </div>
-          ) : null}
-        </section>
-      )}
-
-      {gesamt > 0 && abgeschlossen === gesamt && (
-        <section className="rounded-2xl border border-[hsl(var(--success)/0.3)] bg-[hsl(var(--success)/0.06)] p-8 text-center">
-          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[hsl(var(--success))] text-white">
-            <CheckCircle2 className="h-6 w-6" />
-          </span>
-          <p className="mt-4 text-base font-semibold">
-            Alle Lektionen abgeschlossen — stark!
-          </p>
-          {anzOffenePraxis > 0 && (
-            <Link
-              href="/praxisfreigaben"
-              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[hsl(var(--success))] hover:underline"
-            >
-              <CheckSquare className="h-4 w-4" />
-              {anzOffenePraxis}{" "}
-              {anzOffenePraxis === 1 ? "Praxisfreigabe" : "Praxisfreigaben"} offen
-            </Link>
-          )}
+            <ArrowUpRight className="h-5 w-5 shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))]" />
+          </Link>
         </section>
       )}
 
