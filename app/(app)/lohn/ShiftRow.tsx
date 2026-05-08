@@ -62,67 +62,115 @@ export function ShiftRow({
   }
 
   return (
-    <div className="grid grid-cols-1 items-center gap-2 px-4 py-3 sm:grid-cols-[110px_140px_90px_90px_70px_1fr_60px] sm:gap-3">
-      {/* Datum */}
-      <div className="flex items-baseline gap-2 sm:flex-col sm:items-start sm:gap-0">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          {wochentag(shift.datum)}
-        </span>
-        <span className="text-sm font-medium tabular-nums">
-          {formatDatum(shift.datum)}
-        </span>
+    <>
+      {/* Mobile: cleane Card-Optik mit klarer Hierarchie */}
+      <div className="px-4 py-3 sm:hidden">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            {/* Top-Zeile: Wochentag · Datum + Stunden-Pill */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+                {wochentag(shift.datum)}
+              </span>
+              <span className="text-sm font-semibold tabular-nums">
+                {formatDatum(shift.datum)}
+              </span>
+              <span className="ml-auto inline-flex items-center gap-1 rounded-md bg-[hsl(var(--primary)/0.08)] px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-[hsl(var(--primary))]">
+                {formatStunden(stunden)}
+              </span>
+            </div>
+
+            {/* Mid-Zeile: Zeit + Pause */}
+            <p className="mt-1 text-sm tabular-nums text-muted-foreground">
+              {zeitKurz(shift.von_zeit)} – {zeitKurz(shift.bis_zeit)}
+              {shift.pause_minuten > 0 && (
+                <span className="ml-1 text-[11px]">
+                  · {shift.pause_minuten}m Pause
+                </span>
+              )}
+            </p>
+
+            {/* Wo + Notiz */}
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+              <span className="inline-flex items-center gap-1">
+                {istSonstiges ? (
+                  <Sparkles className="h-3 w-3 text-[hsl(var(--brand-pink))]" />
+                ) : (
+                  <MapPin className="h-3 w-3 text-muted-foreground" />
+                )}
+                <span className="truncate font-medium">{woLabel}</span>
+              </span>
+              {shift.notiz && (
+                <span className="truncate text-muted-foreground">
+                  · {shift.notiz}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Actions: kompakte Vertikal-Gruppe */}
+          <div className="flex shrink-0 flex-col gap-1">
+            <button
+              type="button"
+              onClick={() => setEdit(true)}
+              aria-label="Bearbeiten"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            <DeleteButton shiftId={shift.id} />
+          </div>
+        </div>
       </div>
 
-      {/* Wo */}
-      <span className="inline-flex items-center gap-1.5 truncate text-sm">
-        {istSonstiges ? (
-          <Sparkles className="h-3 w-3 shrink-0 text-[hsl(var(--brand-pink))]" />
-        ) : (
-          <MapPin className="h-3 w-3 shrink-0 text-muted-foreground" />
-        )}
-        <span className="truncate font-medium">{woLabel}</span>
-      </span>
-
-      {/* Von - Bis (mobile gestapelt) */}
-      <span className="text-sm tabular-nums sm:hidden">
-        {zeitKurz(shift.von_zeit)} – {zeitKurz(shift.bis_zeit)}
-        {shift.pause_minuten > 0 && (
-          <span className="ml-2 text-xs text-muted-foreground">
-            ({shift.pause_minuten}m Pause)
+      {/* Desktop: Tabellen-Layout */}
+      <div className="hidden items-center gap-3 px-4 py-3 sm:grid sm:grid-cols-[110px_140px_90px_90px_70px_1fr_60px]">
+        <div className="flex flex-col items-start">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            {wochentag(shift.datum)}
           </span>
-        )}
-      </span>
-      <span className="hidden text-sm tabular-nums sm:block">
-        {zeitKurz(shift.von_zeit)}
-      </span>
-      <span className="hidden text-sm tabular-nums sm:block">
-        {zeitKurz(shift.bis_zeit)}
-      </span>
+          <span className="text-sm font-medium tabular-nums">
+            {formatDatum(shift.datum)}
+          </span>
+        </div>
 
-      {/* Stunden */}
-      <span className="text-sm font-semibold tabular-nums sm:text-right">
-        <span className="text-muted-foreground sm:hidden">Stunden: </span>
-        {formatStunden(stunden)}
-      </span>
+        <span className="inline-flex items-center gap-1.5 truncate text-sm">
+          {istSonstiges ? (
+            <Sparkles className="h-3 w-3 shrink-0 text-[hsl(var(--brand-pink))]" />
+          ) : (
+            <MapPin className="h-3 w-3 shrink-0 text-muted-foreground" />
+          )}
+          <span className="truncate font-medium">{woLabel}</span>
+        </span>
 
-      {/* Notiz */}
-      <span className="truncate text-xs text-muted-foreground sm:text-sm">
-        {shift.notiz || "—"}
-      </span>
+        <span className="text-sm tabular-nums">
+          {zeitKurz(shift.von_zeit)}
+        </span>
+        <span className="text-sm tabular-nums">
+          {zeitKurz(shift.bis_zeit)}
+        </span>
 
-      {/* Actions */}
-      <div className="flex items-center gap-1 sm:justify-end">
-        <button
-          type="button"
-          onClick={() => setEdit(true)}
-          aria-label="Bearbeiten"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </button>
-        <DeleteButton shiftId={shift.id} />
+        <span className="text-right text-sm font-semibold tabular-nums">
+          {formatStunden(stunden)}
+        </span>
+
+        <span className="truncate text-sm text-muted-foreground">
+          {shift.notiz || "—"}
+        </span>
+
+        <div className="flex items-center justify-end gap-1">
+          <button
+            type="button"
+            onClick={() => setEdit(true)}
+            aria-label="Bearbeiten"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <DeleteButton shiftId={shift.id} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
