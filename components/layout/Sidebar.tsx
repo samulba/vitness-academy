@@ -17,6 +17,7 @@ import {
   Heart,
   HelpCircle,
   Home,
+  Inbox,
   ListTodo,
   MapPin,
   Megaphone,
@@ -96,15 +97,29 @@ const ADMIN_OVERVIEW: NavEintrag = {
   exact: true,
 };
 
+/**
+ * Admin-Gruppen Operations-First geordnet:
+ * 1. Operations (Tagesgeschaeft) — was wartet auf mich heute
+ * 2. Mitarbeiter
+ * 3. Kommunikation
+ * 4. Akademie (Onboarding-Phase, seltener Daily-Use)
+ * 5. Stammdaten + Auswertung (Footer)
+ *
+ * Provisionen werden conditional angezeigt — der Eintrag wird per
+ * Filter weggelassen wenn der User kein kann_provisionen-Flag hat.
+ * Die Gruppen-Reihenfolge spiegelt sich auch in der MobileHubSheet wider.
+ */
 const ADMIN_GROUPS: AdminGruppe[] = [
   {
-    id: "inhalte",
-    label: "Inhalte",
+    id: "operations",
+    label: "Operations",
     eintraege: [
-      { href: "/admin/lernpfade", label: "Lernpfade", icon: GraduationCap },
-      { href: "/admin/quizze", label: "Quizze", icon: HelpCircle },
-      { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare },
-      { href: "/admin/wissen", label: "Handbuch", icon: BookOpen },
+      { href: "/admin/aufgaben", label: "Aufgaben", icon: ListTodo },
+      { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle },
+      { href: "/admin/putzprotokolle", label: "Putzprotokolle", icon: Sparkles },
+      { href: "/admin/formulare/eingaenge", label: "Eingänge", icon: Inbox },
+      { href: "/admin/praxisfreigaben", label: "Praxis-Anfragen", icon: CheckSquare },
+      { href: "/admin/feedback", label: "Mitglieder-Feedback", icon: MessageCircle },
     ],
   },
   {
@@ -112,32 +127,39 @@ const ADMIN_GROUPS: AdminGruppe[] = [
     label: "Mitarbeiter",
     eintraege: [
       { href: "/admin/benutzer", label: "Benutzer", icon: Users },
-      { href: "/admin/onboarding-templates", label: "Onboarding-Templates", icon: Sparkles },
-      { href: "/admin/standorte", label: "Standorte", icon: MapPin },
-    ],
-  },
-  {
-    id: "studio",
-    label: "Studio-Daten",
-    eintraege: [
-      { href: "/admin/aufgaben", label: "Aufgaben", icon: ListTodo },
-      { href: "/admin/infos", label: "Infos", icon: Megaphone },
-      { href: "/admin/kontakte", label: "Kontakte", icon: Contact },
       { href: "/admin/lohn", label: "Lohnabrechnungen", icon: Euro },
-      { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle },
-      { href: "/admin/feedback", label: "Mitglieder-Feedback", icon: MessageCircle },
-      { href: "/admin/formulare", label: "Formulare", icon: FileText },
-      { href: "/admin/putzprotokolle", label: "Putzprotokolle", icon: Sparkles },
-      { href: "/admin/praxisfreigaben", label: "Praxis-Anfragen", icon: CheckSquare },
       { href: "/admin/provisionen", label: "Provisionen", icon: TrendingUp },
     ],
   },
   {
-    id: "auswertung",
-    label: "Auswertung",
+    id: "kommunikation",
+    label: "Kommunikation",
     eintraege: [
+      { href: "/admin/infos", label: "Wichtige Infos", icon: Megaphone },
+      { href: "/admin/kontakte", label: "Kontakte", icon: Contact },
+      { href: "/admin/formulare", label: "Formulare", icon: FileText },
+      { href: "/admin/wissen", label: "Handbuch", icon: BookOpen },
+    ],
+  },
+  {
+    id: "akademie",
+    label: "Akademie",
+    eintraege: [
+      { href: "/admin/lernpfade", label: "Lernpfade", icon: GraduationCap },
+      { href: "/admin/quizze", label: "Quizze", icon: HelpCircle },
+      { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare },
+      { href: "/admin/onboarding-templates", label: "Onboarding-Templates", icon: Sparkles },
+    ],
+  },
+  {
+    id: "stammdaten",
+    label: "Stammdaten & Auswertung",
+    eintraege: [
+      { href: "/admin/standorte", label: "Standorte", icon: MapPin },
       { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity },
       { href: "/admin/audit-log", label: "Audit-Log", icon: ShieldCheck },
+      // Design-Showcase nur in Development sichtbar — Production muss
+      // sauber sein. Filter unten in der Component.
       { href: "/admin/showcase", label: "Design-Showcase", icon: Sparkles },
     ],
   },
@@ -187,6 +209,18 @@ export function Sidebar({
   const offen = aktiverGruppenId(pathname);
   const [openGroup, setOpenGroup] = useState<string | null>(offen);
 
+  // Conditional Filter: Provisionen + Design-Showcase wegfiltern wenn
+  // nicht berechtigt / nicht in Dev. Map auf gefilterte Eintraege.
+  const istDev = process.env.NODE_ENV === "development";
+  const sichtbareGruppen = ADMIN_GROUPS.map((g) => ({
+    ...g,
+    eintraege: g.eintraege.filter((e) => {
+      if (e.href === "/admin/provisionen" && !kannProvisionen) return false;
+      if (e.href === "/admin/showcase" && !istDev) return false;
+      return true;
+    }),
+  })).filter((g) => g.eintraege.length > 0);
+
   function toggle(id: string) {
     setOpenGroup((prev) => (prev === id ? null : id));
   }
@@ -230,7 +264,7 @@ export function Sidebar({
                 </li>
               </ul>
               <div className="mt-1 space-y-0.5">
-                {ADMIN_GROUPS.map((g) => (
+                {sichtbareGruppen.map((g) => (
                   <CollapsibleGruppe
                     key={g.id}
                     gruppe={g}

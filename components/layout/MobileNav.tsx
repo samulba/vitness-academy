@@ -4,15 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Activity,
+  AlertTriangle,
   ClipboardList,
   Clock,
   FileText,
   Home,
+  Inbox,
   ListTodo,
   Plus,
   ShieldCheck,
-  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { istFuehrungskraftOderHoeher, type Rolle } from "@/lib/rollen";
@@ -36,12 +36,14 @@ const MITARBEITER_LINKS: MobileLink[] = [
   { href: "/formulare", label: "Anfragen", icon: FileText },
 ];
 
-// Verwaltungs-Modus: 4 Top-Level-Bereiche + Center-FAB zum Admin-Hub
+// Verwaltungs-Modus: 4 Operations-Tabs + Center-FAB zum Admin-Hub.
+// Alle 4 sind Inbox-/Daily-Use-Bereiche — Team/Auswertung kommen ueber
+// den Hub-Sheet, sind sekundaer.
 const VERWALTUNG_LINKS: MobileLink[] = [
   { href: "/admin", label: "Übersicht", icon: ShieldCheck, exact: true },
+  { href: "/admin/formulare/eingaenge", label: "Eingänge", icon: Inbox },
+  { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle },
   { href: "/admin/aufgaben", label: "Aufgaben", icon: ClipboardList },
-  { href: "/admin/benutzer", label: "Team", icon: Users },
-  { href: "/admin/fortschritt", label: "Auswertung", icon: Activity },
 ];
 
 export function MobileNav({

@@ -3,15 +3,21 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import {
+  Activity,
   AlertTriangle,
   ArrowRight,
   BookOpen,
   CheckSquare,
   Contact,
+  Euro,
+  FileText,
   GraduationCap,
   Heart,
   HelpCircle,
+  Inbox,
+  ListTodo,
   LogOut,
+  MapPin,
   Megaphone,
   MessageCircle,
   Settings,
@@ -19,6 +25,7 @@ import {
   ShieldCheck,
   Sparkles,
   TrendingUp,
+  Users,
   X,
 } from "lucide-react";
 import { abmelden } from "@/app/login/actions";
@@ -55,24 +62,40 @@ const VERKAUF: HubLink = {
   icon: TrendingUp,
 };
 
-// Admin-spezifisch
-const ADMIN_BEREICHE: HubLink[] = [
-  { href: "/admin/aufgaben", label: "Aufgaben", icon: ShieldCheck },
+// Admin-Hub: 5 Sektionen analog zur Sidebar — Operations zuerst.
+const ADMIN_OPERATIONS: HubLink[] = [
+  { href: "/admin/aufgaben", label: "Aufgaben", icon: ListTodo },
   { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle },
   { href: "/admin/putzprotokolle", label: "Putzprotokolle", icon: Sparkles },
-  { href: "/admin/lohn", label: "Lohn", icon: TrendingUp },
-  { href: "/admin/kontakte", label: "Kontakte", icon: Contact },
-  { href: "/admin/infos", label: "Infos", icon: Megaphone },
+  { href: "/admin/formulare/eingaenge", label: "Eingänge", icon: Inbox },
+  { href: "/admin/praxisfreigaben", label: "Praxis-Anfragen", icon: CheckSquare },
   { href: "/admin/feedback", label: "Feedback", icon: MessageCircle },
-  { href: "/admin/formulare", label: "Formulare", icon: HelpCircle },
 ];
 
-const ADMIN_INHALTE: HubLink[] = [
+const ADMIN_TEAM: HubLink[] = [
+  { href: "/admin/benutzer", label: "Benutzer", icon: Users },
+  { href: "/admin/lohn", label: "Lohn", icon: Euro },
+  { href: "/admin/provisionen", label: "Provisionen", icon: TrendingUp },
+];
+
+const ADMIN_KOMMUNIKATION: HubLink[] = [
+  { href: "/admin/infos", label: "Infos", icon: Megaphone },
+  { href: "/admin/kontakte", label: "Kontakte", icon: Contact },
+  { href: "/admin/formulare", label: "Formulare", icon: FileText },
+  { href: "/admin/wissen", label: "Handbuch", icon: BookOpen },
+];
+
+const ADMIN_AKADEMIE: HubLink[] = [
   { href: "/admin/lernpfade", label: "Lernpfade", icon: GraduationCap },
   { href: "/admin/quizze", label: "Quizze", icon: HelpCircle },
   { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare },
-  { href: "/admin/wissen", label: "Handbuch", icon: BookOpen },
-  { href: "/admin/benutzer", label: "Benutzer", icon: ShieldCheck },
+  { href: "/admin/onboarding-templates", label: "Onboarding", icon: Sparkles },
+];
+
+const ADMIN_STAMMDATEN: HubLink[] = [
+  { href: "/admin/standorte", label: "Standorte", icon: MapPin },
+  { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity },
+  { href: "/admin/audit-log", label: "Audit-Log", icon: ShieldCheck },
 ];
 
 /**
@@ -162,11 +185,29 @@ export function MobileHubSheet({
         <div className="space-y-6 p-5 pb-24">
           {adminMode ? (
             <>
-              <Section titel="Studio-Daten">
-                <Grid items={ADMIN_BEREICHE} onNavigate={onClose} />
+              <Section titel="Operations">
+                <Grid items={ADMIN_OPERATIONS} onNavigate={onClose} />
               </Section>
-              <Section titel="Inhalte & Team">
-                <Grid items={ADMIN_INHALTE} onNavigate={onClose} />
+              <Section titel="Mitarbeiter">
+                <Grid
+                  items={
+                    kannProvisionen
+                      ? ADMIN_TEAM
+                      : ADMIN_TEAM.filter(
+                          (i) => i.href !== "/admin/provisionen",
+                        )
+                  }
+                  onNavigate={onClose}
+                />
+              </Section>
+              <Section titel="Kommunikation">
+                <Grid items={ADMIN_KOMMUNIKATION} onNavigate={onClose} />
+              </Section>
+              <Section titel="Akademie">
+                <Grid items={ADMIN_AKADEMIE} onNavigate={onClose} />
+              </Section>
+              <Section titel="Stammdaten & Auswertung">
+                <Grid items={ADMIN_STAMMDATEN} onNavigate={onClose} />
               </Section>
               <Section titel="Modus">
                 <ZurApp adminMode onClose={onClose} />
