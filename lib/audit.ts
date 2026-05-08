@@ -118,8 +118,28 @@ export function actionLabel(action: AuditAction): string {
 }
 
 /**
+ * Felder, die in Diffs ignoriert werden — reine Auto-/Tech-Felder ohne
+ * Erkenntnis-Wert (Timestamps, Suchvektoren, ID-Echo).
+ */
+const RAUSCH_FELDER = new Set([
+  "id",
+  "created_at",
+  "updated_at",
+  "search_vector",
+  "tsv",
+  "fts",
+  "last_seen_at",
+  "last_active_at",
+]);
+
+function istLeer(v: unknown): boolean {
+  return v === null || v === undefined || v === "";
+}
+
+/**
  * Liefert die Felder, die sich zwischen before und after geändert haben.
- * Liefert leeres Array bei insert/delete.
+ * Liefert leeres Array bei insert/delete. Filtert technische Auto-Felder
+ * + Wechsel zwischen leeren Werten (null/""/undefined) raus.
  */
 export function geaenderteFelder(
   before: Record<string, unknown> | null,
@@ -129,9 +149,10 @@ export function geaenderteFelder(
   const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
   const out: Array<{ key: string; alt: unknown; neu: unknown }> = [];
   for (const k of keys) {
-    if (k === "updated_at") continue;
+    if (RAUSCH_FELDER.has(k)) continue;
     const a = before[k];
     const b = after[k];
+    if (istLeer(a) && istLeer(b)) continue;
     if (JSON.stringify(a) !== JSON.stringify(b)) {
       out.push({ key: k, alt: a, neu: b });
     }

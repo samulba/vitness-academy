@@ -16,24 +16,17 @@ import {
 
 const ACTION_FILTER: AuditAction[] = ["insert", "update", "delete"];
 
+/**
+ * Quick-Filter-Pills: nur die Tabellen, die im Alltag relevant sind.
+ * Andere Tabellen (Lernpfade-Inhalte, Quiz-Optionen, etc.) erscheinen
+ * weiter im Log, sind aber kein Daily-Quick-Filter.
+ */
 const TABELLEN: string[] = [
   "profiles",
-  "learning_paths",
-  "modules",
-  "lessons",
-  "lesson_content_blocks",
-  "user_learning_path_assignments",
-  "quizzes",
-  "quiz_questions",
-  "quiz_options",
-  "practical_tasks",
-  "user_practical_signoffs",
-  "knowledge_articles",
-  "knowledge_categories",
-  "studio_contacts",
-  "studio_announcements",
   "studio_tasks",
   "studio_issues",
+  "studio_announcements",
+  "studio_contacts",
   "form_templates",
 ];
 
@@ -157,7 +150,13 @@ export default async function AuditLogPage({
       ? (sp.aktion as AuditAction)
       : undefined;
 
-  const eintraege = await ladeAuditLog({ tableName, action, limit: 200 });
+  const roh = await ladeAuditLog({ tableName, action, limit: 200 });
+  // Update-Eintraege ausblenden, wenn nach dem Rausch-Filter keine
+  // sichtbare Aenderung uebrig bleibt (z.B. nur updated_at touched).
+  const eintraege = roh.filter((e) => {
+    if (e.action !== "update") return true;
+    return geaenderteFelder(e.before, e.after).length > 0;
+  });
   const tage = gruppeNachTag(eintraege);
   const inserts = eintraege.filter((e) => e.action === "insert").length;
   const updates = eintraege.filter((e) => e.action === "update").length;
