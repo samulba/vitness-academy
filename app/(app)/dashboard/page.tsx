@@ -276,17 +276,17 @@ export default async function DashboardPage() {
               <Link
                 key={qa.href}
                 href={qa.href}
-                className="group relative flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-all active:scale-[0.98] hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)] sm:flex-col sm:items-start sm:gap-3 sm:rounded-2xl sm:p-5"
+                className="group relative flex flex-col items-start gap-2.5 rounded-xl border border-border bg-card p-3 transition-all active:scale-[0.98] hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)] sm:gap-3 sm:rounded-2xl sm:p-5"
               >
                 <span
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${qa.tint} sm:h-10 sm:w-10`}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${qa.tint}`}
                 >
                   <Icon className="h-[18px] w-[18px] sm:h-5 sm:w-5" strokeWidth={1.75} />
                 </span>
-                <span className="min-w-0 flex-1 text-[13px] font-semibold leading-tight sm:flex-none sm:text-sm">
+                <span className="text-[13px] font-semibold leading-tight sm:text-sm">
                   {qa.label}
                 </span>
-                <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))] sm:absolute sm:right-3 sm:top-3 sm:h-4 sm:w-4" />
+                <ArrowUpRight className="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))] sm:right-3 sm:top-3 sm:h-4 sm:w-4" />
               </Link>
             );
           })}
