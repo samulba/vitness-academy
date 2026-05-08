@@ -161,20 +161,20 @@ export default async function DashboardPage() {
           href="/infos"
           className={
             banner.importance === "critical"
-              ? "group flex items-start gap-4 rounded-2xl border-2 border-[hsl(var(--destructive)/0.6)] bg-[hsl(var(--destructive)/0.05)] p-5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--destructive))]"
-              : "group flex items-start gap-4 rounded-2xl border-2 border-[hsl(var(--warning)/0.5)] bg-[hsl(var(--warning)/0.05)] p-5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--warning))]"
+              ? "group flex items-start gap-3 rounded-xl border-2 border-[hsl(var(--destructive)/0.6)] bg-[hsl(var(--destructive)/0.05)] p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--destructive))] sm:gap-4 sm:rounded-2xl sm:p-5"
+              : "group flex items-start gap-3 rounded-xl border-2 border-[hsl(var(--warning)/0.5)] bg-[hsl(var(--warning)/0.05)] p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--warning))] sm:gap-4 sm:rounded-2xl sm:p-5"
           }
         >
           <span
             className={
               banner.importance === "critical"
-                ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--destructive))] text-white"
-                : "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--warning))] text-white"
+                ? "flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--destructive))] text-white sm:h-10 sm:w-10"
+                : "flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--warning))] text-white sm:h-10 sm:w-10"
             }
           >
-            <Sparkles className="h-5 w-5" />
+            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
           </span>
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <p
               className={
                 banner.importance === "critical"
@@ -184,7 +184,7 @@ export default async function DashboardPage() {
             >
               {banner.importance === "critical" ? "Dringend" : "Wichtig"}
             </p>
-            <p className="mt-0.5 text-base font-semibold leading-tight">
+            <p className="mt-0.5 text-sm font-semibold leading-tight sm:text-base">
               {banner.title}
             </p>
           </div>
@@ -293,24 +293,12 @@ export default async function DashboardPage() {
 
       {/* === Aktuelle Infos === */}
       {aktuelleInfos.length > 0 && (
-        <section className="space-y-5">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-                Aktuell aus dem Studio
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-                Wichtige Infos
-              </h2>
-            </div>
-            <Link
-              href="/infos"
-              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Alle ansehen
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+        <section className="space-y-3 sm:space-y-5">
+          <SectionHeader
+            eyebrow="Aktuell aus dem Studio"
+            titel="Wichtige Infos"
+            href="/infos"
+          />
           <ul className="space-y-2.5">
             {aktuelleInfos.map((info) => {
               const importance =
@@ -338,7 +326,7 @@ export default async function DashboardPage() {
                 <li key={info.id}>
                   <Link
                     href="/infos"
-                    className={`group flex items-start gap-3 rounded-xl border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] ${importance.border}`}
+                    className={`group flex items-start gap-3 rounded-xl border bg-card p-3.5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] sm:p-4 ${importance.border}`}
                   >
                     <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--brand-pink)/0.10)] text-[hsl(var(--brand-pink))]">
                       {info.pinned ? (
@@ -348,7 +336,7 @@ export default async function DashboardPage() {
                       )}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <span
                           className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${importance.pill}`}
                         >
@@ -356,18 +344,18 @@ export default async function DashboardPage() {
                         </span>
                         {info.pinned && (
                           <span className="inline-flex items-center rounded-full bg-[hsl(var(--primary)/0.12)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--primary))]">
-                            Angepinnt
+                            Pin
                           </span>
                         )}
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[11px] text-muted-foreground sm:text-xs">
                           {formatDatum(info.created_at)}
                         </span>
                       </div>
-                      <p className="mt-1.5 truncate text-[15px] font-semibold leading-tight">
+                      <p className="mt-1 truncate text-sm font-semibold leading-tight sm:mt-1.5 sm:text-[15px]">
                         {info.title}
                       </p>
                       {info.body && (
-                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground sm:text-sm">
                           {info.body}
                         </p>
                       )}
@@ -391,24 +379,12 @@ export default async function DashboardPage() {
 
       {/* === Aufgaben heute === */}
       {aufgaben.heute.length > 0 && (
-        <section className="space-y-5">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-                Heute zu erledigen
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-                Aufgaben
-              </h2>
-            </div>
-            <Link
-              href="/aufgaben"
-              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Alle ansehen
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+        <section className="space-y-3 sm:space-y-5">
+          <SectionHeader
+            eyebrow="Heute zu erledigen"
+            titel="Aufgaben"
+            href="/aufgaben"
+          />
           <ul className="overflow-hidden rounded-2xl border border-border bg-card">
             {aufgaben.heute.slice(0, 5).map((a, i) => (
               <li key={a.id} className={i > 0 ? "border-t border-border" : ""}>
@@ -421,24 +397,12 @@ export default async function DashboardPage() {
 
       {/* === Meine offenen Anfragen === */}
       {anfragen.length > 0 && (
-        <section className="space-y-5">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-                Status deiner Anträge
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-                Meine Anfragen
-              </h2>
-            </div>
-            <Link
-              href="/formulare"
-              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Alle ansehen
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+        <section className="space-y-3 sm:space-y-5">
+          <SectionHeader
+            eyebrow="Status deiner Anträge"
+            titel="Meine Anfragen"
+            href="/formulare"
+          />
           <ul className="overflow-hidden rounded-2xl border border-border bg-card">
             {anfragen.slice(0, 4).map((s, i) => {
               const meta = SUBMISSION_LABEL[s.status] ?? {
@@ -450,8 +414,8 @@ export default async function DashboardPage() {
                   key={s.id}
                   className={
                     i > 0
-                      ? "flex items-center gap-4 border-t border-border px-5 py-4"
-                      : "flex items-center gap-4 px-5 py-4"
+                      ? "flex items-center gap-3 border-t border-border px-4 py-3 sm:gap-4 sm:px-5 sm:py-4"
+                      : "flex items-center gap-3 px-4 py-3 sm:gap-4 sm:px-5 sm:py-4"
                   }
                 >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--brand-pink)/0.08)] text-[hsl(var(--brand-pink))]">
@@ -461,8 +425,7 @@ export default async function DashboardPage() {
                     <p className="truncate text-sm font-semibold">
                       {s.template_title ?? "Anfrage"}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      Eingereicht{" "}
+                    <p className="truncate text-[11px] text-muted-foreground sm:text-xs">
                       {new Date(s.submitted_at).toLocaleDateString("de-DE", {
                         day: "2-digit",
                         month: "2-digit",
@@ -471,7 +434,7 @@ export default async function DashboardPage() {
                     </p>
                   </div>
                   <span
-                    className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${meta.tint}`}
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider sm:px-2.5 sm:py-1 sm:text-[11px] ${meta.tint}`}
                   >
                     {meta.label}
                   </span>
@@ -484,29 +447,17 @@ export default async function DashboardPage() {
 
       {/* === Aktuelle Lobs === */}
       {kudos.length > 0 && (
-        <section className="space-y-5">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-                Aus dem Team
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-                Aktuelle Lobs
-              </h2>
-            </div>
-            <Link
-              href="/kudos"
-              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Alle ansehen
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-          <ul className="grid gap-3 sm:grid-cols-3">
+        <section className="space-y-3 sm:space-y-5">
+          <SectionHeader
+            eyebrow="Aus dem Team"
+            titel="Aktuelle Lobs"
+            href="/kudos"
+          />
+          <ul className="grid gap-2.5 sm:grid-cols-3 sm:gap-3">
             {kudos.map((k) => (
               <li
                 key={k.id}
-                className="rounded-2xl border border-border bg-card p-5"
+                className="rounded-xl border border-border bg-card p-4 sm:rounded-2xl sm:p-5"
               >
                 <div className="flex items-center gap-2 text-xs">
                   <ColoredAvatar
@@ -536,13 +487,13 @@ export default async function DashboardPage() {
         <section>
           <Link
             href={`/lektionen/${next.lesson_id}`}
-            className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)]"
+            className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)] sm:gap-4 sm:rounded-2xl sm:p-5"
           >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))]">
-              <GraduationCap className="h-5 w-5" strokeWidth={1.75} />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))] sm:h-11 sm:w-11">
+              <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))] sm:text-[11px]">
                 Mein Lernen · {abgeschlossen}/{gesamt}
               </p>
               <p className="mt-0.5 truncate text-sm font-semibold sm:text-base">
@@ -552,7 +503,7 @@ export default async function DashboardPage() {
                 {next.path_title} · {next.module_title}
               </p>
             </div>
-            <ArrowUpRight className="h-5 w-5 shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))]" />
+            <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))] sm:h-5 sm:w-5" />
           </Link>
         </section>
       )}
@@ -561,23 +512,58 @@ export default async function DashboardPage() {
       <section>
         <Link
           href="/wissen"
-          className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary))] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.3)]"
+          className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary))] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.3)] sm:gap-4 sm:rounded-2xl sm:p-5"
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]">
-            <BookOpen className="h-5 w-5" strokeWidth={1.75} />
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))] sm:h-11 sm:w-11">
+            <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))] sm:text-[11px]">
               Vitness Handbuch
             </p>
-            <p className="mt-0.5 text-base font-semibold">
+            <p className="mt-0.5 text-sm font-semibold sm:text-base">
               Schnelle Antworten für den Studio-Alltag
             </p>
           </div>
-          <ArrowUpRight className="h-5 w-5 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))]" />
+          <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))] sm:h-5 sm:w-5" />
         </Link>
       </section>
 
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------- */
+/* Section-Header (responsiv: Eyebrow + Titel + "Alle ansehen"-Link)    */
+/* -------------------------------------------------------------------- */
+
+function SectionHeader({
+  eyebrow,
+  titel,
+  href,
+}: {
+  eyebrow: string;
+  titel: string;
+  href: string;
+}) {
+  return (
+    <div className="flex items-end justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))] sm:text-[11px] sm:tracking-[0.22em]">
+          {eyebrow}
+        </p>
+        <h2 className="mt-1 text-lg font-semibold tracking-tight sm:mt-2 sm:text-3xl">
+          {titel}
+        </h2>
+      </div>
+      <Link
+        href={href}
+        className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:text-sm"
+      >
+        <span className="hidden sm:inline">Alle ansehen</span>
+        <span className="sm:hidden">Alle</span>
+        <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+      </Link>
     </div>
   );
 }
