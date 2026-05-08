@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, Inbox, Sparkles } from "lucide-react";
+import { CheckCircle2, FileText, Inbox, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
@@ -45,14 +45,16 @@ export default async function EingaengePage({
     <div className="space-y-6">
       <RealtimeRefresh table="form_submissions" />
       <PageHeader
-        breadcrumbs={[
-          { label: "Verwaltung", href: "/admin" },
-          { label: "Formulare", href: "/admin/formulare" },
-          { label: "Eingänge" },
+        eyebrow="Operations"
+        title="Eingänge"
+        description="Eingereichte Krankmeldungen, Urlaubsanträge & Co. Klick öffnet die Details mit Status-Setzung. Vorlagen verwalten unter Formulare."
+        secondaryActions={[
+          {
+            label: "Vorlagen verwalten",
+            href: "/admin/formulare",
+            icon: <FileText />,
+          },
         ]}
-        eyebrow="Eingänge"
-        title="Formular-Eingänge"
-        description="Eingereichte Formulare. Klick öffnet die Details mit Status-Setzung."
       />
 
       <StatGrid cols={3}>
