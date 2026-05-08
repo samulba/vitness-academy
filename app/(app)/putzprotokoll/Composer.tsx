@@ -1,14 +1,11 @@
 "use client";
 
 import {
-  useActionState,
   useCallback,
   useEffect,
   useRef,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import {
   AlertCircle,
   Camera,
@@ -20,13 +17,12 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SubmitOverlay } from "@/components/ui/submit-overlay";
+import { useFormAction } from "@/lib/hooks/use-form-action";
 import { cn } from "@/lib/utils";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { formatDatumUhrzeitBerlin } from "@/lib/format";
-import {
-  protokollEinreichen,
-  type Ergebnis,
-} from "./actions";
+import { protokollEinreichen } from "./actions";
 import {
   cleaningPhotoUrl,
   type CleaningSection,
@@ -51,13 +47,14 @@ export function Composer({
   datumDeutsch,
   supabasePublicUrl,
 }: Props) {
-  const router = useRouter();
-  const formRef = useRef<HTMLFormElement>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [state, runAction, pending] = useActionState<Ergebnis | null, FormData>(
-    async (_prev, fd) => protokollEinreichen(fd),
-    null,
-  );
+
+  const { run, pending, state, formRef } = useFormAction(protokollEinreichen, {
+    successToast: "Putzprotokoll erfolgreich eingereicht",
+    // Cache-Buster-Query erzwingt einen echten RSC-Reload, damit die
+    // Server-Page sofort die Detail-View statt Composer zeigt.
+    pushTo: () => `/putzprotokoll?t=${Date.now()}`,
+  });
 
   // Pro Section meldet ihre uploading-Anzahl hierher zurueck — Submit
   // bleibt disabled solange irgendwo ein Upload laeuft.
@@ -72,16 +69,6 @@ export function Composer({
     });
   }, []);
   const totalUploading = Object.values(uploads).reduce((a, b) => a + b, 0);
-
-  // Wenn Action erfolgreich war: Toast + Page refreshen damit der
-  // Server-Render den neu eingereichten Eintrag findet und auf
-  // Detail-View wechselt.
-  useEffect(() => {
-    if (state?.ok) {
-      toast.success("Putzprotokoll erfolgreich eingereicht");
-      router.refresh();
-    }
-  }, [state, router]);
 
   const message = state && !state.ok ? state.message : null;
   const erfolgreich = state?.ok === true;
@@ -124,7 +111,15 @@ export function Composer({
   };
 
   return (
-    <form ref={formRef} action={runAction} className="space-y-5">
+    <form ref={formRef} action={run} className="space-y-5">
+      <SubmitOverlay
+        pending={pending || erfolgreich}
+        message={
+          erfolgreich
+            ? "Wird angezeigt …"
+            : "Protokoll wird eingereicht …"
+        }
+      />
       {sections.map((sec, idx) => (
         <SectionCard
           key={sec.id}
