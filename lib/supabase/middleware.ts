@@ -1,7 +1,16 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/login", "/impressum", "/datenschutz"];
+// /auth/* sind alle public:
+//  - /auth/confirm: verifiziert Magic-Link-Tokens (vor Session-Setup)
+//  - /auth/set-password: prueft Session selbst und redirected wenn keine
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/impressum",
+  "/datenschutz",
+  "/auth",
+];
 
 type CookieAusgabe = { name: string; value: string; options: CookieOptions };
 
