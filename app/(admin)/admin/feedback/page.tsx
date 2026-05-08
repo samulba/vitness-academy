@@ -4,15 +4,14 @@ import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { requireRole } from "@/lib/auth";
 import { feedbackStats, ladeFeedback } from "@/lib/feedback";
-import { getAktiverStandort } from "@/lib/standort-context";
 import { FeedbackTable } from "./FeedbackTable";
 
 export default async function FeedbackAdminPage() {
   await requireRole(["fuehrungskraft", "admin", "superadmin"]);
-  const aktiv = await getAktiverStandort();
+  // Admin sieht Feedback ueber alle Standorte.
   const [feedback, stats] = await Promise.all([
-    ladeFeedback({ locationId: aktiv?.id ?? null, limit: 200 }),
-    feedbackStats({ locationId: aktiv?.id ?? null }),
+    ladeFeedback({ locationId: null, limit: 200 }),
+    feedbackStats({ locationId: null }),
   ]);
 
   return (

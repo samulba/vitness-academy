@@ -1,15 +1,8 @@
 import { requireRole } from "@/lib/auth";
-import {
-  getAktiverStandort,
-  ladeMeineStandorte,
-  type StandortMembership,
-} from "@/lib/standort-context";
-import { istNextJsControlFlow } from "@/lib/admin/safe-loader";
 import { Topbar } from "@/components/layout/Topbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { NotificationBellServer } from "@/components/notifications/NotificationBellServer";
-import { StandortSwitcher } from "@/components/layout/StandortSwitcher";
 import { MobileAdminBanner } from "@/components/admin/MobileAdminBanner";
 
 // Admin-Pages sind ALLE dynamisch (cookies/auth/RLS) -- explizit
@@ -24,26 +17,10 @@ export default async function AdminLayout({
 }) {
   const profile = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
 
-  // Standort-Loading darf das Layout NICHT crashen lassen. Faellt aus
-  // (z.B. RLS-Block oder Migration-Lag), wird einfach kein Switcher
-  // gezeigt -- Sidebar/Topbar bleiben funktional.
-  let standorte: StandortMembership[] = [];
-  let aktiv: StandortMembership | null = null;
-  try {
-    standorte = await ladeMeineStandorte(profile.id);
-    aktiv = await getAktiverStandort(standorte);
-  } catch (e) {
-    if (istNextJsControlFlow(e)) throw e;
-    console.error("[AdminLayout] standort load failed:", e);
-  }
-
-  const switcherTopbar = (
-    <StandortSwitcher aktiv={aktiv} optionen={standorte} variant="compact" />
-  );
-  const switcherSidebar = (
-    <StandortSwitcher aktiv={aktiv} optionen={standorte} variant="row" />
-  );
-
+  // KEIN Standort-Switcher im Admin-Bereich — Verwaltung sieht
+  // standardmaessig alle Standorte. Filter pro Page bei Bedarf via
+  // URL-Param. Im Mitarbeiter-Mode bleibt der Switcher in der Topbar/
+  // Sidebar weiterhin verfuegbar (eigenes Layout).
   return (
     <div className="flex min-h-screen flex-col">
       <Topbar
@@ -51,7 +28,6 @@ export default async function AdminLayout({
         role={profile.role}
         avatarPath={profile.avatar_path}
         notificationSlot={<NotificationBellServer placement="auto" />}
-        standortSlot={switcherTopbar}
       />
       <div className="flex flex-1">
         <Sidebar
@@ -59,7 +35,6 @@ export default async function AdminLayout({
           fullName={profile.full_name}
           avatarPath={profile.avatar_path}
           notificationSlot={<NotificationBellServer placement="side-right" />}
-          standortSlot={switcherSidebar}
           kannProvisionen={profile.kann_provisionen}
         />
         <main

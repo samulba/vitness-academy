@@ -15,7 +15,6 @@ import {
   STATUS_LABEL,
   type EntryStatus,
 } from "@/lib/provisionen";
-import { getAktiverStandort } from "@/lib/standort-context";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { formatDatum } from "@/lib/format";
 import { LoeschenButton } from "./LoeschenButton";
@@ -83,17 +82,16 @@ export default async function ProvisionenAdminPage({
       ? sp.status
       : null
   ) as EntryStatus | null;
-  const aktiv = await getAktiverStandort();
-
+  // Admin sieht Provisionen ueber alle Standorte.
   const [vertriebler, entries, ausstehend] = await Promise.all([
     ladeVertriebler(),
     ladeEntries({
       monatYYYYMM: monat,
       vertrieblerId: vertrieblerFilter ?? undefined,
-      locationId: aktiv?.id ?? null,
+      locationId: null,
       status: statusFilter ? [statusFilter] : undefined,
     }),
-    ladeAusstehend({ locationId: aktiv?.id ?? null }),
+    ladeAusstehend({ locationId: null }),
   ]);
   const stats = aggregiere(entries);
 

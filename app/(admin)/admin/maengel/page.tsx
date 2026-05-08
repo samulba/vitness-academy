@@ -10,28 +10,21 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
 import { requireRole } from "@/lib/auth";
 import { ladeMaengel } from "@/lib/maengel";
-import { getAktiverStandort } from "@/lib/standort-context";
 import { tagesCounts, trendAusVerlauf } from "@/lib/admin/sparklines";
 import { MaengelTable } from "./MaengelTable";
 
 export default async function MaengelAdminPage() {
   await requireRole(["fuehrungskraft", "admin", "superadmin"]);
-  const aktiv = await getAktiverStandort();
-  const locId = aktiv?.id ?? null;
+  // Admin-Bereich zeigt standardmaessig alle Standorte
+  // (kein Standort-Switcher in der Admin-Sidebar/Topbar mehr).
   const sparkGemeldet = await tagesCounts("studio_issues", "created_at");
   const sparkBehoben = await tagesCounts("studio_issues", "resolved_at", 7, (q) =>
     q.eq("status", "behoben"),
   );
   const trendGemeldet = trendAusVerlauf(sparkGemeldet);
   const trendBehoben = trendAusVerlauf(sparkBehoben);
-  const offen = await ladeMaengel({
-    status: ["offen", "in_bearbeitung"],
-    locationId: locId,
-  });
-  const erledigt = await ladeMaengel({
-    status: ["behoben", "verworfen"],
-    locationId: locId,
-  });
+  const offen = await ladeMaengel({ status: ["offen", "in_bearbeitung"] });
+  const erledigt = await ladeMaengel({ status: ["behoben", "verworfen"] });
   const inBearbeitung = offen.filter((m) => m.status === "in_bearbeitung").length;
   const kritisch = offen.filter((m) => m.severity === "kritisch").length;
   const behoben = erledigt.filter((m) => m.status === "behoben").length;

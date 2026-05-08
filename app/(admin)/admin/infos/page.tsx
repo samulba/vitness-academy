@@ -5,14 +5,13 @@ import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state"
 import { requireRole } from "@/lib/auth";
 import { ladeAnnouncements } from "@/lib/infos";
 import { ladeStandorte } from "@/lib/standorte";
-import { getAktiverStandort } from "@/lib/standort-context";
 import { InfosTable } from "./InfosTable";
 
 export default async function InfosAdminPage() {
   await requireRole(["admin", "superadmin"]);
-  const aktiv = await getAktiverStandort();
+  // Admin sieht alle Infos aller Standorte.
   const [infos, standorte] = await Promise.all([
-    ladeAnnouncements({ nurPublished: false, locationId: aktiv?.id ?? null }),
+    ladeAnnouncements({ nurPublished: false, locationId: null }),
     ladeStandorte(),
   ]);
   const standortById: Record<string, string> = {};

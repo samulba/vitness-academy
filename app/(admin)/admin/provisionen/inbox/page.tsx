@@ -4,13 +4,12 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
 import { requireRole } from "@/lib/auth";
 import { ladeAusstehend } from "@/lib/provisionen";
-import { getAktiverStandort } from "@/lib/standort-context";
 import { InboxItem } from "./InboxItem";
 
 export default async function ProvisionenInboxPage() {
   await requireRole(["admin", "superadmin"]);
-  const aktiv = await getAktiverStandort();
-  const eintraege = await ladeAusstehend({ locationId: aktiv?.id ?? null });
+  // Admin sieht Inbox ueber alle Standorte.
+  const eintraege = await ladeAusstehend({ locationId: null });
 
   return (
     <div className="space-y-6">

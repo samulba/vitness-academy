@@ -4,13 +4,12 @@ import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
 import { requireRole } from "@/lib/auth";
 import { ladeKontakte } from "@/lib/kontakte";
-import { getAktiverStandort } from "@/lib/standort-context";
 import { KontakteTable } from "./KontakteTable";
 
 export default async function KontakteAdminPage() {
   await requireRole(["admin", "superadmin"]);
-  const aktiv = await getAktiverStandort();
-  const kontakte = await ladeKontakte(aktiv?.id ?? null);
+  // Admin sieht alle Kontakte ueber alle Standorte.
+  const kontakte = await ladeKontakte(null);
   const mitTel = kontakte.filter((k) => k.phone).length;
   const mitMail = kontakte.filter((k) => k.email).length;
   const tagsSet = new Set<string>();
