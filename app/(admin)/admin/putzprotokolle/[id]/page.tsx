@@ -12,7 +12,11 @@ import {
   ladeProtokoll,
   ladeTemplateMitSections,
 } from "@/lib/putzprotokoll";
-import { formatDatum } from "@/lib/format";
+import {
+  formatDatum,
+  formatDatumUhrzeitBerlin,
+  formatUhrzeitBerlin,
+} from "@/lib/format";
 import { ProtokollSectionsAnzeige } from "@/components/putzprotokoll/ProtokollSectionsAnzeige";
 import { Button } from "@/components/ui/button";
 import { StatusPill } from "@/components/admin/StatusPill";
@@ -39,7 +43,6 @@ export default async function ProtokollDetailPage({
     for (const s of tpl.sections) aufgabenMap.set(s.id, s.aufgaben);
   }
 
-  const submittedAt = new Date(protokoll.submitted_at);
   const reviewedAction = protokollReviewen.bind(null, protokoll.id);
   const loeschenAction = protokollLoeschen.bind(null, protokoll.id);
 
@@ -76,11 +79,7 @@ export default async function ProtokollDetailPage({
                   {protokoll.submitted_by_name ?? "Mitarbeiter:in"}
                 </span>{" "}
                 · <Clock className="-mt-0.5 inline h-3.5 w-3.5" />{" "}
-                {submittedAt.toLocaleTimeString("de-DE", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}{" "}
-                Uhr
+                {formatUhrzeitBerlin(protokoll.submitted_at)} Uhr
               </p>
             </div>
           </div>
@@ -113,11 +112,7 @@ export default async function ProtokollDetailPage({
                 <span className="font-medium text-foreground">
                   {protokoll.reviewed_by_name ?? "Studioleitung"}
                 </span>{" "}
-                am{" "}
-                {new Date(protokoll.reviewed_at).toLocaleString("de-DE", {
-                  dateStyle: "short",
-                  timeStyle: "short",
-                })}
+                am {formatDatumUhrzeitBerlin(protokoll.reviewed_at)}
               </p>
               {protokoll.review_note && (
                 <p className="mt-1.5 whitespace-pre-wrap text-sm">

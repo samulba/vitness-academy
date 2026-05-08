@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { auswertungZeitraum } from "@/lib/putzprotokoll_stats";
-import { formatDatum } from "@/lib/format";
+import { formatDatum, formatDatumUhrzeitBerlin } from "@/lib/format";
 import { Logo } from "@/components/brand/Logo";
 import { PrintButton } from "./PrintButton";
 
@@ -192,10 +192,7 @@ export default async function ComplianceReportPrint({
 
         <footer className="mt-8 border-t border-border pt-4 text-xs text-muted-foreground">
           Erstellt mit Vitness Crew · {location.name} · Stand{" "}
-          {new Date().toLocaleString("de-DE", {
-            dateStyle: "short",
-            timeStyle: "short",
-          })}
+          {formatDatumUhrzeitBerlin(new Date())}
         </footer>
       </div>
 

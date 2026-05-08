@@ -18,6 +18,43 @@ export function formatDatum(date: string | Date | null | undefined): string {
   return `${dd}.${mm}.${yyyy}`;
 }
 
+/**
+ * Uhrzeit deterministisch in Europe/Berlin formatieren — auch wenn
+ * der Server in UTC laeuft. timestamptz aus der DB ist UTC, hier
+ * wird's auf die lokale Zeitzone der App-Nutzer:innen umgerechnet.
+ */
+export function formatUhrzeitBerlin(
+  date: string | Date | null | undefined,
+): string {
+  if (!date) return "—";
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleTimeString("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Berlin",
+  });
+}
+
+/**
+ * Datum + Uhrzeit (Europe/Berlin) — z.B. "12.05.2026, 14:32".
+ */
+export function formatDatumUhrzeitBerlin(
+  date: string | Date | null | undefined,
+): string {
+  if (!date) return "—";
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Berlin",
+  });
+}
+
 export function rolleLabel(role: string | null | undefined): string {
   switch (role) {
     case "mitarbeiter":

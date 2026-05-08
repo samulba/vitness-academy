@@ -13,7 +13,7 @@ import {
   ladeProtokollFuerDatum,
   ladeTemplateMitSections,
 } from "@/lib/putzprotokoll";
-import { formatDatum } from "@/lib/format";
+import { formatDatum, formatUhrzeitBerlin } from "@/lib/format";
 import { Composer } from "./Composer";
 import { ProtokollDetail } from "./ProtokollDetail";
 
@@ -118,10 +118,7 @@ export default async function PutzprotokollPage() {
                     <span>·</span>
                     <Clock className="h-3.5 w-3.5" />
                     <span>
-                      {new Date(heutigesProtokoll.submitted_at).toLocaleTimeString(
-                        "de-DE",
-                        { hour: "2-digit", minute: "2-digit" },
-                      )}{" "}
+                      {formatUhrzeitBerlin(heutigesProtokoll.submitted_at)}{" "}
                       Uhr
                     </span>
                     <span>·</span>

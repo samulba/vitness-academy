@@ -6,7 +6,7 @@ import {
   ladeTemplateMitSections,
   cleaningPhotoUrl,
 } from "@/lib/putzprotokoll";
-import { formatDatum } from "@/lib/format";
+import { formatDatum, formatUhrzeitBerlin } from "@/lib/format";
 import { Logo } from "@/components/brand/Logo";
 import { PrintButton } from "./PrintButton";
 
@@ -29,8 +29,6 @@ export default async function PrintProtokollPage({
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-  const submitted = new Date(protokoll.submitted_at);
-
   return (
     <main className="theme-light-locked min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-4xl px-6 py-10 print:py-0">
@@ -81,10 +79,7 @@ export default async function PrintProtokollPage({
                 Uhrzeit
               </dt>
               <dd className="font-medium tabular-nums">
-                {submitted.toLocaleTimeString("de-DE", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}{" "}
+                {formatUhrzeitBerlin(protokoll.submitted_at)}{" "}
                 Uhr
               </dd>
             </div>
