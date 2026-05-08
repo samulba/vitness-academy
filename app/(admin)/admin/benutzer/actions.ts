@@ -185,6 +185,64 @@ export async function mitarbeiterReaktivieren(benutzerId: string): Promise<void>
   redirect(`/admin/benutzer/${benutzerId}?toast=restored`);
 }
 
+/**
+ * Endgueltiges Loeschen eines Mitarbeiters (Auth-User + cascadet auf
+ * profiles via FK). NUR fuer Test-User die noch nie eingeloggt waren
+ * ODER bereits archiviert sind — sonst zu gefaehrlich (echte Daten).
+ *
+ * Reverse-Schutz:
+ *  - Nur Admin
+ *  - Nicht sich selbst
+ *  - Nicht Superadmin (außer durch Superadmin)
+ *  - Nur eingeladen ODER archiviert
+ */
+export async function mitarbeiterEndgueltigLoeschen(
+  benutzerId: string,
+): Promise<void> {
+  const aktuell = await ensureAdmin();
+  if (!istUUID(benutzerId)) {
+    redirect(`/admin/benutzer?toast=error`);
+  }
+  if (benutzerId === aktuell.id) {
+    redirect(`/admin/benutzer/${benutzerId}?toast=error`);
+  }
+
+  const admin = createAdminClient();
+  const { data: userData } = await admin.auth.admin.getUserById(benutzerId);
+  if (!userData?.user) {
+    redirect(`/admin/benutzer?toast=error`);
+  }
+
+  const { data: profil } = await admin
+    .from("profiles")
+    .select("archived_at, role")
+    .eq("id", benutzerId)
+    .maybeSingle();
+
+  // Superadmin nur durch Superadmin
+  if (profil?.role === "superadmin" && aktuell.role !== "superadmin") {
+    redirect(`/admin/benutzer/${benutzerId}?toast=error`);
+  }
+
+  const istArchiviert = profil?.archived_at != null;
+  const nieEingeloggt = !userData.user.last_sign_in_at;
+
+  if (!nieEingeloggt && !istArchiviert) {
+    // User hat sich schon eingeloggt und ist nicht archiviert
+    // → erst archivieren, dann loeschen
+    redirect(`/admin/benutzer/${benutzerId}?toast=error`);
+  }
+
+  const { error } = await admin.auth.admin.deleteUser(benutzerId);
+  if (error) {
+    console.error("[mitarbeiterEndgueltigLoeschen]", error);
+    redirect(`/admin/benutzer/${benutzerId}?toast=error`);
+  }
+
+  revalidatePath("/admin/benutzer");
+  redirect("/admin/benutzer?toast=deleted");
+}
+
 export async function fortschrittZuruecksetzen(
   benutzerId: string,
   lessonId: string,

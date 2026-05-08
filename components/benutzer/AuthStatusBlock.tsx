@@ -4,15 +4,22 @@ import {
   Clock,
   Mail,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
 import { formatDatumUhrzeitBerlin } from "@/lib/format";
 import type { AuthStatusInfo } from "@/lib/admin/auth-status";
-import { einladungErneutSenden } from "../../app/(admin)/admin/benutzer/actions";
+import {
+  einladungErneutSenden,
+  mitarbeiterEndgueltigLoeschen,
+} from "../../app/(admin)/admin/benutzer/actions";
+import { LoeschenSubmitButton } from "./LoeschenSubmitButton";
 
 /**
  * Anzeige des Auth-Status auf der Mitarbeiter-Detail-Page:
- *   - Eingeladen (Magenta): Datum der Einladung, Re-invite-Button
- *   - Aktiv (Grün): letzter Login + first-login-Datum
+ *   - Eingeladen (Magenta): Datum der Einladung, Re-invite-Button +
+ *     Endgueltig-Loeschen-Button (nur fuer Test-User die nie
+ *     eingeloggt waren)
+ *   - Aktiv (Gruen): letzter Login + first-login-Datum
  *   - Inaktiv (Grau): letzter Login (war > 30 Tage)
  */
 export function AuthStatusBlock({
@@ -48,15 +55,22 @@ export function AuthStatusBlock({
             angeklickt.
           </p>
         </div>
-        <form action={einladungErneutSenden.bind(null, benutzerId)}>
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-lg bg-[hsl(var(--primary))] px-4 text-sm font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_4px_14px_-4px_hsl(var(--primary)/0.5)] transition-all hover:bg-[hsl(var(--primary)/0.9)] active:scale-95"
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <form action={einladungErneutSenden.bind(null, benutzerId)}>
+            <button
+              type="submit"
+              className="inline-flex h-10 w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-[hsl(var(--primary))] px-4 text-sm font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_4px_14px_-4px_hsl(var(--primary)/0.5)] transition-all hover:bg-[hsl(var(--primary)/0.9)] active:scale-95 sm:w-auto"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Erneut senden
+            </button>
+          </form>
+          <form
+            action={mitarbeiterEndgueltigLoeschen.bind(null, benutzerId)}
           >
-            <RefreshCw className="h-3.5 w-3.5" />
-            Einladung erneut senden
-          </button>
-        </form>
+            <LoeschenSubmitButton />
+          </form>
+        </div>
       </section>
     );
   }
@@ -108,3 +122,5 @@ export function AuthStatusBlock({
     </section>
   );
 }
+
+export { Trash2 };
