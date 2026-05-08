@@ -3,14 +3,18 @@ import {
   Activity,
   AlertTriangle,
   ArrowRight,
+  ArrowUpRight,
   Cake,
   CheckCircle2,
+  CheckSquare,
   Clock,
+  Euro,
   FileText,
   GraduationCap,
   Inbox,
   ListTodo,
-  Sparkles,
+  Megaphone,
+  UserPlus,
   Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -144,6 +148,15 @@ type AktiverMangel = {
   reporter: string | null;
 };
 
+async function ladePraxisOffen(): Promise<number> {
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("user_practical_signoffs")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "bereit");
+  return count ?? 0;
+}
+
 async function ladeAktiveMaengel(): Promise<AktiverMangel[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -241,6 +254,38 @@ async function ladeAktiveMitarbeiter(): Promise<AktiverMitarbeiter[]> {
   return out;
 }
 
+const QUICK_ACTIONS: {
+  href: string;
+  label: string;
+  icon: typeof Megaphone;
+  tint: string;
+}[] = [
+  {
+    href: "/admin/infos/neu",
+    label: "Info posten",
+    icon: Megaphone,
+    tint: "bg-violet-500/10 text-violet-600",
+  },
+  {
+    href: "/admin/benutzer/neu",
+    label: "Mitarbeiter anlegen",
+    icon: UserPlus,
+    tint: "bg-sky-500/10 text-sky-600",
+  },
+  {
+    href: "/admin/lohn",
+    label: "Lohn hochladen",
+    icon: Euro,
+    tint: "bg-emerald-500/10 text-emerald-600",
+  },
+  {
+    href: "/admin/putzprotokolle/auswertung",
+    label: "Putz-Auswertung",
+    icon: Activity,
+    tint: "bg-cyan-500/10 text-cyan-600",
+  },
+];
+
 const SUBMISSION_LABEL: Record<string, string> = {
   eingereicht: "Neu",
   in_bearbeitung: "In Bearbeitung",
@@ -264,6 +309,7 @@ export default async function AdminDashboardPage() {
   await requireRole(["admin", "superadmin", "fuehrungskraft"]);
   const [
     puls,
+    praxisOffen,
     maengel,
     submissions,
     mitarbeiter,
@@ -271,9 +317,10 @@ export default async function AdminDashboardPage() {
     sparkMaengel,
     sparkSubmissions,
     sparkAufgaben,
-    sparkLektionen,
+    sparkPraxis,
   ] = await Promise.all([
     ladePuls(),
+    ladePraxisOffen(),
     ladeAktiveMaengel(),
     ladeFrischeSubmissions(),
     ladeAktiveMitarbeiter(),
@@ -281,87 +328,131 @@ export default async function AdminDashboardPage() {
     tagesCounts("studio_issues", "created_at"),
     tagesCounts("form_submissions", "submitted_at"),
     tagesCounts("studio_tasks", "created_at"),
-    tagesCounts("user_lesson_progress", "completed_at", 7, (q) =>
-      q.eq("status", "abgeschlossen"),
-    ),
+    tagesCounts("user_practical_signoffs", "submitted_at"),
   ]);
   const trendMaengel = trendAusVerlauf(sparkMaengel);
   const trendSubmissions = trendAusVerlauf(sparkSubmissions);
   const trendAufgaben = trendAusVerlauf(sparkAufgaben);
-  const trendLektionen = trendAusVerlauf(sparkLektionen);
+  const trendPraxis = trendAusVerlauf(sparkPraxis);
 
   const todoSumme =
-    puls.maengelOffen + puls.submissionsOffen + puls.aufgabenOffen;
+    puls.maengelOffen +
+    puls.submissionsOffen +
+    puls.aufgabenOffen +
+    praxisOffen;
 
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Verwaltung"
         title="Studio-Puls"
-        description="Was ist heute im Studio los — Mängel, Einreichungen, Aktivität, Aufgaben. Alles in einer Sicht."
+        description="Was wartet heute auf Dich? Inbox + Schnell-Aktionen für den Studio-Alltag."
       />
 
-      <StatGrid cols={4}>
-        <StatCard
-          label="Mängel offen"
-          value={puls.maengelOffen}
-          icon={<AlertTriangle />}
-          trend={
-            sparkMaengel.some((v) => v > 0)
-              ? { ...trendMaengel, hint: "letzte 7 Tage" }
-              : undefined
-          }
-          sparklineData={sparkMaengel}
-          href="/admin/maengel"
-        />
-        <StatCard
-          label="Einreichungen offen"
-          value={puls.submissionsOffen}
-          icon={<Inbox />}
-          trend={
-            sparkSubmissions.some((v) => v > 0)
-              ? { ...trendSubmissions, hint: "letzte 7 Tage" }
-              : undefined
-          }
-          sparklineData={sparkSubmissions}
-          href="/admin/formulare/eingaenge"
-        />
-        <StatCard
-          label="Aufgaben offen"
-          value={puls.aufgabenOffen}
-          icon={<ListTodo />}
-          trend={
-            sparkAufgaben.some((v) => v > 0)
-              ? { ...trendAufgaben, hint: "letzte 7 Tage" }
-              : undefined
-          }
-          sparklineData={sparkAufgaben}
-          href="/admin/aufgaben"
-        />
-        <StatCard
-          label="Aktiv diese Woche"
-          value={puls.aktiveDieseWoche}
-          icon={<Sparkles />}
-          trend={
-            sparkLektionen.some((v) => v > 0)
-              ? { ...trendLektionen, hint: "Lektionen-Abschlüsse" }
-              : undefined
-          }
-          sparklineData={sparkLektionen}
-          href="/admin/fortschritt"
-        />
-      </StatGrid>
+      {/* Quick-Actions: haeufige Admin-Aktionen direkt aus dem Dashboard */}
+      <section>
+        <h2 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))] sm:text-[11px] sm:tracking-[0.22em]">
+          Schnell-Aktionen
+        </h2>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:grid-cols-4 sm:gap-3">
+          {QUICK_ACTIONS.map((qa) => {
+            const Icon = qa.icon;
+            return (
+              <Link
+                key={qa.href}
+                href={qa.href}
+                className="group flex min-h-[80px] flex-col items-start justify-between gap-2.5 rounded-xl border border-border bg-card p-3.5 transition-all active:scale-[0.98] hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)] sm:gap-3 sm:rounded-2xl sm:p-4"
+              >
+                <div className="flex w-full items-start justify-between gap-2">
+                  <span
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${qa.tint}`}
+                  >
+                    <Icon className="h-4 w-4" strokeWidth={1.75} />
+                  </span>
+                  <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))]" />
+                </div>
+                <span className="text-[13px] font-semibold leading-tight">
+                  {qa.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Inbox: Was wartet heute auf Entscheidung/Bearbeitung */}
+      <section className="space-y-3 sm:space-y-4">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))] sm:text-[11px] sm:tracking-[0.22em]">
+            Brennt heute?
+          </h2>
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {todoSumme}{" "}
+            {todoSumme === 1 ? "Punkt" : "Punkte"} offen
+          </span>
+        </div>
+        <StatGrid cols={4}>
+          <StatCard
+            label="Mängel offen"
+            value={puls.maengelOffen}
+            icon={<AlertTriangle />}
+            trend={
+              sparkMaengel.some((v) => v > 0)
+                ? { ...trendMaengel, hint: "letzte 7 Tage" }
+                : undefined
+            }
+            sparklineData={sparkMaengel}
+            href="/admin/maengel"
+          />
+          <StatCard
+            label="Einreichungen offen"
+            value={puls.submissionsOffen}
+            icon={<Inbox />}
+            trend={
+              sparkSubmissions.some((v) => v > 0)
+                ? { ...trendSubmissions, hint: "letzte 7 Tage" }
+                : undefined
+            }
+            sparklineData={sparkSubmissions}
+            href="/admin/formulare/eingaenge"
+          />
+          <StatCard
+            label="Aufgaben offen"
+            value={puls.aufgabenOffen}
+            icon={<ListTodo />}
+            trend={
+              sparkAufgaben.some((v) => v > 0)
+                ? { ...trendAufgaben, hint: "letzte 7 Tage" }
+                : undefined
+            }
+            sparklineData={sparkAufgaben}
+            href="/admin/aufgaben"
+          />
+          <StatCard
+            label="Praxis-Anfragen"
+            value={praxisOffen}
+            icon={<CheckSquare />}
+            trend={
+              sparkPraxis.some((v) => v > 0)
+                ? { ...trendPraxis, hint: "letzte 7 Tage" }
+                : undefined
+            }
+            sparklineData={sparkPraxis}
+            href="/admin/praxisfreigaben"
+          />
+        </StatGrid>
+      </section>
 
       {/* Geburtstage in den nächsten 14 Tagen */}
       {geburtstage.length > 0 && (
         <section className="rounded-2xl border border-border bg-card">
-          <header className="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
+          <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
             <div className="flex items-center gap-2">
               <Cake className="h-4 w-4 text-[hsl(var(--brand-pink))]" />
               <h2 className="text-sm font-semibold tracking-tight">
                 Geburtstage
               </h2>
-              <span className="text-[11px] text-muted-foreground">
+              <span className="hidden text-[11px] text-muted-foreground sm:inline">
                 · nächste 14 Tage
               </span>
             </div>
@@ -374,25 +465,25 @@ export default async function AdminDashboardPage() {
             {geburtstage.map((g) => (
               <li
                 key={g.id}
-                className="flex items-center gap-3 px-5 py-2.5"
+                className="flex items-center gap-3 px-4 py-2.5 sm:px-5"
               >
                 <ColoredAvatar name={g.full_name} size="sm" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">
+                  <p className="truncate text-sm font-medium">
                     {g.full_name ?? "—"}
                     <span className="ml-2 text-xs font-normal text-muted-foreground">
                       wird {g.alter_neu}
                     </span>
                   </p>
                 </div>
-                <span className="rounded-full bg-[hsl(var(--brand-pink)/0.08)] px-2.5 py-1 text-[11px] font-semibold text-[hsl(var(--brand-pink))]">
+                <span className="shrink-0 rounded-full bg-[hsl(var(--brand-pink)/0.08)] px-2.5 py-1 text-[10px] font-semibold text-[hsl(var(--brand-pink))] sm:text-[11px]">
                   {g.tage_bis === 0
                     ? "🎂 heute"
                     : g.tage_bis === 1
                       ? "morgen"
-                      : `in ${g.tage_bis} Tagen`}
+                      : `in ${g.tage_bis}T`}
                 </span>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="hidden text-[11px] text-muted-foreground sm:inline">
                   {formatDatum(g.naechster_geburtstag)}
                 </span>
               </li>
@@ -490,8 +581,8 @@ export default async function AdminDashboardPage() {
         </ListCard>
       </section>
 
-      {/* Zwei-Spalten: Aktivität + Stammdaten */}
-      <section className="grid gap-4 lg:grid-cols-2">
+      {/* Zuletzt aktiv — vollbreite Section */}
+      <section>
         <ListCard
           title="Zuletzt aktiv"
           subtitle="Wer hat zuletzt eine Lektion geöffnet."
@@ -508,11 +599,11 @@ export default async function AdminDashboardPage() {
                 <li key={m.user_id}>
                   <Link
                     href={`/admin/benutzer/${m.user_id}`}
-                    className="group flex items-center gap-3 px-5 py-3 transition-colors hover:bg-[hsl(var(--brand-pink)/0.04)]"
+                    className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[hsl(var(--brand-pink)/0.04)] sm:px-5"
                   >
                     <ColoredAvatar name={m.full_name} size="sm" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[13px] font-medium leading-tight">
+                      <p className="truncate text-[13px] font-medium leading-tight">
                         {m.full_name ?? "—"}
                       </p>
                       <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
@@ -526,57 +617,40 @@ export default async function AdminDashboardPage() {
             </ul>
           )}
         </ListCard>
-
-        <div className="rounded-xl border border-border bg-card p-5">
-          <header>
-            <h2 className="text-[14px] font-semibold tracking-tight">
-              Stammdaten
-            </h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Inhalte und Mitarbeiter im System.
-            </p>
-          </header>
-          <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
-            <Stamm
-              icon={<Users className="h-3.5 w-3.5" />}
-              label="Mitarbeiter"
-              wert={puls.mitarbeiter}
-              href="/admin/benutzer"
-            />
-            <Stamm
-              icon={<GraduationCap className="h-3.5 w-3.5" />}
-              label="Aktive Lernpfade"
-              wert={puls.lernpfade}
-              href="/admin/lernpfade"
-            />
-            <Stamm
-              icon={<CheckCircle2 className="h-3.5 w-3.5" />}
-              label="Lektionen heute"
-              wert={puls.lektionenHeute}
-              href="/admin/fortschritt"
-            />
-            <Stamm
-              icon={<Activity className="h-3.5 w-3.5" />}
-              label="Aktive Mitarbeiter"
-              wert={puls.aktiveDieseWoche}
-              href="/admin/fortschritt"
-            />
-          </div>
-        </div>
       </section>
 
-      <p className="text-[11px] text-muted-foreground">
-        Offene ToDos gesamt:{" "}
-        <span
-          className={
-            todoSumme === 0
-              ? "font-semibold text-[hsl(var(--success))]"
-              : "font-semibold text-[hsl(var(--brand-pink))]"
-          }
-        >
-          {todoSumme}
-        </span>
-      </p>
+      {/* Stammdaten — Foot-Banner: kompakte Zahlen-Reihe */}
+      <section className="rounded-xl border border-border bg-card px-3 py-3 sm:px-4">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Stammdaten
+        </p>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-4">
+          <Stamm
+            icon={<Users className="h-3.5 w-3.5" />}
+            label="Mitarbeiter"
+            wert={puls.mitarbeiter}
+            href="/admin/benutzer"
+          />
+          <Stamm
+            icon={<GraduationCap className="h-3.5 w-3.5" />}
+            label="Lernpfade"
+            wert={puls.lernpfade}
+            href="/admin/lernpfade"
+          />
+          <Stamm
+            icon={<CheckCircle2 className="h-3.5 w-3.5" />}
+            label="Lektionen heute"
+            wert={puls.lektionenHeute}
+            href="/admin/fortschritt"
+          />
+          <Stamm
+            icon={<Activity className="h-3.5 w-3.5" />}
+            label="Aktiv 30T"
+            wert={puls.aktiveDieseWoche}
+            href="/admin/fortschritt"
+          />
+        </div>
+      </section>
     </div>
   );
 }
@@ -625,19 +699,17 @@ function Stamm({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-3 rounded-lg border border-border bg-secondary/40 p-3 transition-colors hover:border-[hsl(var(--brand-pink)/0.4)] hover:bg-secondary"
+      className="group flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-muted"
     >
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-background text-muted-foreground transition-colors group-hover:text-[hsl(var(--brand-pink))]">
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors group-hover:bg-background group-hover:text-[hsl(var(--brand-pink))]">
         {icon}
       </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[18px] font-semibold leading-none tracking-tight tabular-nums">
-          {wert}
-        </p>
-        <p className="mt-1 truncate text-[11px] text-muted-foreground">
-          {label}
-        </p>
-      </div>
+      <span className="text-[15px] font-bold leading-none tabular-nums">
+        {wert}
+      </span>
+      <span className="truncate text-[11px] text-muted-foreground">
+        {label}
+      </span>
     </Link>
   );
 }
