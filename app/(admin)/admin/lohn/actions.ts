@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
 
@@ -124,7 +123,7 @@ export async function lohnabrechnungHochladen(
   return { ok: true };
 }
 
-export async function lohnabrechnungLoeschen(id: string): Promise<void> {
+export async function lohnabrechnungLoeschen(id: string): Promise<Ergebnis> {
   await requireRole(["admin", "superadmin"]);
   const supabase = await createClient();
 
@@ -137,12 +136,18 @@ export async function lohnabrechnungLoeschen(id: string): Promise<void> {
   if (data?.pdf_path) {
     await supabase.storage.from("lohnabrechnungen").remove([data.pdf_path]);
   }
-  await supabase.from("lohnabrechnungen").delete().eq("id", id);
+  const { error } = await supabase
+    .from("lohnabrechnungen")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    return { ok: false, message: "Löschen fehlgeschlagen: " + error.message };
+  }
 
   revalidatePath("/admin/lohn");
   if (data?.user_id) {
     revalidatePath(`/admin/lohn/${data.user_id}`);
     revalidatePath("/lohn");
   }
-  redirect(`/admin/lohn${data?.user_id ? `/${data.user_id}` : ""}`);
+  return { ok: true };
 }

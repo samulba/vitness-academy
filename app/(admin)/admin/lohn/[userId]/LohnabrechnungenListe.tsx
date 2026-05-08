@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -89,29 +89,24 @@ function DeleteButton({
   monat: string;
 }) {
   const router = useRouter();
-  const [pending, setPending] = useState(false);
+  const [pending, startTransition] = useTransition();
 
-  async function handle() {
+  function handle() {
     if (
       !confirm(
         `Lohnabrechnung ${monatLabel(monat)} wirklich löschen? PDF wird ebenfalls aus dem Speicher entfernt.`,
       )
     )
       return;
-    setPending(true);
-    try {
-      await lohnabrechnungLoeschen(id);
-      toast.success("Lohnabrechnung gelöscht");
-      router.refresh();
-    } catch (e) {
-      // Server-Action wirft NEXT_REDIRECT — als Cleanup kein Echo
-      const msg = (e as Error).message;
-      if (!/NEXT_REDIRECT/.test(msg)) {
-        toast.error("Fehler beim Löschen: " + msg);
+    startTransition(async () => {
+      const r = await lohnabrechnungLoeschen(id);
+      if (r.ok) {
+        toast.success("Lohnabrechnung gelöscht");
+        router.refresh();
+      } else {
+        toast.error(r.message);
       }
-    } finally {
-      setPending(false);
-    }
+    });
   }
 
   return (

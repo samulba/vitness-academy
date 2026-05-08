@@ -1,13 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useState } from "react";
 import { AlertCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { shiftAnlegen, type Ergebnis } from "./actions";
+import { useFormAction } from "@/lib/hooks/use-form-action";
+import { shiftAnlegen } from "./actions";
 
 /**
  * Quick-Add-Form fuer Schichten. Kollabiert standardmaessig zu einem
@@ -17,22 +16,12 @@ import { shiftAnlegen, type Ergebnis } from "./actions";
  * Datum-Default = letztes manuell gewaehltes Datum oder heute.
  */
 export function ShiftHinzufuegen({ monat }: { monat: string }) {
-  const router = useRouter();
   const [offen, setOffen] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
 
-  const [state, runAction, pending] = useActionState<Ergebnis | null, FormData>(
-    async (_prev, fd) => shiftAnlegen(fd),
-    null,
-  );
-
-  useEffect(() => {
-    if (state?.ok) {
-      toast.success("Schicht hinzugefügt");
-      formRef.current?.reset();
-      router.refresh();
-    }
-  }, [state, router]);
+  const { run, pending, state, formRef } = useFormAction(shiftAnlegen, {
+    successToast: "Schicht hinzugefügt",
+    resetForm: true,
+  });
 
   const message = state && !state.ok ? state.message : null;
 
@@ -57,7 +46,7 @@ export function ShiftHinzufuegen({ monat }: { monat: string }) {
   return (
     <form
       ref={formRef}
-      action={runAction}
+      action={run}
       className="rounded-xl border border-border bg-card p-4 sm:p-5"
     >
       <div className="grid gap-3 sm:grid-cols-[1fr_120px_120px_100px]">

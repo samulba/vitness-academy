@@ -1,23 +1,20 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Pencil, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useFormAction } from "@/lib/hooks/use-form-action";
 import { formatDatum } from "@/lib/format";
 import {
   formatStunden,
   shiftStunden,
   type Shift,
 } from "@/lib/lohn-types";
-import {
-  shiftAktualisieren,
-  shiftLoeschen,
-  type Ergebnis,
-} from "./actions";
+import { shiftAktualisieren, shiftLoeschen } from "./actions";
 
 const WOCHENTAGE_KURZ = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"] as const;
 
@@ -106,19 +103,19 @@ export function ShiftRow({ shift }: { shift: Shift }) {
 
 function DeleteButton({ shiftId }: { shiftId: string }) {
   const router = useRouter();
-  const [pending, setPending] = useState(false);
+  const [pending, startTransition] = useTransition();
 
-  async function loeschen() {
+  function loeschen() {
     if (!confirm("Schicht wirklich löschen?")) return;
-    setPending(true);
-    const r = await shiftLoeschen(shiftId);
-    setPending(false);
-    if (r.ok) {
-      toast.success("Schicht gelöscht");
-      router.refresh();
-    } else {
-      toast.error(r.message);
-    }
+    startTransition(async () => {
+      const r = await shiftLoeschen(shiftId);
+      if (r.ok) {
+        toast.success("Schicht gelöscht");
+        router.refresh();
+      } else {
+        toast.error(r.message);
+      }
+    });
   }
 
   return (
@@ -143,25 +140,18 @@ function ShiftEditForm({
   onCancel: () => void;
   onSaved: () => void;
 }) {
-  const router = useRouter();
-  const formRef = useRef<HTMLFormElement>(null);
-  const [state, runAction, pending] = useActionState<Ergebnis | null, FormData>(
-    async (_prev, fd) => shiftAktualisieren(shift.id, fd),
-    null,
+  const { run, pending, state, formRef } = useFormAction(
+    (fd: FormData) => shiftAktualisieren(shift.id, fd),
+    {
+      successToast: "Schicht aktualisiert",
+      onSuccess: onSaved,
+    },
   );
-
-  useEffect(() => {
-    if (state?.ok) {
-      toast.success("Schicht aktualisiert");
-      router.refresh();
-      onSaved();
-    }
-  }, [state, router, onSaved]);
 
   return (
     <form
       ref={formRef}
-      action={runAction}
+      action={run}
       className="border-l-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.04)] p-4"
     >
       <div className="grid gap-3 sm:grid-cols-[1fr_120px_120px_100px]">

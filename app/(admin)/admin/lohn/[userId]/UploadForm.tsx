@@ -1,17 +1,14 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useRef, useState } from "react";
 import { AlertCircle, FileText, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SubmitOverlay } from "@/components/ui/submit-overlay";
+import { useFormAction } from "@/lib/hooks/use-form-action";
 import { cn } from "@/lib/utils";
-import {
-  lohnabrechnungHochladen,
-  type Ergebnis,
-} from "../actions";
+import { lohnabrechnungHochladen } from "../actions";
 
 /**
  * Upload-Form fuer Lohnabrechnungs-PDF + optional Brutto/Netto.
@@ -26,26 +23,19 @@ export function UploadForm({
   monat: string;
   existing: { brutto_cents: number | null; netto_cents: number | null } | null;
 }) {
-  const router = useRouter();
-  const formRef = useRef<HTMLFormElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [datei, setDatei] = useState<File | null>(null);
 
-  const [state, runAction, pending] = useActionState<Ergebnis | null, FormData>(
-    async (_prev, fd) => lohnabrechnungHochladen(fd),
-    null,
+  const { run, pending, state, formRef } = useFormAction(
+    lohnabrechnungHochladen,
+    {
+      successToast: existing
+        ? "Lohnabrechnung aktualisiert"
+        : "Lohnabrechnung hochgeladen",
+      resetForm: true,
+      onSuccess: () => setDatei(null),
+    },
   );
-
-  useEffect(() => {
-    if (state?.ok) {
-      toast.success(
-        existing ? "Lohnabrechnung aktualisiert" : "Lohnabrechnung hochgeladen",
-      );
-      formRef.current?.reset();
-      setDatei(null);
-      router.refresh();
-    }
-  }, [state, router, existing]);
 
   const message = state && !state.ok ? state.message : null;
 
@@ -61,9 +51,13 @@ export function UploadForm({
   return (
     <form
       ref={formRef}
-      action={runAction}
+      action={run}
       className="space-y-4 rounded-2xl border border-border bg-card p-5"
     >
+      <SubmitOverlay
+        pending={pending}
+        message={existing ? "Aktualisiere …" : "Lade hoch …"}
+      />
       <input type="hidden" name="user_id" value={userId} />
       <input type="hidden" name="monat" value={monat} />
 
