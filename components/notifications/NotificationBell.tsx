@@ -6,6 +6,7 @@ import {
   Bell,
   CheckCheck,
   CheckSquare,
+  Euro,
   FileText,
   Heart,
   Inbox,
@@ -37,6 +38,7 @@ const ICON_MAP = {
   "message-circle": MessageCircle,
   heart: Heart,
   sparkles: Sparkles,
+  euro: Euro,
   bell: Bell,
 } as const;
 

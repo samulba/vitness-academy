@@ -15,7 +15,8 @@ export type NotificationType =
   | "info_neu"
   | "lektion_q_antwort"
   | "kudos"
-  | "cleaning_protocol_submitted";
+  | "cleaning_protocol_submitted"
+  | "lohnabrechnung_neu";
 
 export type Notification = {
   id: string;
@@ -38,6 +39,7 @@ const TYP_ICON: Record<NotificationType, string> = {
   lektion_q_antwort: "message-circle",
   kudos: "heart",
   cleaning_protocol_submitted: "sparkles",
+  lohnabrechnung_neu: "euro",
 };
 
 export function iconKey(type: NotificationType): string {
