@@ -7,6 +7,7 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { formatDatum } from "@/lib/format";
+import type { AuthStatus } from "@/lib/admin/auth-status";
 
 export type Zeile = {
   id: string;
@@ -20,6 +21,7 @@ export type Zeile = {
   tags: string[];
   onboarding_erledigt: number;
   onboarding_gesamt: number;
+  auth_status: AuthStatus;
 };
 
 const VERTRAG_LABEL: Record<string, string> = {
@@ -32,6 +34,14 @@ const VERTRAG_LABEL: Record<string, string> = {
   sonstiges: "Sonstiges",
 };
 
+function AuthStatusPill({ status }: { status: AuthStatus }) {
+  if (status === "eingeladen")
+    return <StatusPill ton="warn" dot>Eingeladen</StatusPill>;
+  if (status === "inaktiv")
+    return <StatusPill ton="neutral">Inaktiv</StatusPill>;
+  return <StatusPill ton="success" dot>Aktiv</StatusPill>;
+}
+
 function RollenPill({ role }: { role: string }) {
   if (role === "mitarbeiter")
     return <StatusPill ton="neutral">Mitarbeiter</StatusPill>;
@@ -42,7 +52,6 @@ function RollenPill({ role }: { role: string }) {
 }
 
 export function BenutzerTable({ benutzer }: { benutzer: Zeile[] }) {
-  // Tag-Filter-Optionen aus den tatsächlich vorhandenen Tags
   const tagSet = new Set<string>();
   for (const b of benutzer) {
     for (const t of b.tags ?? []) {
@@ -99,6 +108,12 @@ export function BenutzerTable({ benutzer }: { benutzer: Zeile[] }) {
           </div>
         </div>
       ),
+    },
+    {
+      key: "auth_status",
+      label: "Status",
+      sortable: true,
+      render: (b) => <AuthStatusPill status={b.auth_status} />,
     },
     {
       key: "role",
@@ -172,8 +187,17 @@ export function BenutzerTable({ benutzer }: { benutzer: Zeile[] }) {
     },
   ];
 
-  // Build filters dynamically
   const filterList = [
+    {
+      key: "auth_status",
+      label: "Status",
+      options: [
+        { value: "eingeladen", label: "Eingeladen" },
+        { value: "aktiv", label: "Aktiv" },
+        { value: "inaktiv", label: "Inaktiv" },
+      ],
+      multi: true,
+    },
     {
       key: "role",
       label: "Rolle",
@@ -195,12 +219,10 @@ export function BenutzerTable({ benutzer }: { benutzer: Zeile[] }) {
 
   return (
     <>
-      {/* Mobile: Card-Liste (DataTable mit 7 Spalten passt nicht auf Phone) */}
       <div className="lg:hidden">
         <BenutzerCardsMobile benutzer={benutzer} />
       </div>
 
-      {/* Desktop: Volle DataTable */}
       <div className="hidden lg:block">
         <DataTable<Zeile>
           data={benutzer}
@@ -275,6 +297,7 @@ function BenutzerCardsMobile({ benutzer }: { benutzer: Zeile[] }) {
                     )}
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <AuthStatusPill status={b.auth_status} />
                     <RollenPill role={b.role} />
                     {b.onboarding_gesamt > 0 && (
                       <StatusPill
