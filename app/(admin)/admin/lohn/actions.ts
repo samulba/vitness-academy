@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireRole } from "@/lib/auth";
+import { appUrl, sendEmail } from "@/lib/email";
+import { lohnabrechnungMail } from "@/lib/email-templates/lohnabrechnung";
+import { monatLabel } from "@/lib/lohn-types";
 
 const PDF_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -18,6 +22,7 @@ export type Ergebnis =
  *   PDF mit upsert: true bei UPDATE der DB-Row)
  * - Wenn Eintrag fuer (user_id, monat) bereits existiert: UPDATE
  *   statt INSERT, alte PDF wird ueberschrieben.
+ * - Bei erfolgreichem Insert (nicht Update): Mail an Mitarbeiter.
  */
 export async function lohnabrechnungHochladen(
   formData: FormData,
@@ -60,8 +65,6 @@ export async function lohnabrechnungHochladen(
 
   const supabase = await createClient();
 
-  // Upload mit upsert damit bei Re-Upload die Datei einfach
-  // ueberschrieben wird.
   const { error: uploadError } = await supabase.storage
     .from("lohnabrechnungen")
     .upload(path, buffer, {
@@ -75,13 +78,14 @@ export async function lohnabrechnungHochladen(
     };
   }
 
-  // DB-Row anlegen oder updaten
   const { data: existing } = await supabase
     .from("lohnabrechnungen")
     .select("id")
     .eq("user_id", userId)
     .eq("monat", monat)
     .maybeSingle();
+
+  const istUpdate = !!existing;
 
   if (existing) {
     const { error } = await supabase
@@ -114,6 +118,44 @@ export async function lohnabrechnungHochladen(
         ok: false,
         message: "DB-Insert fehlgeschlagen: " + error.message,
       };
+    }
+  }
+
+  // Mitarbeiter per Mail informieren — nur bei erstem Upload, nicht
+  // bei stillem Re-Upload (sonst Spam wenn Admin korrigiert).
+  if (!istUpdate) {
+    try {
+      const adminClient = createAdminClient();
+      const [{ data: profil }, { data: authUser }] = await Promise.all([
+        adminClient
+          .from("profiles")
+          .select("first_name, full_name")
+          .eq("id", userId)
+          .maybeSingle(),
+        adminClient.auth.admin.getUserById(userId),
+      ]);
+      const empfaenger = authUser?.user?.email;
+      if (empfaenger) {
+        const vorname =
+          profil?.first_name ?? profil?.full_name ?? "im Team";
+        const { subject, html, text } = lohnabrechnungMail({
+          vorname,
+          monatLabel: monatLabel(monat),
+          monatYYYYMM: monat,
+          bruttoCents,
+          nettoCents,
+          appUrl: appUrl(),
+        });
+        const r = await sendEmail({ to: empfaenger, subject, html, text });
+        if (!r.ok) {
+          console.warn(
+            "[lohnabrechnungHochladen] Mail nicht versendet:",
+            r.message,
+          );
+        }
+      }
+    } catch (e) {
+      console.warn("[lohnabrechnungHochladen] Mail crashte (ignoriert):", e);
     }
   }
 
