@@ -12,6 +12,7 @@ import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state"
 import { createClient } from "@/lib/supabase/server";
 import { alsArray, istNextJsControlFlow, joinFeld } from "@/lib/admin/safe-loader";
 import { ladeChecklistStatusBatch } from "@/lib/onboarding-checklist";
+import { ladeAuthStatusBatch } from "@/lib/admin/auth-status";
 import { BenutzerTable, type Zeile } from "./BenutzerTable";
 
 type LadeErgebnis = {
@@ -43,14 +44,6 @@ async function ladeBenutzer(
 ): Promise<LadeErgebnis> {
   try {
     const supabase = await createClient();
-    // Drei-Stufen-Fallback:
-    //   Voll  = mit tags + vertragsart (Migration 0044) + JOINs
-    //   Basis = ohne 0044 aber mit JOINs
-    //   Ohne  = nur Stammfelder, kein JOIN -- letzte Rettung wenn
-    //           PostgREST den JOIN nicht aufloest
-    // Hinweis: user_learning_path_assignments hat ZWEI FKs auf
-    // profiles (user_id und assigned_by). Wir muessen explizit den
-    // user_id-FK angeben, sonst wirft PostgREST PGRST201.
     const FELDER_VOLL = `id, full_name, role, created_at, archived_at, vertragsart, tags,
        locations:location_id ( name ),
        user_learning_path_assignments!user_learning_path_assignments_user_id_fkey ( id )`;
@@ -129,6 +122,7 @@ async function ladeBenutzer(
         zugewiesen: alsArray(r.user_learning_path_assignments).length,
         onboarding_erledigt: 0,
         onboarding_gesamt: 0,
+        auth_status: "aktiv" as const,
       }));
     return { rows, fehler: warnung };
   } catch (e) {
@@ -150,16 +144,20 @@ export default async function AdminBenutzerListe({
   const ergebnis = await ladeBenutzer(showArchiv);
   const benutzer = ergebnis.rows;
   const ladeFehler = ergebnis.fehler;
-  // Onboarding-Status pro Mitarbeiter:in mergen (defensiv: bei
-  // fehlender Migration leerer Map -> Werte bleiben 0/0)
-  const onboardingMap = await ladeChecklistStatusBatch(
-    benutzer.map((b) => b.id),
-  );
+  const ids = benutzer.map((b) => b.id);
+  const [onboardingMap, authStatusMap] = await Promise.all([
+    ladeChecklistStatusBatch(ids),
+    ladeAuthStatusBatch(ids),
+  ]);
   for (const b of benutzer) {
     const s = onboardingMap.get(b.id);
     if (s) {
       b.onboarding_erledigt = s.erledigt;
       b.onboarding_gesamt = s.gesamt;
+    }
+    const auth = authStatusMap.get(b.id);
+    if (auth) {
+      b.auth_status = auth.status;
     }
   }
   const aktive = benutzer.filter((b) => !b.archived_at).length;
@@ -210,11 +208,7 @@ export default async function AdminBenutzerListe({
       )}
 
       <StatGrid cols={4}>
-        <StatCard
-          label="Aktive Mitarbeiter"
-          value={aktive}
-          icon={<Users />}
-        />
+        <StatCard label="Aktive Mitarbeiter" value={aktive} icon={<Users />} />
         <StatCard
           label="Neu diese Woche"
           value={neueDieseWoche}

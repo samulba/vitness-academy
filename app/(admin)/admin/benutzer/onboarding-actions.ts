@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { istUUID } from "@/lib/utils";
+import { appUrl, sendEmail } from "@/lib/email";
+import { welcomeMail } from "@/lib/email-templates/welcome";
 import type { Rolle } from "@/lib/rollen";
 
 export type OnboardingErgebnis = {
@@ -148,6 +150,26 @@ export async function mitarbeiterAnlegen(
         onConflict: "user_id,location_id",
         ignoreDuplicates: true,
       });
+  }
+
+  // 5) Welcome-Mail (zusaetzlich zum Auth-Magic-Link) — schoene
+  // branded Begruessung mit Login-Hinweis. Fehler beim Mailversand
+  // brechen das Anlegen NICHT ab, weil der Account schon erfolgreich
+  // ist und der Auth-Magic-Link separat ueber Supabase-SMTP rausgeht.
+  try {
+    const base = appUrl();
+    const loginUrl = base ? `${base}/login` : "https://www.vitness-crew.de/login";
+    const { subject, html, text } = welcomeMail({
+      vorname: firstName || fullName || "im Team",
+      loginUrl,
+      studioleitung: aktuellerAdmin.full_name ?? undefined,
+    });
+    const r = await sendEmail({ to: email, subject, html, text });
+    if (!r.ok) {
+      console.warn("[mitarbeiterAnlegen] Welcome-Mail nicht versendet:", r.message);
+    }
+  } catch (e) {
+    console.warn("[mitarbeiterAnlegen] Welcome-Mail crashte (ignoriert):", e);
   }
 
   revalidatePath("/admin/benutzer");
