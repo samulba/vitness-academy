@@ -6,8 +6,6 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile, istAdmin, istFuehrungskraftOderHoeher } from "@/lib/auth";
 import { istUUID } from "@/lib/utils";
-import { appUrl, sendEmail } from "@/lib/email";
-import { welcomeMail } from "@/lib/email-templates/welcome";
 import type { Rolle } from "@/lib/rollen";
 
 async function ensureAdmin() {
@@ -188,13 +186,7 @@ export async function mitarbeiterReaktivieren(benutzerId: string): Promise<void>
 /**
  * Endgueltiges Loeschen eines Mitarbeiters (Auth-User + cascadet auf
  * profiles via FK). NUR fuer Test-User die noch nie eingeloggt waren
- * ODER bereits archiviert sind — sonst zu gefaehrlich (echte Daten).
- *
- * Reverse-Schutz:
- *  - Nur Admin
- *  - Nicht sich selbst
- *  - Nicht Superadmin (außer durch Superadmin)
- *  - Nur eingeladen ODER archiviert
+ * ODER bereits archiviert sind.
  */
 export async function mitarbeiterEndgueltigLoeschen(
   benutzerId: string,
@@ -219,7 +211,6 @@ export async function mitarbeiterEndgueltigLoeschen(
     .eq("id", benutzerId)
     .maybeSingle();
 
-  // Superadmin nur durch Superadmin
   if (profil?.role === "superadmin" && aktuell.role !== "superadmin") {
     redirect(`/admin/benutzer/${benutzerId}?toast=error`);
   }
@@ -228,8 +219,6 @@ export async function mitarbeiterEndgueltigLoeschen(
   const nieEingeloggt = !userData.user.last_sign_in_at;
 
   if (!nieEingeloggt && !istArchiviert) {
-    // User hat sich schon eingeloggt und ist nicht archiviert
-    // → erst archivieren, dann loeschen
     redirect(`/admin/benutzer/${benutzerId}?toast=error`);
   }
 
@@ -493,13 +482,14 @@ export async function checklistItemLoeschen(id: string): Promise<void> {
 }
 
 /**
- * Sendet die Einladungs-Mail (Magic-Link via Supabase + Welcome-Mail
- * via Resend) erneut an einen Mitarbeiter.
+ * Sendet die Magic-Link-Mail (Supabase Auth) erneut an einen
+ * Mitarbeiter — z.B. wenn die urspruengliche Mail im Spam landet.
+ * Das Email-Template wird im Supabase Dashboard gepflegt.
  */
 export async function einladungErneutSenden(
   benutzerId: string,
 ): Promise<void> {
-  const aktuellerAdmin = await ensureAdmin();
+  await ensureAdmin();
   if (!istUUID(benutzerId)) {
     redirect(`/admin/benutzer?toast=error`);
   }
@@ -522,25 +512,6 @@ export async function einladungErneutSenden(
   if (inviteErr) {
     console.error("[einladungErneutSenden] inviteUserByEmail:", inviteErr);
     redirect(`/admin/benutzer/${benutzerId}?toast=error`);
-  }
-
-  try {
-    const base = appUrl();
-    const loginUrl = base
-      ? `${base}/login`
-      : "https://www.vitness-crew.de/login";
-    const vorname =
-      (userData.user.user_metadata?.first_name as string | undefined) ??
-      (userData.user.user_metadata?.full_name as string | undefined) ??
-      "im Team";
-    const { subject, html, text } = welcomeMail({
-      vorname,
-      loginUrl,
-      studioleitung: aktuellerAdmin.full_name ?? undefined,
-    });
-    await sendEmail({ to: email, subject, html, text });
-  } catch (e) {
-    console.warn("[einladungErneutSenden] Welcome-Mail nicht versendet:", e);
   }
 
   revalidatePath(`/admin/benutzer/${benutzerId}`);
