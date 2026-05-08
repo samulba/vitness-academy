@@ -20,7 +20,7 @@ import { ProtokollDetail } from "./ProtokollDetail";
 export const dynamic = "force-dynamic";
 
 export default async function PutzprotokollPage() {
-  await requireProfile();
+  const profile = await requireProfile();
   const aktiv = await getAktiverStandort();
 
   if (!aktiv) {
@@ -160,6 +160,7 @@ export default async function PutzprotokollPage() {
           sections={tplBundle.sections}
           locationId={aktiv.id}
           locationName={aktiv.name}
+          userName={profile.full_name ?? "Mitarbeiter:in"}
           datum={datum}
           datumDeutsch={datumDeutsch}
           supabasePublicUrl={process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}

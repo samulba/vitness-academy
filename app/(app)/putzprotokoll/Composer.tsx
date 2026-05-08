@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   AlertCircle,
   Camera,
@@ -16,10 +17,12 @@ import {
   Loader2,
   Sparkles,
   Trash2,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
+import { formatDatumUhrzeitBerlin } from "@/lib/format";
 import {
   protokollEinreichen,
   type Ergebnis,
@@ -33,6 +36,7 @@ type Props = {
   sections: CleaningSection[];
   locationId: string;
   locationName: string;
+  userName: string;
   datum: string; // YYYY-MM-DD
   datumDeutsch: string;
   supabasePublicUrl: string;
@@ -41,10 +45,15 @@ type Props = {
 export function Composer({
   sections,
   locationId,
+  locationName,
+  userName,
   datum,
+  datumDeutsch,
   supabasePublicUrl,
 }: Props) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [state, runAction, pending] = useActionState<Ergebnis | null, FormData>(
     async (_prev, fd) => protokollEinreichen(fd),
     null,
@@ -64,12 +73,12 @@ export function Composer({
   }, []);
   const totalUploading = Object.values(uploads).reduce((a, b) => a + b, 0);
 
-  // Wenn Action erfolgreich war: Page refreshen damit der Server-Render
-  // den neu eingereichten Eintrag findet und auf Detail-View wechselt.
-  // Vermeidet useActionState + redirect()-Race wo Pending-State haengen
-  // bleibt.
+  // Wenn Action erfolgreich war: Toast + Page refreshen damit der
+  // Server-Render den neu eingereichten Eintrag findet und auf
+  // Detail-View wechselt.
   useEffect(() => {
     if (state?.ok) {
+      toast.success("Putzprotokoll erfolgreich eingereicht");
       router.refresh();
     }
   }, [state, router]);
@@ -78,8 +87,44 @@ export function Composer({
   const erfolgreich = state?.ok === true;
   const submitDisabled = pending || totalUploading > 0 || erfolgreich;
 
+  // Submit-Click oeffnet zuerst den Bestaetigungs-Modal — Form wird
+  // erst nach Confirm via formRef.requestSubmit() abgeschickt.
+  function oeffneBestaetigung() {
+    if (submitDisabled) return;
+    setConfirmOpen(true);
+  }
+  function bestaetigen() {
+    setConfirmOpen(false);
+    formRef.current?.requestSubmit();
+  }
+
+  // Stats fuer den Modal: Anzahl gehakte Aufgaben + Mängel-Notizen + Photos
+  const summary = () => {
+    if (typeof document === "undefined") {
+      return { tasks: 0, maengel: 0, fotos: 0 };
+    }
+    let tasks = 0;
+    let maengel = 0;
+    let fotos = 0;
+    for (const sec of sections) {
+      const cbs = document.querySelectorAll<HTMLInputElement>(
+        `input[name^="section_${sec.id}__task_"]:checked`,
+      );
+      tasks += cbs.length;
+      const m = document.querySelector<HTMLTextAreaElement>(
+        `textarea[name="section_${sec.id}__maengel"]`,
+      );
+      if (m && m.value.trim().length > 0) maengel += 1;
+      const fs = document.querySelectorAll(
+        `input[type="hidden"][name="section_${sec.id}__photo_path"]`,
+      );
+      fotos += fs.length;
+    }
+    return { tasks, maengel, fotos };
+  };
+
   return (
-    <form action={runAction} className="space-y-5">
+    <form ref={formRef} action={runAction} className="space-y-5">
       {sections.map((sec, idx) => (
         <SectionCard
           key={sec.id}
@@ -130,7 +175,8 @@ export function Composer({
           </p>
         )}
         <Button
-          type="submit"
+          type="button"
+          onClick={oeffneBestaetigung}
           disabled={submitDisabled}
           className="flex-1 gap-2 bg-[hsl(var(--primary))] py-2.5 text-[hsl(var(--primary-foreground))] shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.55)] transition-all hover:bg-[hsl(var(--primary)/0.9)] hover:shadow-[0_16px_40px_-10px_hsl(var(--primary)/0.7)] disabled:opacity-60"
         >
@@ -157,7 +203,151 @@ export function Composer({
           )}
         </Button>
       </div>
+
+      {confirmOpen && (
+        <BestaetigungsModal
+          locationName={locationName}
+          datumDeutsch={datumDeutsch}
+          userName={userName}
+          summary={summary()}
+          onClose={() => setConfirmOpen(false)}
+          onConfirm={bestaetigen}
+        />
+      )}
     </form>
+  );
+}
+
+function BestaetigungsModal({
+  locationName,
+  datumDeutsch,
+  userName,
+  summary,
+  onClose,
+  onConfirm,
+}: {
+  locationName: string;
+  datumDeutsch: string;
+  userName: string;
+  summary: { tasks: number; maengel: number; fotos: number };
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const jetzt = new Date();
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="flex items-start justify-between gap-3 border-b border-border p-5">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">
+              Bestätigen
+            </p>
+            <h2 className="mt-1 text-xl font-semibold tracking-tight">
+              Protokoll wirklich einreichen?
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Schließen"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </header>
+
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-3 p-5 sm:grid-cols-2">
+          <div>
+            <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Eingereicht von
+            </dt>
+            <dd className="mt-0.5 text-sm font-medium">{userName}</dd>
+          </div>
+          <div>
+            <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Studio
+            </dt>
+            <dd className="mt-0.5 text-sm font-medium">{locationName}</dd>
+          </div>
+          <div>
+            <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Datum
+            </dt>
+            <dd className="mt-0.5 text-sm font-medium tabular-nums">
+              {datumDeutsch}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Uhrzeit (jetzt)
+            </dt>
+            <dd className="mt-0.5 text-sm font-medium tabular-nums">
+              {formatDatumUhrzeitBerlin(jetzt).split(", ")[1] ?? "—"} Uhr
+            </dd>
+          </div>
+        </dl>
+
+        <div className="border-t border-border bg-muted/30 px-5 py-4">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Zusammenfassung
+          </p>
+          <ul className="mt-2 grid grid-cols-3 gap-2 text-center">
+            <li className="rounded-lg bg-card p-3">
+              <p className="text-2xl font-bold tabular-nums">
+                {summary.tasks}
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                Aufgaben gehakt
+              </p>
+            </li>
+            <li className="rounded-lg bg-card p-3">
+              <p className="text-2xl font-bold tabular-nums">
+                {summary.maengel}
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                Mängel-Notizen
+              </p>
+            </li>
+            <li className="rounded-lg bg-card p-3">
+              <p className="text-2xl font-bold tabular-nums">
+                {summary.fotos}
+              </p>
+              <p className="text-[10px] text-muted-foreground">Fotos</p>
+            </li>
+          </ul>
+          <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+            Nach dem Einreichen können nur noch Studioleitung/Admin Änderungen
+            machen. Stell sicher dass alles passt.
+          </p>
+        </div>
+
+        <footer className="flex items-center justify-end gap-2 border-t border-border p-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+          >
+            Zurück
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[hsl(var(--primary))] px-4 py-2 text-sm font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_4px_14px_-4px_hsl(var(--primary)/0.5)] transition-all hover:bg-[hsl(var(--primary)/0.9)]"
+          >
+            <Check className="h-4 w-4" />
+            Ja, einreichen
+          </button>
+        </footer>
+      </div>
+    </div>
   );
 }
 

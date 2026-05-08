@@ -34,6 +34,7 @@ const SUCCESS: Record<string, string> = {
   archived: "Archiviert",
   restored: "Reaktiviert",
   submitted: "Eingereicht",
+  putzprotokoll_eingereicht: "Putzprotokoll erfolgreich eingereicht",
   approved: "Freigegeben",
   rejected: "Abgelehnt",
   invited: "Magic-Link verschickt",
