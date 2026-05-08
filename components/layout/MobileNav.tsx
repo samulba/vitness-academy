@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   ClipboardList,
-  Euro,
+  Clock,
   FileText,
   Home,
   ListTodo,
@@ -32,7 +32,7 @@ type MobileLink = {
 const MITARBEITER_LINKS: MobileLink[] = [
   { href: "/dashboard", label: "Mein Tag", icon: Home },
   { href: "/aufgaben", label: "Aufgaben", icon: ListTodo },
-  { href: "/lohn", label: "Schichten", icon: Euro },
+  { href: "/lohn", label: "Schichten", icon: Clock },
   { href: "/formulare", label: "Anfragen", icon: FileText },
 ];
 

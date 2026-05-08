@@ -62,7 +62,8 @@ export function StandortPicker({
   const istSonstiges = wo === SONSTIGES_KEY;
   const labelKlass =
     "text-[10px] font-semibold uppercase tracking-wider text-muted-foreground";
-  const inputHeight = size === "sm" ? "h-9" : "h-10";
+  // Mobile: groesser fuer bessere Touch-Targets, Desktop kompakter
+  const inputHeight = size === "sm" ? "h-10 sm:h-9" : "h-11 sm:h-10";
 
   return (
     <div className="space-y-3">

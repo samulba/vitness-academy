@@ -9,6 +9,7 @@ import {
   BookOpen,
   CheckSquare,
   ChevronDown,
+  Clock,
   Contact,
   Euro,
   FileText,
@@ -67,7 +68,7 @@ const STUDIO_NAV: NavEintrag[] = [
   { href: "/formulare", label: "Anfragen", icon: FileText },
   { href: "/maengel", label: "Mängel melden", icon: AlertTriangle },
   { href: "/putzprotokoll", label: "Putzprotokoll", icon: Sparkles },
-  { href: "/lohn", label: "Schichten & Lohn", icon: Euro },
+  { href: "/lohn", label: "Schichten & Lohn", icon: Clock },
 ];
 
 // "Verkauf" wird nur für Vertriebler sichtbar (per profile.kann_provisionen)

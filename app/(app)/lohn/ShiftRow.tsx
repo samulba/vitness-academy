@@ -191,7 +191,7 @@ function ShiftEditForm({
         size="sm"
       />
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_120px_120px_100px]">
+      <div className="mt-3 space-y-3">
         <div>
           <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Datum
@@ -201,68 +201,71 @@ function ShiftEditForm({
             type="date"
             defaultValue={shift.datum}
             required
-            className="mt-1 h-9 rounded-lg"
+            className="mt-1 h-10 rounded-lg sm:h-9"
           />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Von
+            </Label>
+            <Input
+              name="von_zeit"
+              type="time"
+              defaultValue={shift.von_zeit.slice(0, 5)}
+              required
+              className="mt-1 h-10 rounded-lg tabular-nums sm:h-9"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Bis
+            </Label>
+            <Input
+              name="bis_zeit"
+              type="time"
+              defaultValue={shift.bis_zeit.slice(0, 5)}
+              required
+              className="mt-1 h-10 rounded-lg tabular-nums sm:h-9"
+            />
+          </div>
         </div>
         <div>
           <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Von
-          </Label>
-          <Input
-            name="von_zeit"
-            type="time"
-            defaultValue={shift.von_zeit.slice(0, 5)}
-            required
-            className="mt-1 h-9 rounded-lg"
-          />
-        </div>
-        <div>
-          <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Bis
-          </Label>
-          <Input
-            name="bis_zeit"
-            type="time"
-            defaultValue={shift.bis_zeit.slice(0, 5)}
-            required
-            className="mt-1 h-9 rounded-lg"
-          />
-        </div>
-        <div>
-          <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Pause (Min)
+            Pause (Minuten)
           </Label>
           <Input
             name="pause_minuten"
             type="number"
+            inputMode="numeric"
             min={0}
             step={5}
             defaultValue={shift.pause_minuten}
-            className="mt-1 h-9 rounded-lg"
+            className="mt-1 h-10 rounded-lg tabular-nums sm:h-9"
           />
         </div>
-      </div>
-      <div className="mt-3">
-        <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Notiz
-        </Label>
-        <Input
-          name="notiz"
-          type="text"
-          defaultValue={shift.notiz ?? ""}
-          className="mt-1 h-9 rounded-lg"
-        />
+        <div>
+          <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Notiz
+          </Label>
+          <Input
+            name="notiz"
+            type="text"
+            defaultValue={shift.notiz ?? ""}
+            className="mt-1 h-10 rounded-lg sm:h-9"
+          />
+        </div>
       </div>
       {state && !state.ok && (
         <p className="mt-2 text-xs text-[hsl(var(--destructive))]">
           {state.message}
         </p>
       )}
-      <div className="mt-3 flex items-center justify-end gap-2">
+      <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
         <button
           type="button"
           onClick={onCancel}
-          className="inline-flex h-9 items-center gap-1 rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted"
+          className="inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted sm:h-9"
         >
           <X className="h-3.5 w-3.5" />
           Abbrechen
@@ -270,7 +273,7 @@ function ShiftEditForm({
         <Button
           type="submit"
           disabled={pending}
-          className="h-9 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/0.9)]"
+          className="h-10 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/0.9)] sm:h-9"
         >
           {pending ? "Speichere…" : "Speichern"}
         </Button>

@@ -3,9 +3,9 @@ import {
   ArrowRight,
   ArrowUpRight,
   BookOpen,
+  CalendarPlus,
   CheckSquare,
   ClipboardList,
-  Euro,
   FileText,
   GraduationCap,
   Heart,
@@ -51,8 +51,8 @@ const QUICK_ACTIONS: {
   {
     href: "/lohn",
     label: "Schicht eintragen",
-    icon: Euro,
-    tint: "bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))]",
+    icon: CalendarPlus,
+    tint: "bg-sky-500/10 text-sky-600",
   },
   {
     href: "/putzprotokoll",
@@ -154,7 +154,7 @@ export default async function DashboardPage() {
           .join(" · ");
 
   return (
-    <div className="space-y-8 sm:space-y-12">
+    <div className="space-y-6 sm:space-y-12">
       {/* === Banner: ungelesene wichtige Info === */}
       {banner && (
         <Link
@@ -193,7 +193,7 @@ export default async function DashboardPage() {
       )}
 
       {/* === Hero: Tagesüberblick === */}
-      <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-10">
+      <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 sm:rounded-3xl sm:p-10">
         {/* Subtiler Magenta-Glow rechts oben */}
         <div
           aria-hidden
@@ -211,14 +211,14 @@ export default async function DashboardPage() {
             <span className="text-muted-foreground">· <Heutedatum /></span>
           </div>
 
-          <h1 className="mt-6 text-balance font-semibold leading-[1.05] tracking-[-0.025em] text-[clamp(2rem,4vw,3.5rem)]">
+          <h1 className="mt-4 text-balance font-semibold leading-[1.1] tracking-[-0.025em] text-[clamp(1.5rem,5vw,3.5rem)] sm:mt-6 sm:leading-[1.05]">
             <Tageszeitgruss name={profile.full_name} />.
           </h1>
-          <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-lg">
             {subline}
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-2">
+          <div className="mt-5 flex flex-wrap gap-2 sm:mt-8">
             <HeroStat
               icon={<ClipboardList className="h-3.5 w-3.5" />}
               label="Aufgaben heute"
@@ -265,20 +265,20 @@ export default async function DashboardPage() {
         <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
           Schnell-Aktionen
         </h2>
-        <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
           {QUICK_ACTIONS.map((qa) => {
             const Icon = qa.icon;
             return (
               <Link
                 key={qa.href}
                 href={qa.href}
-                className="group flex flex-col items-start gap-2.5 rounded-xl border border-border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)] sm:gap-3 sm:rounded-2xl sm:p-5"
+                className="group flex min-h-[88px] flex-col items-start justify-between gap-2.5 rounded-xl border border-border bg-card p-3.5 transition-all active:scale-[0.98] hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)] sm:min-h-0 sm:gap-3 sm:rounded-2xl sm:p-5"
               >
                 <div className="flex w-full items-start justify-between gap-2">
                   <span
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg sm:h-10 sm:w-10 sm:rounded-xl ${qa.tint}`}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${qa.tint}`}
                   >
-                    <Icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
+                    <Icon className="h-[18px] w-[18px] sm:h-5 sm:w-5" strokeWidth={1.75} />
                   </span>
                   <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))] sm:h-4 sm:w-4" />
                 </div>
@@ -337,7 +337,7 @@ export default async function DashboardPage() {
               return (
                 <li key={info.id}>
                   <Link
-                    href={`/infos/${info.id}`}
+                    href="/infos"
                     className={`group flex items-start gap-3 rounded-xl border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] ${importance.border}`}
                   >
                     <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--brand-pink)/0.10)] text-[hsl(var(--brand-pink))]">
