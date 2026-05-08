@@ -82,7 +82,7 @@ export default function DatenschutzPage() {
             <li>
               <strong>Aktivitätsdaten:</strong> Aufgaben, gemeldete Mängel,
               eingereichte Anfragen, gepostete Infos, erfasstes
-              Mitglieder-Feedback, Kudos.
+              Mitglieder-Feedback.
             </li>
             <li>
               <strong>Provisions-/Lohndaten:</strong> erfasste Abschlüsse,

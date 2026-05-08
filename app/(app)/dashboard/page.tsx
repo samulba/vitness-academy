@@ -8,7 +8,6 @@ import {
   ClipboardList,
   FileText,
   GraduationCap,
-  Heart,
   Megaphone,
   MessageSquarePlus,
   Palmtree,
@@ -23,10 +22,8 @@ import { aktiveBannerInfo, ladeAnnouncements } from "@/lib/infos";
 import { formatDatum } from "@/lib/format";
 import { ladeMeineAufgaben } from "@/lib/aufgaben";
 import { ladeSubmissions } from "@/lib/formulare";
-import { ladeKudos } from "@/lib/kudos";
 import { getAktiverStandort } from "@/lib/standort-context";
 import { AufgabenZeile } from "@/components/aufgaben/AufgabenZeile";
-import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { PutzprotokollHeuteCard } from "@/components/putzprotokoll/PutzprotokollHeuteCard";
 import { Tageszeitgruss } from "./Tageszeitgruss";
 import { Heutedatum } from "./Heutedatum";
@@ -109,7 +106,6 @@ export default async function DashboardPage() {
     banner,
     aufgaben,
     anfragen,
-    kudos,
     infos,
   ] = await Promise.all([
     ladeMeineLernpfade(profile.id),
@@ -121,7 +117,6 @@ export default async function DashboardPage() {
       submittedBy: profile.id,
       status: ["eingereicht", "in_bearbeitung"],
     }),
-    ladeKudos({ limit: 3, locationId: aktiv?.id ?? null }),
     ladeAnnouncements({ locationId: aktiv?.id ?? null }),
   ]);
 
@@ -447,42 +442,6 @@ export default async function DashboardPage() {
         </section>
       )}
 
-      {/* === Aktuelle Lobs === */}
-      {kudos.length > 0 && (
-        <section className="space-y-3 sm:space-y-5">
-          <SectionHeader
-            eyebrow="Aus dem Team"
-            titel="Aktuelle Lobs"
-            href="/kudos"
-          />
-          <ul className="grid gap-2.5 sm:grid-cols-3 sm:gap-3">
-            {kudos.map((k) => (
-              <li
-                key={k.id}
-                className="rounded-xl border border-border bg-card p-4 sm:rounded-2xl sm:p-5"
-              >
-                <div className="flex items-center gap-2 text-xs">
-                  <ColoredAvatar
-                    name={k.from_name}
-                    avatarPath={k.from_avatar}
-                    size="sm"
-                  />
-                  <span className="font-semibold">
-                    {k.from_name ?? "Jemand"}
-                  </span>
-                  <Heart className="h-3 w-3 text-[hsl(var(--brand-pink))]" />
-                  <span className="font-semibold">
-                    {k.to_name ?? "Kollegen"}
-                  </span>
-                </div>
-                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                  „{k.message}&ldquo;
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       {/* === Mein Lernen (kompakt) — nur wenn offene Lektion === */}
       {next && abgeschlossen < gesamt && (

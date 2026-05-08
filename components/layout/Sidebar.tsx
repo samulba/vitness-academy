@@ -14,7 +14,6 @@ import {
   Euro,
   FileText,
   GraduationCap,
-  Heart,
   HelpCircle,
   Home,
   Inbox,
@@ -63,7 +62,7 @@ type AdminGruppe = {
 const MEIN_TAG: NavEintrag = { href: "/dashboard", label: "Mein Tag", icon: Home };
 
 // Drei Untergruppen statt einer flachen Liste -- die Sidebar bleibt
-// übersichtlich auch wenn Provisionen/Feedback/Kudos dazu kommen.
+// übersichtlich auch wenn Provisionen/Feedback dazu kommen.
 const STUDIO_NAV: NavEintrag[] = [
   { href: "/aufgaben", label: "Aufgaben", icon: ListTodo },
   { href: "/formulare", label: "Anfragen", icon: FileText },
@@ -79,7 +78,6 @@ const VERKAUF_NAV: NavEintrag[] = [
 
 const TEAM_NAV: NavEintrag[] = [
   { href: "/infos", label: "Wichtige Infos", icon: Megaphone },
-  { href: "/kudos", label: "Kudos", icon: Heart },
   { href: "/feedback", label: "Mitglieder-Feedback", icon: MessageCircle },
   { href: "/kontakte", label: "Kontakte", icon: Contact },
   { href: "/wissen", label: "Handbuch", icon: BookOpen },

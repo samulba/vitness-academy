@@ -12,7 +12,6 @@ import {
   Euro,
   FileText,
   GraduationCap,
-  Heart,
   HelpCircle,
   Inbox,
   ListTodo,
@@ -45,7 +44,6 @@ const STUDIO: HubLink[] = [
 
 const TEAM: HubLink[] = [
   { href: "/infos", label: "Infos", icon: Megaphone },
-  { href: "/kudos", label: "Kudos", icon: Heart },
   { href: "/feedback", label: "Feedback", icon: MessageCircle },
   { href: "/kontakte", label: "Kontakte", icon: Contact },
 ];

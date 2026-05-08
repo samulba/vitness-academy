@@ -14,7 +14,6 @@ export type NotificationType =
   | "aufgabe_neu"
   | "info_neu"
   | "lektion_q_antwort"
-  | "kudos"
   | "cleaning_protocol_submitted"
   | "lohnabrechnung_neu";
 
@@ -37,7 +36,6 @@ const TYP_ICON: Record<NotificationType, string> = {
   aufgabe_neu: "list-todo",
   info_neu: "megaphone",
   lektion_q_antwort: "message-circle",
-  kudos: "heart",
   cleaning_protocol_submitted: "sparkles",
   lohnabrechnung_neu: "euro",
 };
