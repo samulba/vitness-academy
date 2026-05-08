@@ -8,12 +8,8 @@ import { getAktiverStandort } from "@/lib/standort-context";
 import {
   ladeTemplateMitSections,
   heuteISO,
-  PROTOKOLL_PHOTOS_MAX,
   type ProtocolSectionEntry,
 } from "@/lib/putzprotokoll";
-
-const FOTO_MAX_BYTES = 5 * 1024 * 1024;
-const FOTO_ERLAUBT = ["image/jpeg", "image/png", "image/webp"];
 
 export type Ergebnis =
   | { ok: true; id: string }
@@ -21,11 +17,13 @@ export type Ergebnis =
 
 /**
  * Frühschicht reicht das Putzprotokoll fuer heute ein.
- * FormData-Format:
+ *
+ * FormData-Format (Photos werden direkt vom Browser zu Storage
+ * hochgeladen, hier kommen nur die Pfade):
  *   general_note: string
  *   section_<sectionId>__task_<taskIdx>: "on" wenn abgehakt
  *   section_<sectionId>__maengel: text
- *   section_<sectionId>__photo: File[] (multiple, max 5)
+ *   section_<sectionId>__photo_path: string[] (bereits in Storage)
  */
 export async function protokollEinreichen(
   formData: FormData,
@@ -47,7 +45,7 @@ export async function protokollEinreichen(
   const datum = heuteISO();
   const supabase = await createClient();
 
-  // Doppel-Submit-Schutz: existiert schon ein Protokoll heute?
+  // Doppel-Submit-Schutz
   const { data: existiert } = await supabase
     .from("cleaning_protocols")
     .select("id")
@@ -61,7 +59,7 @@ export async function protokollEinreichen(
     };
   }
 
-  // Pro Section: Tasks, Mängel, Photos einlesen
+  // Pro Section: Tasks, Mängel, Photo-Pfade einlesen
   const sections: ProtocolSectionEntry[] = [];
   for (let i = 0; i < tpl.sections.length; i++) {
     const sec = tpl.sections[i];
@@ -74,49 +72,13 @@ export async function protokollEinreichen(
       formData.get(`section_${sec.id}__maengel`) ?? "",
     ).trim();
 
-    // Photos hochladen
-    const dateien = formData.getAll(`section_${sec.id}__photo`);
-    const validFiles = dateien.filter(
-      (d): d is File => d instanceof File && d.size > 0,
-    );
-    if (validFiles.length > PROTOKOLL_PHOTOS_MAX) {
-      return {
-        ok: false,
-        message: `Bereich „${sec.titel}": max. ${PROTOKOLL_PHOTOS_MAX} Fotos.`,
-      };
-    }
-    const photoPaths: string[] = [];
-    for (let p = 0; p < validFiles.length; p++) {
-      const datei = validFiles[p];
-      if (datei.size > FOTO_MAX_BYTES) {
-        return {
-          ok: false,
-          message: `Foto „${datei.name}" ist zu groß (max 5 MB).`,
-        };
-      }
-      if (!FOTO_ERLAUBT.includes(datei.type)) {
-        return {
-          ok: false,
-          message: `„${datei.name}": Nur JPG, PNG oder WebP erlaubt.`,
-        };
-      }
-      const ext = datei.type.split("/")[1].replace("jpeg", "jpg");
-      const path = `${aktiv.id}/${datum}/${i}/${Date.now()}-${p}.${ext}`;
-      const buffer = Buffer.from(await datei.arrayBuffer());
-      const { error: uploadError } = await supabase.storage
-        .from("cleaning-photos")
-        .upload(path, buffer, {
-          contentType: datei.type,
-          upsert: false,
-        });
-      if (uploadError) {
-        return {
-          ok: false,
-          message: "Foto-Upload fehlgeschlagen: " + uploadError.message,
-        };
-      }
-      photoPaths.push(path);
-    }
+    // Photo-Pfade (bereits in Storage hochgeladen vom Browser)
+    const photoPaths = formData
+      .getAll(`section_${sec.id}__photo_path`)
+      .filter((v): v is string => typeof v === "string" && v.length > 0)
+      // Sicherheits-Check: Pfad muss im richtigen Standort+Datum-Folder
+      // liegen (verhindert Manipulation per DevTools)
+      .filter((p) => p.startsWith(`${aktiv.id}/${datum}/${i}/`));
 
     sections.push({
       section_id: sec.id,

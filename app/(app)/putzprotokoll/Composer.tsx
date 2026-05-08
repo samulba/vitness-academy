@@ -6,27 +6,39 @@ import {
   Camera,
   Check,
   ImageIcon,
+  Loader2,
   Sparkles,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import {
   protokollEinreichen,
   type Ergebnis,
 } from "./actions";
 import {
-  PROTOKOLL_PHOTOS_MAX,
+  cleaningPhotoUrl,
   type CleaningSection,
 } from "@/lib/putzprotokoll-types";
 
 type Props = {
   sections: CleaningSection[];
+  locationId: string;
   locationName: string;
+  datum: string; // YYYY-MM-DD
   datumDeutsch: string;
+  supabasePublicUrl: string;
 };
 
-export function Composer({ sections, locationName, datumDeutsch }: Props) {
+export function Composer({
+  sections,
+  locationId,
+  locationName,
+  datum,
+  datumDeutsch,
+  supabasePublicUrl,
+}: Props) {
   const [state, runAction, pending] = useActionState<Ergebnis | null, FormData>(
     async (_prev, fd) => protokollEinreichen(fd),
     null,
@@ -47,13 +59,21 @@ export function Composer({ sections, locationName, datumDeutsch }: Props) {
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Studio: <span className="font-medium text-foreground">{locationName}</span>{" "}
-          · Pro Bereich Aufgaben abhaken, Mängel notieren und ggf. Fotos
-          hochladen.
+          · Pro Bereich Aufgaben abhaken, Mängel notieren und beliebig viele
+          Fotos hochladen.
         </p>
       </header>
 
       {sections.map((sec, idx) => (
-        <SectionCard key={sec.id} section={sec} idx={idx + 1} />
+        <SectionCard
+          key={sec.id}
+          section={sec}
+          idx={idx + 1}
+          locationId={locationId}
+          datum={datum}
+          sectionIdx={idx}
+          supabasePublicUrl={supabasePublicUrl}
+        />
       ))}
 
       {/* Allgemeine Notiz */}
@@ -106,9 +126,17 @@ export function Composer({ sections, locationName, datumDeutsch }: Props) {
 function SectionCard({
   section,
   idx,
+  locationId,
+  datum,
+  sectionIdx,
+  supabasePublicUrl,
 }: {
   section: CleaningSection;
   idx: number;
+  locationId: string;
+  datum: string;
+  sectionIdx: number;
+  supabasePublicUrl: string;
 }) {
   return (
     <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
@@ -154,9 +182,15 @@ function SectionCard({
         />
       </div>
 
-      {/* Photo-Upload */}
+      {/* Photo-Upload (Direct-to-Storage) */}
       <div className="mt-4">
-        <SectionPhotoUploader sectionId={section.id} />
+        <SectionPhotoUploader
+          sectionId={section.id}
+          locationId={locationId}
+          datum={datum}
+          sectionIdx={sectionIdx}
+          supabasePublicUrl={supabasePublicUrl}
+        />
       </div>
     </section>
   );
@@ -183,61 +217,132 @@ function TaskCheckbox({ name, label }: { name: string; label: string }) {
   );
 }
 
-function SectionPhotoUploader({ sectionId }: { sectionId: string }) {
-  const [dateien, setDateien] = useState<File[]>([]);
+const FOTO_MAX_BYTES = 5 * 1024 * 1024;
+const FOTO_ERLAUBT = ["image/jpeg", "image/png", "image/webp"];
+
+type UploadedPhoto = {
+  /** Storage-Pfad im cleaning-photos-Bucket */
+  path: string;
+  /** Original-Dateiname (zur Anzeige) */
+  name: string;
+  /** Local Blob-URL fuer Vorschau, fallback Public-URL */
+  previewUrl: string;
+};
+
+/**
+ * Photo-Uploader mit Direct-to-Storage-Pattern.
+ * Photos werden BEIM HINZUFUEGEN sofort zu Supabase-Storage hochgeladen
+ * (anonymer Browser-Client + RLS via cleaning-photos Bucket-Policy).
+ * Server-Action bekommt nur die Pfade als hidden-inputs — Form-Body
+ * bleibt winzig, Foto-Anzahl praktisch unbegrenzt.
+ */
+function SectionPhotoUploader({
+  sectionId,
+  locationId,
+  datum,
+  sectionIdx,
+  supabasePublicUrl,
+}: {
+  sectionId: string;
+  locationId: string;
+  datum: string;
+  sectionIdx: number;
+  supabasePublicUrl: string;
+}) {
+  const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
+  const [uploading, setUploading] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  async function dateienHinzufuegen(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setError(null);
+
+    const supabase = createBrowserClient();
+    const dateien = Array.from(files);
+
+    setUploading((n) => n + dateien.length);
+
+    for (const datei of dateien) {
+      if (datei.size > FOTO_MAX_BYTES) {
+        setError(`„${datei.name}" ist zu groß (max 5 MB pro Foto).`);
+        setUploading((n) => Math.max(0, n - 1));
+        continue;
+      }
+      if (!FOTO_ERLAUBT.includes(datei.type)) {
+        setError(`„${datei.name}": Nur JPG, PNG oder WebP erlaubt.`);
+        setUploading((n) => Math.max(0, n - 1));
+        continue;
+      }
+
+      const ext = datei.type.split("/")[1].replace("jpeg", "jpg");
+      const rand = Math.random().toString(36).slice(2, 8);
+      const path = `${locationId}/${datum}/${sectionIdx}/${Date.now()}-${rand}.${ext}`;
+
+      try {
+        const { error: upErr } = await supabase.storage
+          .from("cleaning-photos")
+          .upload(path, datei, {
+            contentType: datei.type,
+            upsert: false,
+          });
+        if (upErr) {
+          setError(`Upload fehlgeschlagen: ${upErr.message}`);
+          setUploading((n) => Math.max(0, n - 1));
+          continue;
+        }
+        const previewUrl =
+          typeof URL !== "undefined" && URL.createObjectURL
+            ? URL.createObjectURL(datei)
+            : cleaningPhotoUrl(path, supabasePublicUrl) ?? "";
+        setPhotos((prev) => [...prev, { path, name: datei.name, previewUrl }]);
+      } catch (e) {
+        setError(`Upload fehlgeschlagen: ${(e as Error).message}`);
+      } finally {
+        setUploading((n) => Math.max(0, n - 1));
+      }
+    }
+
+    // Input-File-List zuruecksetzen damit gleicher Dateiname erneut
+    // ausgewaehlt werden kann
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
   function entfernen(idx: number) {
-    setDateien((prev) => prev.filter((_, i) => i !== idx));
-    if (inputRef.current) {
-      // Re-build DataTransfer mit aktualisierten Files
-      const dt = new DataTransfer();
-      dateien
-        .filter((_, i) => i !== idx)
-        .forEach((f) => dt.items.add(f));
-      inputRef.current.files = dt.files;
-    }
+    // Hinweis: orphan-File bleibt im Bucket. Beim Submit-Abbruch okay,
+    // bei "manchmal entfernt" akzeptabel — Cleanup-Job spaeter moeglich.
+    setPhotos((prev) => prev.filter((_, i) => i !== idx));
   }
 
-  function hinzufuegen(neu: FileList | null) {
-    if (!neu || neu.length === 0) return;
-    const seen = new Set(dateien.map((f) => `${f.name}-${f.size}`));
-    const next = [...dateien];
-    for (const f of Array.from(neu)) {
-      const key = `${f.name}-${f.size}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      next.push(f);
-      if (next.length >= PROTOKOLL_PHOTOS_MAX) break;
-    }
-    setDateien(next);
-    if (inputRef.current) {
-      const dt = new DataTransfer();
-      next.forEach((f) => dt.items.add(f));
-      inputRef.current.files = dt.files;
-    }
-  }
-
-  const cap = dateien.length >= PROTOKOLL_PHOTOS_MAX;
+  const insgesamt = photos.length;
 
   return (
     <div className="space-y-2">
       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        Fotos · max. {PROTOKOLL_PHOTOS_MAX}
+        Fotos
       </p>
 
       <input
         ref={inputRef}
         type="file"
-        name={`section_${sectionId}__photo`}
         accept="image/jpeg,image/png,image/webp"
         multiple
-        onChange={(e) => hinzufuegen(e.target.files)}
+        onChange={(e) => dateienHinzufuegen(e.target.files)}
         className="hidden"
         id={`upload_${sectionId}`}
       />
 
-      {dateien.length === 0 ? (
+      {/* Hidden inputs damit Server-Action die Pfade bekommt */}
+      {photos.map((p) => (
+        <input
+          key={p.path}
+          type="hidden"
+          name={`section_${sectionId}__photo_path`}
+          value={p.path}
+        />
+      ))}
+
+      {photos.length === 0 && uploading === 0 ? (
         <label
           htmlFor={`upload_${sectionId}`}
           className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-input bg-background/40 px-4 py-3 text-sm text-muted-foreground transition-colors hover:border-[hsl(var(--primary)/0.5)] hover:bg-[hsl(var(--primary)/0.04)] hover:text-foreground"
@@ -247,13 +352,18 @@ function SectionPhotoUploader({ sectionId }: { sectionId: string }) {
         </label>
       ) : (
         <>
-          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {dateien.map((file, i) => (
+          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+            {photos.map((p, i) => (
               <li
-                key={`${file.name}-${i}`}
+                key={p.path}
                 className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-muted"
               >
-                <PhotoVorschau file={file} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={p.previewUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
                 <button
                   type="button"
                   onClick={() => entfernen(i)}
@@ -264,40 +374,44 @@ function SectionPhotoUploader({ sectionId }: { sectionId: string }) {
                 </button>
               </li>
             ))}
-            {!cap && (
-              <li>
-                <label
-                  htmlFor={`upload_${sectionId}`}
-                  className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-input bg-background/40 text-xs text-muted-foreground transition-colors hover:border-[hsl(var(--primary)/0.5)] hover:bg-[hsl(var(--primary)/0.04)] hover:text-foreground"
-                >
-                  <ImageIcon className="h-5 w-5" />
-                  <span>+ weiteres</span>
-                </label>
+            {/* Live-Upload-Slots */}
+            {Array.from({ length: uploading }).map((_, i) => (
+              <li
+                key={`up-${i}`}
+                className="flex aspect-square items-center justify-center rounded-lg border border-border bg-muted"
+              >
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </li>
-            )}
+            ))}
+            {/* "+ weitere Fotos"-Tile */}
+            <li>
+              <label
+                htmlFor={`upload_${sectionId}`}
+                className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-input bg-background/40 text-xs text-muted-foreground transition-colors hover:border-[hsl(var(--primary)/0.5)] hover:bg-[hsl(var(--primary)/0.04)] hover:text-foreground"
+              >
+                <ImageIcon className="h-5 w-5" />
+                <span>+ weitere</span>
+              </label>
+            </li>
           </ul>
-          <p className={cn("text-[11px]", cap ? "text-[hsl(var(--brand-pink))]" : "text-muted-foreground")}>
-            {cap
-              ? `Max. ${PROTOKOLL_PHOTOS_MAX} Fotos erreicht.`
-              : `${dateien.length} / ${PROTOKOLL_PHOTOS_MAX} Fotos`}
+          <p
+            className={cn(
+              "text-[11px]",
+              uploading > 0
+                ? "text-[hsl(var(--brand-pink))]"
+                : "text-muted-foreground",
+            )}
+          >
+            {uploading > 0
+              ? `Lade ${uploading} ${uploading === 1 ? "Foto" : "Fotos"} hoch …`
+              : `${insgesamt} ${insgesamt === 1 ? "Foto" : "Fotos"} hochgeladen`}
           </p>
         </>
       )}
-    </div>
-  );
-}
 
-function PhotoVorschau({ file }: { file: File }) {
-  const [url, setUrl] = useState<string>("");
-  const ref = useRef<string | null>(null);
-  if (!ref.current) {
-    ref.current = URL.createObjectURL(file);
-    setTimeout(() => setUrl(ref.current!), 0);
-  }
-  return url ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={url} alt="" className="h-full w-full object-cover" />
-  ) : (
-    <div className="h-full w-full bg-muted" />
+      {error && (
+        <p className="text-[11px] text-[hsl(var(--destructive))]">{error}</p>
+      )}
+    </div>
   );
 }

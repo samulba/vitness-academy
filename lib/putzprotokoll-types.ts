@@ -71,4 +71,9 @@ export function cleaningPhotoUrl(
   return `${base}/storage/v1/object/public/cleaning-photos/${path}`;
 }
 
-export const PROTOKOLL_PHOTOS_MAX = 5;
+/**
+ * Pro Foto Hard-Cap: 5MB. Anzahl der Fotos pro Bereich ist NICHT
+ * gecappt — der Browser laedt direkt zu Supabase Storage hoch
+ * (Direct-Upload), Server-Action sieht nur die Pfade.
+ */
+export const FOTO_MAX_BYTES = 5 * 1024 * 1024;

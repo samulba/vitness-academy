@@ -10,7 +10,7 @@ import type {
 // Re-export client-safe types
 export {
   cleaningPhotoUrl,
-  PROTOKOLL_PHOTOS_MAX,
+  FOTO_MAX_BYTES,
   type CleaningProtocol,
   type CleaningSection,
   type CleaningTemplate,

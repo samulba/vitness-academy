@@ -95,8 +95,11 @@ export default async function PutzprotokollPage() {
   return (
     <Composer
       sections={tplBundle.sections}
+      locationId={aktiv.id}
       locationName={aktiv.name}
+      datum={datum}
       datumDeutsch={datumDeutsch}
+      supabasePublicUrl={process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}
     />
   );
 }
