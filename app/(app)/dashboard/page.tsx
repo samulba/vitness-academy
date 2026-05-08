@@ -193,7 +193,7 @@ export default async function DashboardPage() {
       )}
 
       {/* === Hero: Tagesüberblick === */}
-      <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 sm:rounded-3xl sm:p-10">
+      <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-4 sm:rounded-3xl sm:p-10">
         {/* Subtiler Magenta-Glow rechts oben */}
         <div
           aria-hidden
@@ -205,20 +205,24 @@ export default async function DashboardPage() {
         />
 
         <div className="relative">
-          <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-            <span className="h-px w-10 bg-[hsl(var(--primary))]" />
+          <div className="flex flex-wrap items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))] sm:text-[11px] sm:tracking-[0.22em]">
+            <span className="h-px w-8 bg-[hsl(var(--primary))] sm:w-10" />
             <span>Mein Tag</span>
-            <span className="text-muted-foreground">· <Heutedatum /></span>
+            <span className="text-muted-foreground">
+              · <Heutedatum />
+            </span>
           </div>
 
-          <h1 className="mt-4 text-balance font-semibold leading-[1.1] tracking-[-0.025em] text-[clamp(1.5rem,5vw,3.5rem)] sm:mt-6 sm:leading-[1.05]">
+          <h1 className="mt-3 text-balance font-semibold leading-[1.1] tracking-[-0.025em] text-[clamp(1.375rem,5vw,3.5rem)] sm:mt-6 sm:leading-[1.05]">
             <Tageszeitgruss name={profile.full_name} />.
           </h1>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-lg">
+          <p className="mt-1.5 max-w-xl text-[13px] leading-snug text-muted-foreground sm:mt-3 sm:text-lg sm:leading-relaxed">
             {subline}
           </p>
 
-          <div className="mt-5 flex flex-wrap gap-2 sm:mt-8">
+          {/* Stats: sauber als 2-Spalten-Grid auf Mobile,
+              flex-wrap auf Desktop (mehr Items moeglich). */}
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-8 sm:flex sm:flex-wrap">
             <HeroStat
               icon={<ClipboardList className="h-3.5 w-3.5" />}
               label="Aufgaben heute"
@@ -244,7 +248,7 @@ export default async function DashboardPage() {
             {aktivitaet.tageLetzte30 > 0 && (
               <HeroStat
                 icon={<Sparkles className="h-3.5 w-3.5" />}
-                label="Tage aktiv (30T)"
+                label="Tage aktiv"
                 wert={aktivitaet.tageLetzte30}
               />
             )}
@@ -262,29 +266,27 @@ export default async function DashboardPage() {
 
       {/* === Quick-Actions === */}
       <section>
-        <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
+        <h2 className="text-[10px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))] sm:text-[11px] sm:tracking-[0.22em]">
           Schnell-Aktionen
         </h2>
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
+        <div className="mt-2.5 grid grid-cols-2 gap-2 sm:mt-4 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
           {QUICK_ACTIONS.map((qa) => {
             const Icon = qa.icon;
             return (
               <Link
                 key={qa.href}
                 href={qa.href}
-                className="group flex min-h-[88px] flex-col items-start justify-between gap-2.5 rounded-xl border border-border bg-card p-3.5 transition-all active:scale-[0.98] hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)] sm:min-h-0 sm:gap-3 sm:rounded-2xl sm:p-5"
+                className="group relative flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-all active:scale-[0.98] hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)] sm:flex-col sm:items-start sm:gap-3 sm:rounded-2xl sm:p-5"
               >
-                <div className="flex w-full items-start justify-between gap-2">
-                  <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${qa.tint}`}
-                  >
-                    <Icon className="h-[18px] w-[18px] sm:h-5 sm:w-5" strokeWidth={1.75} />
-                  </span>
-                  <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))] sm:h-4 sm:w-4" />
-                </div>
-                <span className="text-[13px] font-semibold leading-tight sm:text-sm">
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${qa.tint} sm:h-10 sm:w-10`}
+                >
+                  <Icon className="h-[18px] w-[18px] sm:h-5 sm:w-5" strokeWidth={1.75} />
+                </span>
+                <span className="min-w-0 flex-1 text-[13px] font-semibold leading-tight sm:flex-none sm:text-sm">
                   {qa.label}
                 </span>
+                <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))] sm:absolute sm:right-3 sm:top-3 sm:h-4 sm:w-4" />
               </Link>
             );
           })}
@@ -592,20 +594,27 @@ function HeroStat({
         ? "border-[hsl(var(--success)/0.3)] bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))]"
         : "border-border bg-background text-foreground";
 
+  // Mobile: Card-Style mit Label+Icon links + Wert rechts (volle Grid-
+  // Cell-Breite). Desktop: Pill-Style fuer Inline-Wrap.
   const inhalt = (
     <span
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${akzentBg} ${
+      className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-colors sm:w-auto sm:rounded-full sm:py-1.5 ${akzentBg} ${
         href ? "hover:bg-muted" : ""
       }`}
     >
-      <span className="flex items-center gap-1.5 text-muted-foreground">
+      <span className="flex min-w-0 flex-1 items-center gap-1.5 text-muted-foreground sm:flex-none">
         {icon}
-        {label}
+        <span className="truncate">{label}</span>
       </span>
       <span className="font-bold tabular-nums">{wert}</span>
     </span>
   );
 
-  if (href) return <Link href={href}>{inhalt}</Link>;
+  if (href)
+    return (
+      <Link href={href} className="block sm:inline-block">
+        {inhalt}
+      </Link>
+    );
   return inhalt;
 }
