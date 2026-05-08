@@ -28,6 +28,7 @@ import { ladeKudos } from "@/lib/kudos";
 import { getAktiverStandort } from "@/lib/standort-context";
 import { AufgabenZeile } from "@/components/aufgaben/AufgabenZeile";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
+import { PutzprotokollHeuteCard } from "@/components/putzprotokoll/PutzprotokollHeuteCard";
 import { Tageszeitgruss } from "./Tageszeitgruss";
 import { Heutedatum } from "./Heutedatum";
 import { createClient } from "@/lib/supabase/server";
@@ -376,6 +377,14 @@ export default async function DashboardPage() {
             })}
           </ul>
         </section>
+      )}
+
+      {/* === Putzprotokoll heute (virtuelle Aufgabe) === */}
+      {aktiv && (
+        <PutzprotokollHeuteCard
+          locationId={aktiv.id}
+          locationName={aktiv.name}
+        />
       )}
 
       {/* === Aufgaben heute === */}

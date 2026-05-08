@@ -34,9 +34,7 @@ type Props = {
 export function Composer({
   sections,
   locationId,
-  locationName,
   datum,
-  datumDeutsch,
   supabasePublicUrl,
 }: Props) {
   const [state, runAction, pending] = useActionState<Ergebnis | null, FormData>(
@@ -48,22 +46,6 @@ export function Composer({
 
   return (
     <form action={runAction} className="space-y-5">
-      {/* Hero-Header */}
-      <header className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
-          <span className="h-px w-10 bg-[hsl(var(--primary))]" />
-          <span>Tägliches Reinigungsprotokoll</span>
-        </div>
-        <h1 className="mt-3 text-balance text-2xl font-semibold tracking-tight sm:text-3xl">
-          Putzprotokoll · {datumDeutsch}
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Studio: <span className="font-medium text-foreground">{locationName}</span>{" "}
-          · Pro Bereich Aufgaben abhaken, Mängel notieren und beliebig viele
-          Fotos hochladen.
-        </p>
-      </header>
-
       {sections.map((sec, idx) => (
         <SectionCard
           key={sec.id}

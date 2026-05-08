@@ -4,6 +4,7 @@ import { requireProfile } from "@/lib/auth";
 import { ladeMeineAufgaben, type Aufgabe } from "@/lib/aufgaben";
 import { getAktiverStandort } from "@/lib/standort-context";
 import { AufgabenZeile } from "@/components/aufgaben/AufgabenZeile";
+import { PutzprotokollHeuteCard } from "@/components/putzprotokoll/PutzprotokollHeuteCard";
 
 export default async function AufgabenPage() {
   const profile = await requireProfile();
@@ -20,6 +21,13 @@ export default async function AufgabenPage() {
         title="Aufgaben"
         description="Was heute zu tun ist und was diese Woche ansteht."
       />
+
+      {aktiv && (
+        <PutzprotokollHeuteCard
+          locationId={aktiv.id}
+          locationName={aktiv.name}
+        />
+      )}
 
       <Section
         titel="Heute"
