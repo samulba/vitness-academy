@@ -66,7 +66,7 @@ export default async function PutzprotokollTemplatesPage() {
                   </div>
                   {tpl ? (
                     <Link
-                      href={`/admin/putzprotokoll-templates/${s.id}`}
+                      href={`/admin/putzprotokolle/templates/${s.id}`}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
                     >
                       Bearbeiten

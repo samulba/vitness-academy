@@ -17,14 +17,14 @@ export async function templateAnlegenWennFehlt(
     .eq("location_id", locationId)
     .maybeSingle();
   if (existiert) {
-    redirect(`/admin/putzprotokoll-templates/${locationId}`);
+    redirect(`/admin/putzprotokolle/templates/${locationId}`);
     return;
   }
   await supabase
     .from("cleaning_protocol_templates")
     .insert({ location_id: locationId, active: true });
-  revalidatePath("/admin/putzprotokoll-templates");
-  redirect(`/admin/putzprotokoll-templates/${locationId}`);
+  revalidatePath("/admin/putzprotokolle/templates");
+  redirect(`/admin/putzprotokolle/templates/${locationId}`);
 }
 
 export async function sectionAnlegen(
@@ -34,7 +34,7 @@ export async function sectionAnlegen(
   await requireRole(["admin", "superadmin"]);
   const titel = String(formData.get("titel") ?? "").trim();
   if (titel.length < 2) {
-    redirect(`/admin/putzprotokoll-templates?toast=titel-fehlt`);
+    redirect(`/admin/putzprotokolle/templates?toast=titel-fehlt`);
     return;
   }
 
@@ -64,7 +64,7 @@ export async function sectionAnlegen(
   });
 
   if (tpl?.location_id) {
-    revalidatePath(`/admin/putzprotokoll-templates/${tpl.location_id}`);
+    revalidatePath(`/admin/putzprotokolle/templates/${tpl.location_id}`);
   }
 }
 
@@ -100,7 +100,7 @@ export async function sectionAktualisieren(
     } | null
   )?.cleaning_protocol_templates?.location_id;
   if (locationId) {
-    revalidatePath(`/admin/putzprotokoll-templates/${locationId}`);
+    revalidatePath(`/admin/putzprotokolle/templates/${locationId}`);
   }
 }
 
@@ -122,7 +122,7 @@ export async function sectionLoeschen(sectionId: string): Promise<void> {
     } | null
   )?.cleaning_protocol_templates?.location_id;
   if (locationId) {
-    revalidatePath(`/admin/putzprotokoll-templates/${locationId}`);
+    revalidatePath(`/admin/putzprotokolle/templates/${locationId}`);
   }
 }
 
@@ -168,6 +168,6 @@ export async function sectionVerschieben(
     .eq("id", section.template_id)
     .maybeSingle();
   if (tpl?.location_id) {
-    revalidatePath(`/admin/putzprotokoll-templates/${tpl.location_id}`);
+    revalidatePath(`/admin/putzprotokolle/templates/${tpl.location_id}`);
   }
 }

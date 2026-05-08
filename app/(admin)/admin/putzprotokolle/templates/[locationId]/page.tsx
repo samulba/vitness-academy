@@ -45,7 +45,7 @@ export default async function TemplateEditorPage({
   return (
     <div className="space-y-6">
       <Link
-        href="/admin/putzprotokoll-templates"
+        href="/admin/putzprotokolle/templates"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
