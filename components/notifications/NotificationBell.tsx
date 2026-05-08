@@ -12,6 +12,7 @@ import {
   ListTodo,
   Megaphone,
   MessageCircle,
+  Sparkles,
   Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ const ICON_MAP = {
   megaphone: Megaphone,
   "message-circle": MessageCircle,
   heart: Heart,
+  sparkles: Sparkles,
   bell: Bell,
 } as const;
 
