@@ -13,6 +13,7 @@ import {
   formatStunden,
   monatLabel,
   shiftStunden,
+  shiftWo,
 } from "@/lib/lohn-types";
 import { formatDatum } from "@/lib/format";
 import { UploadForm } from "./UploadForm";
@@ -126,6 +127,7 @@ export default async function MitarbeiterLohnPage({
               <thead className="border-b border-border bg-muted/30 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 <tr>
                   <th className="px-4 py-2 text-left">Datum</th>
+                  <th className="px-4 py-2 text-left">Wo</th>
                   <th className="px-4 py-2 text-left">Von</th>
                   <th className="px-4 py-2 text-left">Bis</th>
                   <th className="px-4 py-2 text-right">Pause</th>
@@ -139,6 +141,7 @@ export default async function MitarbeiterLohnPage({
                     <td className="px-4 py-2 tabular-nums">
                       {formatDatum(s.datum)}
                     </td>
+                    <td className="px-4 py-2 text-xs">{shiftWo(s)}</td>
                     <td className="px-4 py-2 tabular-nums">
                       {s.von_zeit.slice(0, 5)}
                     </td>

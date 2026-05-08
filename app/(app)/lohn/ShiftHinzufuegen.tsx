@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormAction } from "@/lib/hooks/use-form-action";
 import { shiftAnlegen } from "./actions";
+import { StandortPicker, type StandortOption } from "./StandortPicker";
 
 /**
  * Quick-Add-Form fuer Schichten. Kollabiert standardmaessig zu einem
@@ -15,7 +16,15 @@ import { shiftAnlegen } from "./actions";
  *
  * Datum-Default = letztes manuell gewaehltes Datum oder heute.
  */
-export function ShiftHinzufuegen({ monat }: { monat: string }) {
+export function ShiftHinzufuegen({
+  monat,
+  standorte,
+  aktiverStandortId,
+}: {
+  monat: string;
+  standorte: StandortOption[];
+  aktiverStandortId: string | null;
+}) {
   const [offen, setOffen] = useState(false);
 
   const { run, pending, state, formRef } = useFormAction(shiftAnlegen, {
@@ -49,7 +58,12 @@ export function ShiftHinzufuegen({ monat }: { monat: string }) {
       action={run}
       className="rounded-xl border border-border bg-card p-4 sm:p-5"
     >
-      <div className="grid gap-3 sm:grid-cols-[1fr_120px_120px_100px]">
+      <StandortPicker
+        standorte={standorte}
+        aktiverStandortId={aktiverStandortId}
+      />
+
+      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_120px_120px_100px]">
         <div>
           <Label htmlFor="datum" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Datum

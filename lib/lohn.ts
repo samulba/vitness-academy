@@ -15,12 +15,13 @@ export {
   monatPlus,
   monatRange,
   shiftStunden,
+  shiftWo,
   type Lohnabrechnung,
   type Shift,
 } from "@/lib/lohn-types";
 
 const SHIFT_SELECT = `
-  id, user_id, location_id, datum, von_zeit, bis_zeit, pause_minuten, notiz,
+  id, user_id, location_id, bereich, datum, von_zeit, bis_zeit, pause_minuten, notiz,
   created_at, updated_at,
   location:locations!shifts_location_id_fkey(name)
 `;

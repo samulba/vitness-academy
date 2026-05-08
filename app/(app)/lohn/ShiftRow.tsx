@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Pencil, Trash2, X } from "lucide-react";
+import { MapPin, Pencil, Sparkles, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,9 +12,11 @@ import { formatDatum } from "@/lib/format";
 import {
   formatStunden,
   shiftStunden,
+  shiftWo,
   type Shift,
 } from "@/lib/lohn-types";
 import { shiftAktualisieren, shiftLoeschen } from "./actions";
+import { StandortPicker, type StandortOption } from "./StandortPicker";
 
 const WOCHENTAGE_KURZ = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"] as const;
 
@@ -30,16 +32,29 @@ function zeitKurz(z: string): string {
 
 /**
  * Eine Schicht-Zeile mit Inline-Edit-Modus + Lösch-Confirm.
- * Mobile: stapelt vertikal, Desktop: 6-Spalten-Grid.
+ * Mobile: stapelt vertikal, Desktop: 7-Spalten-Grid (Datum/Wo/Von/Bis/
+ * Stunden/Notiz/Actions).
  */
-export function ShiftRow({ shift }: { shift: Shift }) {
+export function ShiftRow({
+  shift,
+  standorte,
+  aktiverStandortId,
+}: {
+  shift: Shift;
+  standorte: StandortOption[];
+  aktiverStandortId: string | null;
+}) {
   const [edit, setEdit] = useState(false);
   const stunden = shiftStunden(shift);
+  const woLabel = shiftWo(shift);
+  const istSonstiges = !shift.location_id && !!shift.bereich;
 
   if (edit) {
     return (
       <ShiftEditForm
         shift={shift}
+        standorte={standorte}
+        aktiverStandortId={aktiverStandortId}
         onCancel={() => setEdit(false)}
         onSaved={() => setEdit(false)}
       />
@@ -47,7 +62,7 @@ export function ShiftRow({ shift }: { shift: Shift }) {
   }
 
   return (
-    <div className="grid grid-cols-1 items-center gap-2 px-4 py-3 sm:grid-cols-[120px_120px_120px_80px_1fr_60px] sm:gap-3">
+    <div className="grid grid-cols-1 items-center gap-2 px-4 py-3 sm:grid-cols-[110px_140px_90px_90px_70px_1fr_60px] sm:gap-3">
       {/* Datum */}
       <div className="flex items-baseline gap-2 sm:flex-col sm:items-start sm:gap-0">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -58,7 +73,17 @@ export function ShiftRow({ shift }: { shift: Shift }) {
         </span>
       </div>
 
-      {/* Von - Bis */}
+      {/* Wo */}
+      <span className="inline-flex items-center gap-1.5 truncate text-sm">
+        {istSonstiges ? (
+          <Sparkles className="h-3 w-3 shrink-0 text-[hsl(var(--brand-pink))]" />
+        ) : (
+          <MapPin className="h-3 w-3 shrink-0 text-muted-foreground" />
+        )}
+        <span className="truncate font-medium">{woLabel}</span>
+      </span>
+
+      {/* Von - Bis (mobile gestapelt) */}
       <span className="text-sm tabular-nums sm:hidden">
         {zeitKurz(shift.von_zeit)} – {zeitKurz(shift.bis_zeit)}
         {shift.pause_minuten > 0 && (
@@ -81,7 +106,7 @@ export function ShiftRow({ shift }: { shift: Shift }) {
       </span>
 
       {/* Notiz */}
-      <span className="text-xs text-muted-foreground sm:text-sm">
+      <span className="truncate text-xs text-muted-foreground sm:text-sm">
         {shift.notiz || "—"}
       </span>
 
@@ -133,10 +158,14 @@ function DeleteButton({ shiftId }: { shiftId: string }) {
 
 function ShiftEditForm({
   shift,
+  standorte,
+  aktiverStandortId,
   onCancel,
   onSaved,
 }: {
   shift: Shift;
+  standorte: StandortOption[];
+  aktiverStandortId: string | null;
   onCancel: () => void;
   onSaved: () => void;
 }) {
@@ -154,7 +183,15 @@ function ShiftEditForm({
       action={run}
       className="border-l-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.04)] p-4"
     >
-      <div className="grid gap-3 sm:grid-cols-[1fr_120px_120px_100px]">
+      <StandortPicker
+        standorte={standorte}
+        defaultLocationId={shift.location_id}
+        defaultBereich={shift.bereich}
+        aktiverStandortId={aktiverStandortId}
+        size="sm"
+      />
+
+      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_120px_120px_100px]">
         <div>
           <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Datum

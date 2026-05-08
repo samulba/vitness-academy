@@ -8,6 +8,8 @@ export type Shift = {
   id: string;
   user_id: string;
   location_id: string | null;
+  /** Freitext fuer Nicht-Studio-Schichten (Meeting, Homeoffice, ...) */
+  bereich: string | null;
   /** YYYY-MM-DD */
   datum: string;
   /** HH:MM:SS oder HH:MM */
@@ -20,6 +22,14 @@ export type Shift = {
   created_at: string;
   updated_at: string;
 };
+
+/**
+ * Anzeige-Label: Studio-Name wenn vorhanden, sonst Bereich-Freitext,
+ * sonst "—".
+ */
+export function shiftWo(s: Pick<Shift, "location_name" | "bereich">): string {
+  return s.location_name ?? s.bereich ?? "—";
+}
 
 export type Lohnabrechnung = {
   id: string;

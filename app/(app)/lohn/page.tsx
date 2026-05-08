@@ -11,6 +11,10 @@ import {
   monatPlus,
   summeStunden,
 } from "@/lib/lohn";
+import {
+  getAktiverStandort,
+  ladeMeineStandorte,
+} from "@/lib/standort-context";
 import { ShiftHinzufuegen } from "./ShiftHinzufuegen";
 import { ShiftRow } from "./ShiftRow";
 import { LohnabrechnungCard } from "./LohnabrechnungCard";
@@ -29,10 +33,13 @@ export default async function LohnPage({
   const monat =
     sp.monat && VALID_MONAT.test(sp.monat) ? sp.monat : aktuellerMonat();
 
-  const [shifts, lohn] = await Promise.all([
+  const [shifts, lohn, standorte, aktiv] = await Promise.all([
     ladeShiftsImMonat(profile.id, monat),
     ladeLohnabrechnung(profile.id, monat),
+    ladeMeineStandorte(profile.id),
+    getAktiverStandort(),
   ]);
+  const standortOptions = standorte.map((s) => ({ id: s.id, name: s.name }));
 
   const stunden = summeStunden(shifts);
   const pauseSumme = shifts.reduce((s, sh) => s + sh.pause_minuten, 0);
@@ -121,7 +128,11 @@ export default async function LohnPage({
         </div>
 
         {/* Quick-Add */}
-        <ShiftHinzufuegen monat={monat} />
+        <ShiftHinzufuegen
+          monat={monat}
+          standorte={standortOptions}
+          aktiverStandortId={aktiv?.id ?? null}
+        />
 
         {/* Tabelle */}
         {shifts.length === 0 ? (
@@ -131,8 +142,9 @@ export default async function LohnPage({
         ) : (
           <div className="overflow-hidden rounded-2xl border border-border bg-card">
             {/* Tabellen-Header (nur Desktop) */}
-            <div className="hidden grid-cols-[120px_120px_120px_80px_1fr_60px] items-center gap-3 border-b border-border bg-muted/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:grid">
+            <div className="hidden grid-cols-[110px_140px_90px_90px_70px_1fr_60px] items-center gap-3 border-b border-border bg-muted/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:grid">
               <span>Datum</span>
+              <span>Wo</span>
               <span>Von</span>
               <span>Bis</span>
               <span className="text-right">Stunden</span>
@@ -142,7 +154,11 @@ export default async function LohnPage({
             <ul className="divide-y divide-border">
               {shifts.map((s) => (
                 <li key={s.id}>
-                  <ShiftRow shift={s} />
+                  <ShiftRow
+                    shift={s}
+                    standorte={standortOptions}
+                    aktiverStandortId={aktiv?.id ?? null}
+                  />
                 </li>
               ))}
             </ul>
