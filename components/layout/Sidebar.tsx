@@ -65,6 +65,7 @@ const STUDIO_NAV: NavEintrag[] = [
   { href: "/aufgaben", label: "Aufgaben", icon: ListTodo },
   { href: "/formulare", label: "Anfragen", icon: FileText },
   { href: "/maengel", label: "Mängel melden", icon: AlertTriangle },
+  { href: "/putzprotokoll", label: "Putzprotokoll", icon: Sparkles },
 ];
 
 // "Verkauf" wird nur für Vertriebler sichtbar (per profile.kann_provisionen)
@@ -122,6 +123,8 @@ const ADMIN_GROUPS: AdminGruppe[] = [
       { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle },
       { href: "/admin/feedback", label: "Mitglieder-Feedback", icon: MessageCircle },
       { href: "/admin/formulare", label: "Formulare", icon: FileText },
+      { href: "/admin/putzprotokolle", label: "Putzprotokolle", icon: Sparkles },
+      { href: "/admin/putzprotokoll-templates", label: "Putzprotokoll-Templates", icon: Sparkles },
       { href: "/admin/praxisfreigaben", label: "Praxis-Anfragen", icon: CheckSquare },
       { href: "/admin/provisionen", label: "Provisionen", icon: TrendingUp },
     ],
