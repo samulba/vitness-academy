@@ -72,7 +72,10 @@ export default async function AdminLayout({
           </div>
         </main>
       </div>
-      <MobileNav rolle={profile.role} />
+      <MobileNav
+        rolle={profile.role}
+        kannProvisionen={profile.kann_provisionen}
+      />
     </div>
   );
 }

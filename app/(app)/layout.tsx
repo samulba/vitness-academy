@@ -82,7 +82,10 @@ export default async function AppLayout({
           <div className="mx-auto w-full max-w-7xl">{children}</div>
         </main>
       </div>
-      <MobileNav rolle={profile.role} />
+      <MobileNav
+        rolle={profile.role}
+        kannProvisionen={profile.kann_provisionen}
+      />
       {!profile.onboarding_done && (
         <OnboardingDialog vorname={profile.first_name ?? profile.full_name} />
       )}

@@ -1,21 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  ArrowLeftRight,
-  BookOpen,
+  Activity,
+  ClipboardList,
+  Euro,
   FileText,
-  GraduationCap,
   Home,
   ListTodo,
-  Megaphone,
+  Plus,
   ShieldCheck,
-  Sparkles,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { istFuehrungskraftOderHoeher, type Rolle } from "@/lib/rollen";
+import { MobileHubSheet } from "./MobileHubSheet";
 
 type MobileLink = {
   href: string;
@@ -27,77 +28,70 @@ type MobileLink = {
   exact?: boolean;
 };
 
-// Mitarbeiter-Modus: Daily-Use-Reihenfolge
+// Mitarbeiter: 4 daily-use Tabs + Center-FAB zum Hub-Sheet
 const MITARBEITER_LINKS: MobileLink[] = [
   { href: "/dashboard", label: "Mein Tag", icon: Home },
   { href: "/aufgaben", label: "Aufgaben", icon: ListTodo },
+  { href: "/lohn", label: "Schichten", icon: Euro },
   { href: "/formulare", label: "Anfragen", icon: FileText },
-  { href: "/lernpfade", label: "Lernen", icon: GraduationCap },
 ];
 
-// Verwaltungs-Modus: 4 Top-Level-Bereiche (Auswertung weggelassen — am
-// Laptop sinnvoller). Switch-zur-App ist visuell separater 5. Eintrag.
+// Verwaltungs-Modus: 4 Top-Level-Bereiche + Center-FAB zum Admin-Hub
 const VERWALTUNG_LINKS: MobileLink[] = [
   { href: "/admin", label: "Übersicht", icon: ShieldCheck, exact: true },
-  { href: "/admin/lernpfade", label: "Inhalte", icon: Sparkles },
+  { href: "/admin/aufgaben", label: "Aufgaben", icon: ClipboardList },
   { href: "/admin/benutzer", label: "Team", icon: Users },
-  { href: "/admin/aufgaben", label: "Studio", icon: Megaphone },
+  { href: "/admin/fortschritt", label: "Auswertung", icon: Activity },
 ];
 
-export function MobileNav({ rolle }: { rolle: Rolle }) {
+export function MobileNav({
+  rolle,
+  kannProvisionen = false,
+}: {
+  rolle: Rolle;
+  kannProvisionen?: boolean;
+}) {
   const pathname = usePathname();
+  const [hubOffen, setHubOffen] = useState(false);
   const zeigeAdmin = istFuehrungskraftOderHoeher(rolle);
   const adminMode = pathname === "/admin" || pathname.startsWith("/admin/");
 
-  if (zeigeAdmin && adminMode) {
-    return (
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-border bg-card/95 backdrop-blur lg:hidden">
-        {VERWALTUNG_LINKS.map((link) => (
-          <NavItem key={link.href + link.label} link={link} pathname={pathname} />
-        ))}
-        {/* Mode-Switch optisch abgesetzt: vertikaler Border, Magenta-Tint */}
-        <Link
-          href="/dashboard"
-          className="relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 border-l border-border py-2 text-[11px] font-medium text-[hsl(var(--primary))] transition-colors hover:bg-muted/50"
-        >
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.4)]">
-            <ArrowLeftRight className="h-3.5 w-3.5" strokeWidth={2} />
-          </span>
-          <span>Zur App</span>
-        </Link>
-      </nav>
-    );
-  }
-
-  // Mitarbeiter-Modus
-  const links: MobileLink[] = [
-    ...MITARBEITER_LINKS,
-    zeigeAdmin
-      ? { href: "/admin", label: "Verwaltung", icon: ShieldCheck, exact: true }
-      : { href: "/wissen", label: "Handbuch", icon: BookOpen },
-  ];
+  const links = zeigeAdmin && adminMode ? VERWALTUNG_LINKS : MITARBEITER_LINKS;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-border bg-card/95 backdrop-blur lg:hidden">
-      {links.map((link, i) => {
-        const istSwitch = zeigeAdmin && i === links.length - 1;
-        if (istSwitch) {
-          return (
-            <Link
-              key={link.href + link.label}
-              href={link.href}
-              className="relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 border-l border-border py-2 text-[11px] font-medium text-[hsl(var(--primary))] transition-colors hover:bg-muted/50"
+    <>
+      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom,0)] backdrop-blur lg:hidden">
+        <div className="grid grid-cols-5 items-end">
+          {/* Tab 1 + 2 */}
+          <NavItem link={links[0]} pathname={pathname} />
+          <NavItem link={links[1]} pathname={pathname} />
+
+          {/* Center-FAB (Slot 3) */}
+          <div className="relative flex justify-center">
+            <button
+              type="button"
+              onClick={() => setHubOffen(true)}
+              aria-label="Alle Bereiche öffnen"
+              className="-mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-[0_8px_24px_-4px_hsl(var(--primary)/0.55)] ring-4 ring-background transition-all hover:scale-105 active:scale-95"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.4)]">
-                <ArrowLeftRight className="h-3.5 w-3.5" strokeWidth={2} />
-              </span>
-              <span>{link.label}</span>
-            </Link>
-          );
-        }
-        return <NavItem key={link.href + link.label} link={link} pathname={pathname} />;
-      })}
-    </nav>
+              <Plus className="h-6 w-6" strokeWidth={2.25} />
+            </button>
+          </div>
+
+          {/* Tab 4 + 5 */}
+          <NavItem link={links[2]} pathname={pathname} />
+          <NavItem link={links[3]} pathname={pathname} />
+        </div>
+      </nav>
+
+      <MobileHubSheet
+        offen={hubOffen}
+        onClose={() => setHubOffen(false)}
+        rolle={rolle}
+        kannProvisionen={kannProvisionen}
+        adminMode={zeigeAdmin && adminMode}
+      />
+    </>
   );
 }
 
@@ -116,7 +110,7 @@ function NavItem({
     <Link
       href={href}
       className={cn(
-        "relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors",
+        "relative flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors",
         aktiv
           ? "text-[hsl(var(--primary))]"
           : "text-muted-foreground hover:text-foreground",
