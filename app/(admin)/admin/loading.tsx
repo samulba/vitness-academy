@@ -6,16 +6,16 @@ import { Skeleton, SkeletonStatCard, SkeletonTableRow } from "@/components/ui/sk
  */
 export default function AdminLoading() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       {/* PageHeader-Skeleton */}
-      <div className="space-y-3 pb-2">
-        <Skeleton className="h-3 w-24" />
-        <Skeleton className="h-8 w-56" />
-        <Skeleton className="h-4 w-96 max-w-full" />
+      <div className="space-y-2 pb-1 sm:space-y-3 sm:pb-2">
+        <Skeleton className="h-3 w-20 sm:w-24" />
+        <Skeleton className="h-7 w-full max-w-[240px] sm:h-8 sm:max-w-[320px]" />
+        <Skeleton className="h-3.5 w-full max-w-md sm:h-4" />
       </div>
 
       {/* StatGrid-Skeleton */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <SkeletonStatCard />
         <SkeletonStatCard />
         <SkeletonStatCard />
