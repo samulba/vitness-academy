@@ -355,7 +355,7 @@ export default async function DashboardPage() {
                         {info.title}
                       </p>
                       {info.body && (
-                        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground sm:text-sm">
+                        <p className="mt-1 line-clamp-2 break-words text-xs text-muted-foreground sm:text-sm">
                           {info.body}
                         </p>
                       )}

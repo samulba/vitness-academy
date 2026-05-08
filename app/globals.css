@@ -138,12 +138,33 @@
   * {
     @apply border-border;
   }
+  /* Globaler Schutz gegen Horizontal-Scroll: ein einzelnes
+     ueberlaufendes Element (z.B. langes User-Wort, Tabelle) darf NIE
+     die ganze Page seitlich verschieben. */
+  html,
+  body {
+    overflow-x: hidden;
+  }
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
   }
   h1, h2, h3, h4 {
     letter-spacing: -0.02em;
+  }
+  /* User-Input Text-Elemente koennen lange Strings ohne Spaces enthalten
+     ("BLABLABLALBALBLA…") — diese duerfen das Layout NICHT sprengen.
+     overflow-wrap: break-word bricht solche Strings notfalls inmitten
+     eines Wortes statt sie auszuragen. Block-Elemente only — span/etc
+     bleiben unangetastet damit z.B. tabular-nums-Zeiten nicht brechen. */
+  p,
+  li,
+  td,
+  th,
+  blockquote,
+  dd,
+  dt {
+    overflow-wrap: break-word;
   }
 }
 
