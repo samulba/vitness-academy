@@ -122,6 +122,7 @@ const ADMIN_GROUPS: AdminGruppe[] = [
       { href: "/admin/aufgaben", label: "Aufgaben", icon: ListTodo },
       { href: "/admin/infos", label: "Infos", icon: Megaphone },
       { href: "/admin/kontakte", label: "Kontakte", icon: Contact },
+      { href: "/admin/lohn", label: "Lohnabrechnungen", icon: Euro },
       { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle },
       { href: "/admin/feedback", label: "Mitglieder-Feedback", icon: MessageCircle },
       { href: "/admin/formulare", label: "Formulare", icon: FileText },
