@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { ladeStandorte } from "@/lib/standorte";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/page-header";
+import { PutzprotokolleNav } from "@/components/admin/PutzprotokolleNav";
 import { templateAnlegenWennFehlt } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +40,7 @@ export default async function PutzprotokollTemplatesPage() {
         title="Templates"
         description="Pro Standort die Bereiche und Aufgaben des täglichen Putzprotokolls pflegen."
       />
+      <PutzprotokolleNav />
 
       {standorte.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center text-sm text-muted-foreground">

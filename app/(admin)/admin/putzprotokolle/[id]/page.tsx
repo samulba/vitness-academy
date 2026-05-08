@@ -17,6 +17,7 @@ import { ProtokollSectionsAnzeige } from "@/components/putzprotokoll/ProtokollSe
 import { Button } from "@/components/ui/button";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
+import { PutzprotokolleNav } from "@/components/admin/PutzprotokolleNav";
 import { protokollLoeschen, protokollReviewen } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +52,8 @@ export default async function ProtokollDetailPage({
         <ArrowLeft className="h-4 w-4" />
         Zurück zu allen Protokollen
       </Link>
+
+      <PutzprotokolleNav />
 
       {/* Hero */}
       <header className="rounded-2xl border border-border bg-card p-5 sm:p-7">

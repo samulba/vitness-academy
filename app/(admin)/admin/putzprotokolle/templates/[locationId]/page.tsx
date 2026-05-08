@@ -12,6 +12,7 @@ import { requireRole } from "@/lib/auth";
 import { ladeTemplateMitSections } from "@/lib/putzprotokoll";
 import { createClient } from "@/lib/supabase/server";
 import { Input } from "@/components/ui/input";
+import { PutzprotokolleNav } from "@/components/admin/PutzprotokolleNav";
 import {
   sectionAnlegen,
   sectionAktualisieren,
@@ -51,6 +52,8 @@ export default async function TemplateEditorPage({
         <ArrowLeft className="h-4 w-4" />
         Zurück zu allen Templates
       </Link>
+
+      <PutzprotokolleNav />
 
       <header className="rounded-2xl border border-border bg-card p-5 sm:p-7">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))]">

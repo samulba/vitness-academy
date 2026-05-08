@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
+import { PutzprotokolleNav } from "@/components/admin/PutzprotokolleNav";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,7 @@ export default async function PutzprotokolleAdminPage() {
           aktiv ? `· ${aktiv.name}` : "(alle Standorte)"
         }. Letzte 30 Tage.`}
       />
+      <PutzprotokolleNav />
 
       <StatGrid cols={4}>
         <StatCard
