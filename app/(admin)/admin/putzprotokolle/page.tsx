@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Camera, CheckCircle2, ClipboardCheck, Sparkles } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { ladeProtokolleListe } from "@/lib/putzprotokoll";
-import { formatDatum } from "@/lib/format";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { StatusPill } from "@/components/admin/StatusPill";
@@ -97,23 +96,13 @@ export default async function PutzprotokolleAdminPage() {
                   href={`/admin/putzprotokolle/${p.id}`}
                   className="group flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/40 sm:gap-5 sm:px-5 sm:py-4"
                 >
-                  <div className="flex w-20 shrink-0 flex-col">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      {new Date(p.datum + "T00:00:00").toLocaleDateString(
-                        "de-DE",
-                        { weekday: "short" },
-                      )}
-                    </span>
-                    <span className="font-mono text-sm font-medium tabular-nums">
-                      {formatDatum(p.datum)}
-                    </span>
-                  </div>
+                  <DatumBlock datum={p.datum} />
                   <ColoredAvatar
                     name={p.submitted_by_name ?? "?"}
                     size="sm"
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <p className="truncate text-sm font-medium">
                         {p.submitted_by_name ?? "Mitarbeiter:in"}
                       </p>
@@ -139,6 +128,35 @@ export default async function PutzprotokolleAdminPage() {
             );
           })}
         </ul>
+      )}
+    </div>
+  );
+}
+
+const MONATE_KURZ = [
+  "Jan", "Feb", "Mär", "Apr", "Mai", "Jun",
+  "Jul", "Aug", "Sep", "Okt", "Nov", "Dez",
+];
+
+function DatumBlock({ datum }: { datum: string }) {
+  const d = new Date(`${datum}T00:00:00`);
+  const wochentag = d.toLocaleDateString("de-DE", { weekday: "short" });
+  const tag = d.getDate();
+  const monat = MONATE_KURZ[d.getMonth()];
+  const jahr = d.getFullYear();
+  const aktJahr = new Date().getFullYear();
+  return (
+    <div className="flex w-16 shrink-0 flex-col whitespace-nowrap sm:w-20">
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+        {wochentag}
+      </span>
+      <span className="text-[15px] font-semibold leading-tight tabular-nums">
+        {tag}. {monat}
+      </span>
+      {jahr !== aktJahr && (
+        <span className="text-[10px] tabular-nums text-muted-foreground">
+          {jahr}
+        </span>
       )}
     </div>
   );

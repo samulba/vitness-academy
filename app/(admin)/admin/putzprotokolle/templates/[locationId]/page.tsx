@@ -19,6 +19,7 @@ import {
   sectionLoeschen,
   sectionVerschieben,
 } from "../actions";
+import { AufgabenEditor } from "./AufgabenEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -108,22 +109,7 @@ export default async function TemplateEditorPage({
                           required
                         />
                       </div>
-                      <div>
-                        <label
-                          htmlFor={`aufgaben-${sec.id}`}
-                          className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
-                        >
-                          Aufgaben · eine pro Zeile
-                        </label>
-                        <textarea
-                          id={`aufgaben-${sec.id}`}
-                          name="aufgaben"
-                          defaultValue={sec.aufgaben.join("\n")}
-                          rows={Math.max(4, sec.aufgaben.length + 1)}
-                          className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:border-[hsl(var(--primary)/0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.15)]"
-                          placeholder="Boden staubsaugen&#10;Boden nass wischen&#10;…"
-                        />
-                      </div>
+                      <AufgabenEditor defaultValue={sec.aufgaben} />
                       <div className="flex flex-wrap items-center gap-2 pt-1">
                         <button
                           type="submit"
