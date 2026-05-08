@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Camera, CheckCircle2, ClipboardCheck, Sparkles } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { getAktiverStandort } from "@/lib/standort-context";
 import { ladeProtokolleListe } from "@/lib/putzprotokoll";
 import { formatDatum } from "@/lib/format";
 import { PageHeader } from "@/components/ui/page-header";
@@ -14,17 +13,17 @@ export const dynamic = "force-dynamic";
 
 export default async function PutzprotokolleAdminPage() {
   await requireRole(["fuehrungskraft", "admin", "superadmin"]);
-  const aktiv = await getAktiverStandort();
 
-  // Alle Protokolle der letzten 30 Tage fuer den aktiven Standort
+  // Im Admin-Bereich IMMER alle Standorte zeigen — pro Eintrag
+  // wird der Standort als Pill in der Row angezeigt.
   const today = new Date();
   const vor30 = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
   const vonDatum = vor30.toISOString().slice(0, 10);
 
   const protokolle = await ladeProtokolleListe({
-    locationId: aktiv?.id ?? null,
+    locationId: null, // alle Standorte
     vonDatum,
-    limit: 60,
+    limit: 100,
   });
 
   // Stats: letzte 7 Tage, wieviele eingereicht?
@@ -45,9 +44,7 @@ export default async function PutzprotokolleAdminPage() {
       <PageHeader
         eyebrow="Studio"
         title="Putzprotokolle"
-        description={`Tägliche Reinigungs-Protokolle ${
-          aktiv ? `· ${aktiv.name}` : "(alle Standorte)"
-        }. Letzte 30 Tage.`}
+        description="Tägliche Reinigungs-Protokolle aller Standorte. Letzte 30 Tage."
       />
       <PutzprotokolleNav />
 
@@ -116,12 +113,17 @@ export default async function PutzprotokolleAdminPage() {
                     size="sm"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">
-                      {p.submitted_by_name ?? "Mitarbeiter:in"}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="truncate text-sm font-medium">
+                        {p.submitted_by_name ?? "Mitarbeiter:in"}
+                      </p>
+                      <span className="inline-flex shrink-0 items-center rounded-full bg-[hsl(var(--brand-pink)/0.12)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+                        {p.location_name ?? "—"}
+                      </span>
+                    </div>
                     <p className="truncate text-[11px] text-muted-foreground">
-                      {p.location_name ?? "—"} · {erledigtTasks} Aufgaben ·{" "}
-                      {fotos} {fotos === 1 ? "Foto" : "Fotos"}
+                      {erledigtTasks} Aufgaben · {fotos}{" "}
+                      {fotos === 1 ? "Foto" : "Fotos"}
                       {hatMaengel ? " · Mängel" : ""}
                     </p>
                   </div>

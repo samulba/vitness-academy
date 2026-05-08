@@ -2,12 +2,13 @@ import Link from "next/link";
 import {
   Camera,
   ClipboardCheck,
+  MapPin,
   Printer,
   Sparkles,
   Wrench,
 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { getAktiverStandort } from "@/lib/standort-context";
+import { ladeStandorte } from "@/lib/standorte";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { PutzprotokolleNav } from "@/components/admin/PutzprotokolleNav";
@@ -21,6 +22,7 @@ import {
   type RangeKey,
 } from "@/lib/putzprotokoll_stats";
 import { formatDatum } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { RangeFilter } from "./RangeFilter";
 
 export const dynamic = "force-dynamic";
@@ -34,11 +36,18 @@ export default async function AuswertungPage({
     range?: string;
     von?: string;
     bis?: string;
+    locationId?: string;
   }>;
 }) {
   await requireRole(["fuehrungskraft", "admin", "superadmin"]);
-  const aktiv = await getAktiverStandort();
+  const standorte = await ladeStandorte();
   const sp = await searchParams;
+
+  // Aktiv-Standort: aus URL-Param oder erster verfuegbarer Standort.
+  // KEIN Fallback auf Topbar-Switcher — Admin soll immer alle Studios
+  // sehen koennen, der Switcher hat hier keine Bedeutung.
+  const aktiv =
+    standorte.find((s) => s.id === sp.locationId) ?? standorte[0] ?? null;
 
   const rangeKey: RangeKey = (VALID_RANGES as string[]).includes(
     sp.range ?? "",
@@ -76,6 +85,36 @@ export default async function AuswertungPage({
       />
       <PutzprotokolleNav />
 
+      {/* Standort-Picker — nur wenn mehrere Standorte existieren.
+       *  URL-Param ?locationId=, default: erster verfuegbarer Standort. */}
+      {standorte.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5" />
+            Standort
+          </span>
+          {standorte.map((s) => {
+            const linkRange = sp.range ? `&range=${sp.range}` : "";
+            const linkVon = sp.von ? `&von=${sp.von}` : "";
+            const linkBis = sp.bis ? `&bis=${sp.bis}` : "";
+            return (
+              <Link
+                key={s.id}
+                href={`?locationId=${s.id}${linkRange}${linkVon}${linkBis}`}
+                className={cn(
+                  "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                  aktiv?.id === s.id
+                    ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
+                    : "bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+                )}
+              >
+                {s.name}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
       <RangeFilter
         aktivRange={rangeKey}
         aktivVon={rangeKey === "custom" ? sp.von ?? vonDatum : vonDatum}
@@ -87,8 +126,7 @@ export default async function AuswertungPage({
           <span className="font-semibold text-[hsl(var(--brand-pink))]">
             Hinweis:
           </span>{" "}
-          Ohne aktiven Standort werden keine Daten angezeigt — bitte oben rechts
-          einen Standort wählen.
+          Noch keine Standorte angelegt.
         </div>
       )}
 
