@@ -226,7 +226,7 @@ export function Sidebar({
   }
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 self-start border-r border-border bg-background lg:flex lg:flex-col">
+    <aside className="hidden h-screen w-60 shrink-0 border-r border-border bg-background lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:flex-col">
       <div className="flex h-full flex-col">
         {/* Branding + NotificationBell oben */}
         <div className="flex items-center gap-2 border-b border-border px-3 py-3">

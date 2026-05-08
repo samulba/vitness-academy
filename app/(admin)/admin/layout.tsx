@@ -39,7 +39,7 @@ export default async function AdminLayout({
         />
         <main
           id="main"
-          className="min-w-0 flex-1 overflow-x-hidden px-4 pb-24 pt-6 lg:px-8 lg:pb-10"
+          className="min-w-0 flex-1 overflow-x-hidden px-4 pb-24 pt-6 lg:ml-60 lg:px-8 lg:pb-10"
         >
           <div className="mx-auto w-full max-w-6xl">
             <MobileAdminBanner />

@@ -77,7 +77,7 @@ export default async function AppLayout({
         />
         <main
           id="main"
-          className="min-w-0 flex-1 overflow-x-hidden px-4 pb-24 pt-6 sm:pt-8 lg:px-10 lg:pb-12 lg:pt-10 2xl:px-16"
+          className="min-w-0 flex-1 overflow-x-hidden px-4 pb-24 pt-6 sm:pt-8 lg:ml-60 lg:px-10 lg:pb-12 lg:pt-10 2xl:px-16"
         >
           <div className="mx-auto w-full max-w-7xl">{children}</div>
         </main>
