@@ -5,6 +5,10 @@ import { Moon, Sun } from "lucide-react";
 
 type Mode = "light" | "dark";
 
+type DocWithViewTransition = Document & {
+  startViewTransition?: (cb: () => void) => { finished: Promise<void> };
+};
+
 function applyTheme(mode: Mode) {
   const root = document.documentElement;
   if (mode === "dark") {
@@ -14,6 +18,25 @@ function applyTheme(mode: Mode) {
     root.classList.remove("dark");
     root.style.colorScheme = "light";
   }
+}
+
+/**
+ * Theme-Switch mit View-Transition-Cross-Fade. Verhindert das harte
+ * "Springen" der Farben. Faellt sauber auf direkten Switch zurueck wenn
+ * Browser View-Transitions nicht unterstuetzt oder User
+ * prefers-reduced-motion gesetzt hat.
+ */
+function switchThemeAnimated(callback: () => void) {
+  const doc = document as DocWithViewTransition;
+  const reducedMotion =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (reducedMotion || !doc.startViewTransition) {
+    callback();
+    return;
+  }
+  doc.startViewTransition(callback);
 }
 
 function readTheme(): Mode {
@@ -39,13 +62,15 @@ export function ThemeToggle({
 
   function toggle() {
     const next: Mode = mode === "dark" ? "light" : "dark";
-    setMode(next);
-    applyTheme(next);
-    try {
-      window.localStorage.setItem("vitness-theme", next);
-    } catch {
-      // ignore
-    }
+    switchThemeAnimated(() => {
+      setMode(next);
+      applyTheme(next);
+      try {
+        window.localStorage.setItem("vitness-theme", next);
+      } catch {
+        // ignore
+      }
+    });
   }
 
   // Vor Hydration: identische Render-Variante (kein Flash)
