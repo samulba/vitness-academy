@@ -5,6 +5,7 @@ import { Check, AlertCircle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SubmitOverlay } from "@/components/ui/submit-overlay";
 import { emailAendern, type AktionsErgebnis } from "./actions";
 
 export function EmailForm({ aktuelleEmail }: { aktuelleEmail: string }) {
@@ -15,6 +16,7 @@ export function EmailForm({ aktuelleEmail }: { aktuelleEmail: string }) {
 
   return (
     <form action={action} className="space-y-5">
+      <SubmitOverlay pending={pending} message="E-Mail wird geändert …" />
       <div className="space-y-2 max-w-md">
         <Label htmlFor="email">Neue E-Mail-Adresse</Label>
         <Input

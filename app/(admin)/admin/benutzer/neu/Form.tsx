@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState } from "react";
 import { AlertCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  mitarbeiterAnlegen,
-  type OnboardingErgebnis,
-} from "../onboarding-actions";
+import { SubmitOverlay } from "@/components/ui/submit-overlay";
+import { useFormAction, type Ergebnis } from "@/lib/hooks/use-form-action";
+import { mitarbeiterAnlegen } from "../onboarding-actions";
 
 type Pfad = { id: string; title: string; description: string | null };
 
@@ -37,10 +36,17 @@ export function NeuerBenutzerForm({
   standorte: Standort[];
   templates: Template[];
 }) {
-  const [state, action, pending] = useActionState<
-    OnboardingErgebnis | null,
-    FormData
-  >(mitarbeiterAnlegen, null);
+  const { run, pending, state } = useFormAction(
+    async (fd: FormData): Promise<Ergebnis> => {
+      const r = await mitarbeiterAnlegen(null, fd);
+      // Server-Action redirected bei Erfolg via NEXT_REDIRECT throw —
+      // wenn wir hier ankommen, war's ein Validation-Error.
+      return r.ok
+        ? { ok: true }
+        : { ok: false, message: r.message ?? "Fehler beim Anlegen" };
+    },
+    { successToast: "Mitarbeiter:in angelegt" },
+  );
 
   // Default: alle Studios angekreuzt -- der Mitarbeiter wird allen
   // existierenden Standorten zugeordnet. Admin kann einzelne abwaehlen
@@ -108,7 +114,8 @@ export function NeuerBenutzerForm({
   }
 
   return (
-    <form action={action} className="space-y-6 sm:space-y-10">
+    <form action={run} className="space-y-6 sm:space-y-10">
+      <SubmitOverlay pending={pending} message="Lege Mitarbeiter:in an …" />
       {/* Template-Quick-Start */}
       {templates.length > 0 && (
         <div className="rounded-2xl border border-[hsl(var(--brand-pink)/0.25)] bg-[hsl(var(--brand-pink)/0.04)] p-5">
@@ -333,7 +340,7 @@ export function NeuerBenutzerForm({
         )}
       </Section>
 
-      {state?.message && !state.ok && (
+      {state && !state.ok && (
         <p className="inline-flex items-center gap-2 rounded-md bg-[hsl(var(--destructive)/0.1)] px-3 py-2 text-sm font-medium text-[hsl(var(--destructive))]">
           <AlertCircle className="h-4 w-4" />
           {state.message}

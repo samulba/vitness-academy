@@ -5,6 +5,7 @@ import { Check, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SubmitOverlay } from "@/components/ui/submit-overlay";
 import { passwortAendern, type AktionsErgebnis } from "./actions";
 
 export function PasswortForm() {
@@ -20,6 +21,7 @@ export function PasswortForm() {
 
   return (
     <form ref={ref} action={action} className="space-y-5">
+      <SubmitOverlay pending={pending} message="Passwort wird geändert …" />
       <div className="grid gap-5 sm:grid-cols-2 sm:max-w-xl">
         <div className="space-y-2">
           <Label htmlFor="neu">Neues Passwort</Label>

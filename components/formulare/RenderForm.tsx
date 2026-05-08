@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SubmitOverlay } from "@/components/ui/submit-overlay";
 import { cn } from "@/lib/utils";
 import { formatDatum } from "@/lib/format";
 import { taglistVonBis, wochentagKurz } from "@/lib/datum";
@@ -64,6 +65,7 @@ export function RenderForm({
 
   return (
     <form action={runAction} className="space-y-6">
+      <SubmitOverlay pending={pending} message="Wird eingereicht …" />
       {fields.map((f) => (
         <FieldRenderer
           key={f.name}
