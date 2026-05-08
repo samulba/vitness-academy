@@ -1,6 +1,13 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import {
+  useActionState,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   Camera,
@@ -37,12 +44,39 @@ export function Composer({
   datum,
   supabasePublicUrl,
 }: Props) {
+  const router = useRouter();
   const [state, runAction, pending] = useActionState<Ergebnis | null, FormData>(
     async (_prev, fd) => protokollEinreichen(fd),
     null,
   );
 
+  // Pro Section meldet ihre uploading-Anzahl hierher zurueck — Submit
+  // bleibt disabled solange irgendwo ein Upload laeuft.
+  const [uploads, setUploads] = useState<Record<string, number>>({});
+  const reportUploads = useCallback((sectionId: string, count: number) => {
+    setUploads((prev) => {
+      if (count === 0 && !(sectionId in prev)) return prev;
+      const next = { ...prev };
+      if (count === 0) delete next[sectionId];
+      else next[sectionId] = count;
+      return next;
+    });
+  }, []);
+  const totalUploading = Object.values(uploads).reduce((a, b) => a + b, 0);
+
+  // Wenn Action erfolgreich war: Page refreshen damit der Server-Render
+  // den neu eingereichten Eintrag findet und auf Detail-View wechselt.
+  // Vermeidet useActionState + redirect()-Race wo Pending-State haengen
+  // bleibt.
+  useEffect(() => {
+    if (state?.ok) {
+      router.refresh();
+    }
+  }, [state, router]);
+
   const message = state && !state.ok ? state.message : null;
+  const erfolgreich = state?.ok === true;
+  const submitDisabled = pending || totalUploading > 0 || erfolgreich;
 
   return (
     <form action={runAction} className="space-y-5">
@@ -55,6 +89,7 @@ export function Composer({
           datum={datum}
           sectionIdx={idx}
           supabasePublicUrl={supabasePublicUrl}
+          reportUploads={reportUploads}
         />
       ))}
 
@@ -85,14 +120,35 @@ export function Composer({
         </p>
       )}
 
-      <div className="sticky bottom-20 z-10 flex items-center gap-3 rounded-2xl border border-border bg-card/95 p-4 shadow-lg backdrop-blur lg:bottom-4">
+      <div className="sticky bottom-20 z-10 flex flex-col items-stretch gap-2 rounded-2xl border border-border bg-card/95 p-4 shadow-lg backdrop-blur lg:bottom-4">
+        {totalUploading > 0 && (
+          <p className="inline-flex items-center gap-2 text-[11px] font-medium text-[hsl(var(--brand-pink))]">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            {totalUploading}{" "}
+            {totalUploading === 1 ? "Foto wird" : "Fotos werden"} noch
+            hochgeladen…
+          </p>
+        )}
         <Button
           type="submit"
-          disabled={pending}
-          className="flex-1 gap-2 bg-[hsl(var(--primary))] py-2.5 text-[hsl(var(--primary-foreground))] shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.55)] transition-all hover:bg-[hsl(var(--primary)/0.9)] hover:shadow-[0_16px_40px_-10px_hsl(var(--primary)/0.7)]"
+          disabled={submitDisabled}
+          className="flex-1 gap-2 bg-[hsl(var(--primary))] py-2.5 text-[hsl(var(--primary-foreground))] shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.55)] transition-all hover:bg-[hsl(var(--primary)/0.9)] hover:shadow-[0_16px_40px_-10px_hsl(var(--primary)/0.7)] disabled:opacity-60"
         >
-          {pending ? (
-            <>Sende …</>
+          {erfolgreich ? (
+            <>
+              <Check className="h-4 w-4" />
+              Eingereicht — wird angezeigt …
+            </>
+          ) : pending ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Speichere …
+            </>
+          ) : totalUploading > 0 ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Warte auf Foto-Upload …
+            </>
           ) : (
             <>
               <Sparkles className="h-4 w-4" />
@@ -112,6 +168,7 @@ function SectionCard({
   datum,
   sectionIdx,
   supabasePublicUrl,
+  reportUploads,
 }: {
   section: CleaningSection;
   idx: number;
@@ -119,6 +176,7 @@ function SectionCard({
   datum: string;
   sectionIdx: number;
   supabasePublicUrl: string;
+  reportUploads: (sectionId: string, count: number) => void;
 }) {
   return (
     <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
@@ -172,6 +230,7 @@ function SectionCard({
           datum={datum}
           sectionIdx={sectionIdx}
           supabasePublicUrl={supabasePublicUrl}
+          reportUploads={reportUploads}
         />
       </div>
     </section>
@@ -224,17 +283,25 @@ function SectionPhotoUploader({
   datum,
   sectionIdx,
   supabasePublicUrl,
+  reportUploads,
 }: {
   sectionId: string;
   locationId: string;
   datum: string;
   sectionIdx: number;
   supabasePublicUrl: string;
+  reportUploads: (sectionId: string, count: number) => void;
 }) {
   const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
   const [uploading, setUploading] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Uploading-Counter an Composer melden, damit Submit-Button blockiert
+  // werden kann solange Uploads laufen.
+  useEffect(() => {
+    reportUploads(sectionId, uploading);
+  }, [sectionId, uploading, reportUploads]);
 
   async function dateienHinzufuegen(files: FileList | null) {
     if (!files || files.length === 0) return;

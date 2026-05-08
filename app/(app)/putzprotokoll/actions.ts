@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth";
 import { getAktiverStandort } from "@/lib/standort-context";
@@ -110,6 +109,12 @@ export async function protokollEinreichen(
     };
   }
 
+  // KEIN redirect() — der Client triggert router.refresh() bei ok=true.
+  // Das vermeidet useActionState-Race-Conditions die manchmal in einem
+  // "stecken" gebliebenen Pending-State enden.
   revalidatePath("/putzprotokoll");
-  redirect("/putzprotokoll?toast=eingereicht");
+  revalidatePath("/dashboard");
+  revalidatePath("/aufgaben");
+  revalidatePath("/admin/putzprotokolle");
+  return { ok: true, id: data.id };
 }
