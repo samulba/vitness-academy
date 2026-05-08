@@ -40,12 +40,14 @@ const TABS = [
 /**
  * Tab-Nav fuer den Putzprotokoll-Admin-Bereich. Drei Sub-Routes:
  * Übersicht (Liste der Tage) · Auswertung (Charts) · Templates (Editor).
- * Aktiver Tab wird Magenta-tinted.
+ * Underline-Style: aktiver Tab bekommt Magenta-Border am unteren Rand,
+ * dezenter als der vorherige gefuellte Pill-Container — fuegt sich
+ * besser in den Page-Flow ein.
  */
 export function PutzprotokolleNav() {
   const pathname = usePathname();
   return (
-    <nav className="inline-flex gap-1 rounded-full border border-border bg-muted/40 p-1">
+    <nav className="-mx-1 flex gap-0.5 overflow-x-auto border-b border-border">
       {TABS.map((t) => {
         const Icon = t.icon;
         const aktiv = t.matcher(pathname);
@@ -54,14 +56,20 @@ export function PutzprotokolleNav() {
             key={t.href}
             href={t.href}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors sm:text-sm",
+              "relative inline-flex shrink-0 items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-colors",
               aktiv
-                ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.4)]"
-                : "text-muted-foreground hover:bg-background hover:text-foreground",
+                ? "text-[hsl(var(--primary))]"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             <Icon className="h-3.5 w-3.5" />
             {t.label}
+            {aktiv && (
+              <span
+                aria-hidden
+                className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-[hsl(var(--primary))]"
+              />
+            )}
           </Link>
         );
       })}
