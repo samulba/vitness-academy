@@ -28,7 +28,7 @@ function buildPayload(formData: FormData) {
 }
 
 export async function infoAnlegen(formData: FormData): Promise<void> {
-  const profile = await requireRole(["admin", "superadmin"]);
+  const profile = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const payload = buildPayload(formData);
   if (!payload.title) return;
 
@@ -48,7 +48,7 @@ export async function infoAktualisieren(
   id: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const payload = buildPayload(formData);
   if (!payload.title) return;
   const supabase = await createClient();
@@ -67,7 +67,7 @@ export async function infoAktualisieren(
 }
 
 export async function infoLoeschen(id: string): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const supabase = await createClient();
   const { error } = await supabase
     .from("studio_announcements")

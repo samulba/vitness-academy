@@ -34,7 +34,7 @@ export async function protokollReviewen(
 }
 
 export async function protokollLoeschen(id: string): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const supabase = await createClient();
   const { error } = await supabase
     .from("cleaning_protocols")
