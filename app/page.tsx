@@ -47,9 +47,9 @@ function Bausteine() {
       className="theme-light-locked scroll-mt-24 bg-[hsl(var(--brand-cream))] text-foreground"
       style={{ overflowX: "clip" }}
     >
-      <div className="mx-auto max-w-[1600px] px-6 py-24 lg:px-12 lg:py-32 2xl:px-20">
+      <div className="mx-auto max-w-[1600px] px-5 py-16 sm:px-6 sm:py-24 lg:px-12 lg:py-32 2xl:px-20">
         {/* Header */}
-        <div className="flex flex-col justify-between gap-10 lg:flex-row lg:items-end">
+        <div className="flex flex-col justify-between gap-6 sm:gap-10 lg:flex-row lg:items-end">
           <div className="max-w-3xl">
             <Reveal>
               <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
@@ -57,13 +57,13 @@ function Bausteine() {
               </p>
             </Reveal>
             <Reveal delay={120}>
-              <h2 className="mt-5 text-balance font-semibold leading-[1.05] tracking-[-0.03em] text-[clamp(2rem,6vw,4.5rem)] sm:mt-8">
+              <h2 className="mt-4 text-balance font-semibold leading-[1.05] tracking-[-0.03em] text-[clamp(1.875rem,6vw,4.5rem)] sm:mt-6">
                 Alles in einer App.
               </h2>
             </Reveal>
           </div>
           <Reveal delay={240}>
-            <p className="max-w-md text-base leading-relaxed text-muted-foreground">
+            <p className="text-[14px] leading-relaxed text-muted-foreground sm:max-w-md sm:text-base">
               Lernen, Anfragen, Studio-Alltag — jedes Werkzeug ist genau dort,
               wo du&apos;s brauchst. Du musst nichts vorher verstehen.
             </p>
@@ -71,7 +71,7 @@ function Bausteine() {
         </div>
 
         {/* Bento Grid */}
-        <div className="mt-12 grid gap-4 sm:mt-16 md:gap-6 lg:mt-20 lg:grid-cols-5">
+        <div className="mt-10 grid gap-3 sm:mt-16 sm:gap-4 md:gap-6 lg:mt-20 lg:grid-cols-5">
           <Reveal className="lg:col-span-3">
             <BentoCard
               kicker="01"
@@ -166,7 +166,7 @@ function BentoCard({
   children: React.ReactNode;
 }) {
   return (
-    <article className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-white p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[hsl(var(--primary))] hover:shadow-[0_24px_60px_-24px_hsl(var(--primary)/0.35)] sm:rounded-3xl sm:p-8">
+    <article className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[hsl(var(--primary))] hover:shadow-[0_24px_60px_-24px_hsl(var(--primary)/0.35)] sm:rounded-3xl sm:p-8">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -176,8 +176,8 @@ function BentoCard({
           <h3
             className={
               featured
-                ? "mt-2 text-xl font-semibold tracking-tight sm:mt-3 sm:text-4xl"
-                : "mt-2 text-xl font-semibold tracking-tight sm:mt-3 sm:text-3xl"
+                ? "mt-2 text-[22px] font-semibold leading-[1.15] tracking-tight sm:mt-3 sm:text-3xl lg:text-4xl"
+                : "mt-2 text-[22px] font-semibold leading-[1.15] tracking-tight sm:mt-3 sm:text-2xl lg:text-3xl"
             }
           >
             {titel}
@@ -188,12 +188,12 @@ function BentoCard({
         </span>
       </div>
 
-      <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground sm:mt-4 sm:max-w-md sm:text-base">
+      <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground sm:mt-4 sm:max-w-md sm:text-[15px] lg:text-base">
         {text}
       </p>
 
       {/* Visual */}
-      <div className="mt-5 flex-1 sm:mt-8">{children}</div>
+      <div className="mt-4 flex-1 sm:mt-8">{children}</div>
     </article>
   );
 }
@@ -478,8 +478,8 @@ function Closer() {
         VITNESS
       </div>
 
-      <div className="relative mx-auto max-w-[1600px] px-6 pt-24 lg:px-12 lg:pt-32 2xl:px-20">
-        <div className="grid gap-12 lg:grid-cols-12 lg:gap-12">
+      <div className="relative mx-auto max-w-[1600px] px-5 pt-16 sm:px-6 sm:pt-24 lg:px-12 lg:pt-32 2xl:px-20">
+        <div className="grid gap-8 sm:gap-12 lg:grid-cols-12">
           {/* Linke Spalte: Headline */}
           <div className="lg:col-span-8">
             <Reveal>
@@ -490,21 +490,21 @@ function Closer() {
             </Reveal>
 
             <Reveal delay={120}>
-              <h2 className="mt-8 max-w-[16ch] text-balance font-semibold leading-[0.9] tracking-[-0.04em] text-[clamp(2.75rem,6.5vw,6.5rem)]">
+              <h2 className="mt-5 max-w-[16ch] text-balance font-semibold leading-[0.95] tracking-[-0.035em] text-[clamp(2.25rem,6.5vw,6.5rem)] sm:mt-8 sm:leading-[0.9] sm:tracking-[-0.04em]">
                 Willkommen
                 <br />
                 <span className="relative inline-block">
                   im Vitness-Team.
                   <span
                     aria-hidden
-                    className="absolute -bottom-2 left-0 right-2 h-[6px] rounded-full bg-[hsl(var(--primary))]"
+                    className="absolute -bottom-1.5 left-0 right-2 h-1 rounded-full bg-[hsl(var(--primary))] sm:-bottom-2 sm:h-[6px]"
                   />
                 </span>
               </h2>
             </Reveal>
 
             <Reveal delay={240}>
-              <p className="mt-10 max-w-2xl text-pretty text-base leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:text-lg">
+              <p className="mt-6 max-w-2xl text-pretty text-[15px] leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:mt-10 sm:text-base lg:text-lg">
                 Niemand erwartet, dass du alles auf einmal kannst. Wenn
                 unterwegs etwas hängt — deine Studioleitung weiß Bescheid und
                 hilft jederzeit.{" "}
@@ -523,22 +523,22 @@ function Closer() {
 
         {/* CTA */}
         <Reveal delay={480}>
-          <div className="mt-16 flex flex-col items-start gap-y-6 lg:mt-20 sm:flex-row sm:items-center sm:gap-x-12">
+          <div className="mt-12 flex flex-col items-start gap-y-5 sm:mt-16 sm:flex-row sm:items-center sm:gap-x-8 lg:mt-20">
             <Link
               href="/login"
-              className="group inline-flex items-center gap-3 rounded-full bg-[hsl(var(--primary))] px-8 py-4 text-base font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_25px_70px_-20px_hsl(var(--primary)/0.65)] transition-transform hover:scale-[1.03]"
+              className="group inline-flex items-center gap-3 rounded-full bg-[hsl(var(--primary))] px-7 py-3.5 text-base font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_25px_70px_-20px_hsl(var(--primary)/0.65)] transition-transform hover:scale-[1.03] sm:px-8 sm:py-4"
             >
               Zum Login
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
-            <p className="max-w-sm text-sm text-[hsl(var(--brand-cream)/0.55)]">
+            <p className="max-w-sm text-[13px] text-[hsl(var(--brand-cream)/0.55)] sm:text-sm">
               Login-Daten kommen per E-Mail von deiner Studioleitung.
             </p>
           </div>
         </Reveal>
 
         {/* Spacer vor Marquee */}
-        <div className="h-16 lg:h-24" />
+        <div className="h-12 sm:h-16 lg:h-24" />
       </div>
 
       {/* Marquee */}

@@ -124,7 +124,7 @@ export function AnimatedHero() {
 
 
       {/* === Inhalt === */}
-      <div className="relative z-10 flex flex-1 flex-col px-6 pt-28 sm:pt-32 lg:px-12 lg:pt-32 xl:pt-40 2xl:px-20">
+      <div className="relative z-10 flex flex-1 flex-col px-6 pt-24 sm:pt-28 lg:px-12 lg:pt-24 2xl:px-20">
         {/* Eyebrow */}
         <div className="word-reveal">
           <span
@@ -136,12 +136,17 @@ export function AnimatedHero() {
           </span>
         </div>
 
-        {/* Zwei-Spalten-Layout auf lg+: Headline links, Preview-Card rechts */}
-        <div className="lg:grid lg:grid-cols-12 lg:items-center lg:gap-12">
-          <div className="lg:col-span-7">
+        {/* Mittlerer Block: nimmt den Rest des Hero und zentriert vertikal,
+            damit Headline + Card NICHT oben kleben mit riesiger Luecke
+            zur Bottom-Bar (Desktop). Auf Mobile reicht natuerliches
+            Stacking -- kein flex-1 noetig. */}
+        <div className="flex flex-1 flex-col justify-center pt-8 sm:pt-12 lg:pt-0">
+          {/* Zwei-Spalten-Layout auf lg+: Headline links, Preview-Card rechts */}
+          <div className="lg:grid lg:grid-cols-12 lg:items-center lg:gap-12">
+            <div className="lg:col-span-7">
 
         {/* Headline */}
-        <h1 className="mt-6 max-w-[16ch] text-balance font-semibold leading-[0.92] tracking-[-0.04em] text-[clamp(2.5rem,8vw,6.5rem)] sm:mt-10">
+        <h1 className="max-w-[16ch] text-balance font-semibold leading-[0.92] tracking-[-0.04em] text-[clamp(2.5rem,8vw,6.5rem)]">
           {HEAD_LINES.map((line, lineIdx) => (
             <span key={lineIdx} className="block">
               {line.map((w, i) => {
@@ -183,7 +188,7 @@ export function AnimatedHero() {
         </h1>
 
         {/* Subline */}
-        <div className="word-reveal mt-6 max-w-2xl sm:mt-8 lg:mt-10">
+        <div className="word-reveal mt-5 max-w-2xl sm:mt-7 lg:mt-8">
           <p
             style={{ animationDelay: "1100ms" }}
             className="text-pretty text-base leading-relaxed text-[hsl(var(--brand-cream)/0.7)] sm:text-lg"
@@ -195,7 +200,7 @@ export function AnimatedHero() {
         </div>
 
         {/* Feature-Pills */}
-        <div className="word-reveal mt-5 sm:mt-7">
+        <div className="word-reveal mt-5 sm:mt-6">
           <div
             style={{ animationDelay: "1250ms" }}
             className="flex flex-wrap gap-2"
@@ -212,22 +217,24 @@ export function AnimatedHero() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="word-reveal mt-6 sm:mt-8">
+        {/* CTA -- Button und Link rechts daneben (Mobile: untereinander).
+            Vorher: gap-x-16 (64px) liess den Link verloren wirken; jetzt
+            gap-x-5 (20px) -- Button + Sekundaer-Link sitzen als Paar. */}
+        <div className="word-reveal mt-7 sm:mt-8">
           <div
             style={{ animationDelay: "1400ms" }}
-            className="flex flex-col items-stretch gap-y-5 sm:flex-row sm:items-center sm:gap-x-16"
+            className="flex flex-col items-start gap-y-4 sm:flex-row sm:items-center sm:gap-x-5"
           >
             <Link
               href="/login"
-              className="group inline-flex items-center justify-center gap-3 rounded-full bg-[hsl(var(--primary))] px-8 py-4 text-base font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.55)] transition-all duration-200 hover:bg-[hsl(var(--primary)/0.9)] hover:shadow-[0_16px_40px_-10px_hsl(var(--primary)/0.7)]"
+              className="group inline-flex items-center justify-center gap-3 rounded-full bg-[hsl(var(--primary))] px-7 py-3.5 text-base font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.55)] transition-all duration-200 hover:bg-[hsl(var(--primary)/0.9)] hover:shadow-[0_16px_40px_-10px_hsl(var(--primary)/0.7)] sm:px-8 sm:py-4"
             >
               Anmelden
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
             <a
               href="#story"
-              className="text-center text-sm font-medium text-[hsl(var(--brand-cream)/0.55)] transition-colors hover:text-[hsl(var(--brand-cream))] sm:text-left"
+              className="text-sm font-medium text-[hsl(var(--brand-cream)/0.55)] transition-colors hover:text-[hsl(var(--brand-cream))]"
             >
               Wie das hier funktioniert ↓
             </a>
@@ -236,16 +243,14 @@ export function AnimatedHero() {
           </div>
 
           {/* Rechte Spalte: Floating Preview-Card mit Tilt */}
-          <div className="hidden lg:col-span-5 lg:block">
+          <div className="mt-12 hidden lg:col-span-5 lg:mt-0 lg:block">
             <HeroPreviewCard />
           </div>
         </div>
+        </div>
 
-        {/* Spacer */}
-        <div className="flex-1 min-h-16 sm:min-h-32" />
-
-        {/* Bottom-Bar mit Live-Status */}
-        <div className="mb-6 flex items-center justify-between gap-4 border-t border-white/10 pt-5 text-[11px] text-[hsl(var(--brand-cream)/0.4)] sm:mb-8 sm:pt-8 sm:text-xs">
+        {/* Bottom-Bar mit Live-Status -- klebt am Section-Bottom */}
+        <div className="mt-8 flex items-center justify-between gap-4 border-t border-white/10 pb-6 pt-5 text-[11px] text-[hsl(var(--brand-cream)/0.4)] sm:pb-8 sm:text-xs">
           <span className="inline-flex items-center gap-2 uppercase tracking-[0.18em]">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--primary)/0.5)]" />
