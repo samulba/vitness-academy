@@ -19,21 +19,33 @@ export async function modulAktualisieren(
   await ensureAdmin();
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim() || null;
-  if (!title) return;
-
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("modules")
-    .update({ title, description })
-    .eq("id", modulId)
-    .select("learning_path_id")
-    .maybeSingle();
-
-  if (error || !data) {
+  if (!title) {
     redirect(`/admin/module/${modulId}?toast=error`);
   }
 
-  const pfadId = data.learning_path_id as string | null;
+  const supabase = await createClient();
+
+  // Pfad-ID separat holen (fuer saubere Revalidierung). NICHT chained mit
+  // dem Update -- das war fehleranfaellig wenn RLS den SELECT nach UPDATE
+  // blockt: data wurde null und der TypeScript-Cast `data.learning_path_id`
+  // crashte mit Cannot read properties of null.
+  const { data: m } = await supabase
+    .from("modules")
+    .select("learning_path_id")
+    .eq("id", modulId)
+    .maybeSingle();
+
+  const { error } = await supabase
+    .from("modules")
+    .update({ title, description })
+    .eq("id", modulId);
+
+  if (error) {
+    console.error("[modulAktualisieren]", error);
+    redirect(`/admin/module/${modulId}?toast=error`);
+  }
+
+  const pfadId = (m?.learning_path_id as string | null | undefined) ?? null;
   revalidatePath(`/admin/module/${modulId}`);
   if (pfadId) {
     revalidatePath(`/admin/lernpfade/${pfadId}`);
