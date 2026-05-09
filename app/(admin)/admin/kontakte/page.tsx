@@ -47,10 +47,7 @@ export default async function KontakteAdminPage() {
           />
         </div>
       ) : (
-        <KontakteListe
-          kontakte={kontakte}
-          detailHrefBuilder={(k) => `/admin/kontakte/${k.id}`}
-        />
+        <KontakteListe kontakte={kontakte} detailBasePath="/admin/kontakte" />
       )}
     </div>
   );

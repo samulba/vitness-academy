@@ -49,14 +49,19 @@ function istTeam(k: Kontakt): boolean {
  * und ein klickbares Wrapper-Layer ueber die Card, das auf die
  * Detail-Page navigiert. Im Mitarbeiter-Modus ist die Card nicht
  * klickbar; nur Phone- und Email-Chips bleiben aktive Aktionen.
+ *
+ * WICHTIG: detailBasePath ist ein STRING, keine Funktion. Server-
+ * Komponenten duerfen keine Funktionen an Client-Komponenten
+ * uebergeben (siehe CLAUDE.md). Die Page baut den Pfad als
+ * "${detailBasePath}/${k.id}".
  */
 export function KontakteListe({
   kontakte,
-  detailHrefBuilder,
+  detailBasePath,
 }: {
   kontakte: Kontakt[];
-  /** Wenn gesetzt: Card-Klick navigiert zur Detail-Page. */
-  detailHrefBuilder?: (k: Kontakt) => string;
+  /** Wenn gesetzt: Card-Klick navigiert zu `${detailBasePath}/${kontakt.id}`. */
+  detailBasePath?: string | null;
 }) {
   const [tab, setTab] = useState<Tab>("team");
   const [filter, setFilter] = useState<string | null>(null);
@@ -256,7 +261,7 @@ export function KontakteListe({
             >
               <KontaktZeile
                 k={k}
-                detailHref={detailHrefBuilder?.(k) ?? null}
+                detailHref={detailBasePath ? `${detailBasePath}/${k.id}` : null}
               />
             </li>
           ))}
