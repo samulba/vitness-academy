@@ -61,7 +61,7 @@ function buildPayload(formData: FormData) {
 }
 
 export async function templateAnlegen(formData: FormData): Promise<void> {
-  const profile = await requireRole(["admin", "superadmin"]);
+  const profile = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const payload = buildPayload(formData);
   if (!payload.title) return;
 
@@ -96,7 +96,7 @@ export async function templateAktualisieren(
   id: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const payload = buildPayload(formData);
   if (!payload.title) return;
   const supabase = await createClient();
@@ -114,7 +114,7 @@ export async function templateAktualisieren(
 }
 
 export async function templateLoeschen(id: string): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const supabase = await createClient();
   const { error } = await supabase
     .from("form_templates")

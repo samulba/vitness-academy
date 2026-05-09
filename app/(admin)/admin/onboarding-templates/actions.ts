@@ -28,7 +28,7 @@ function payload(formData: FormData) {
 }
 
 export async function templateAnlegen(formData: FormData): Promise<void> {
-  const profile = await requireRole(["admin", "superadmin"]);
+  const profile = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const p = payload(formData);
   if (!p.name) redirect("/admin/onboarding-templates/neu?fehler=name");
   if (!VALIDE_ROLLEN.includes(p.role))
@@ -53,7 +53,7 @@ export async function templateAktualisieren(
   id: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const p = payload(formData);
   if (!p.name) redirect(`/admin/onboarding-templates/${id}?fehler=name`);
   if (!VALIDE_ROLLEN.includes(p.role))
@@ -73,7 +73,7 @@ export async function templateAktualisieren(
 }
 
 export async function templateLoeschen(id: string): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const supabase = await createClient();
   const { error } = await supabase
     .from("onboarding_templates")
@@ -100,7 +100,7 @@ export async function checklistItemAnlegenFuer(
   templateId: string | null,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const label = String(formData.get("label") ?? "").trim();
   const beschreibung =
     String(formData.get("beschreibung") ?? "").trim() || null;
@@ -152,7 +152,7 @@ export async function checklistItemAktualisieren(
   itemId: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const label = String(formData.get("label") ?? "").trim();
   const beschreibung =
     String(formData.get("beschreibung") ?? "").trim() || null;
@@ -182,7 +182,7 @@ export async function checklistItemAktualisieren(
 export async function checklistItemLoeschenFuer(
   itemId: string,
 ): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const supabase = await createClient();
   const { data: item } = await supabase
     .from("onboarding_checklist_items")
@@ -213,7 +213,7 @@ export async function checklistItemLoeschenFuer(
 export async function checklistItemReihenfolgeBulk(
   neueIds: string[],
 ): Promise<{ ok: boolean; message?: string }> {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   return await reorderBulk({
     tabelle: "onboarding_checklist_items",
     ids: neueIds,
