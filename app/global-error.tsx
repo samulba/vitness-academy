@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
+import { ErrorDetails } from "@/components/ui/error-details";
 
+/**
+ * Wird gerendert wenn der Root-Layout-Render selbst crasht. Muss eigene
+ * <html> und <body> rendern (Next.js-Vorgabe). Wir importieren Tailwind
+ * via globals.css indirekt -- Next.js inlined es trotzdem im global-error
+ * Render.
+ */
 export default function GlobalError({
   error,
   reset,
@@ -13,6 +20,8 @@ export default function GlobalError({
     console.error("[global error boundary]", error);
   }, [error]);
 
+  // Inline-Styles weil global-error potenziell vor CSS-Loaded gerendert
+  // werden kann. Wir bleiben minimal aber zeigen die Details.
   return (
     <html lang="de">
       <body
@@ -22,7 +31,7 @@ export default function GlobalError({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: "2rem",
+          padding: "1.5rem",
           fontFamily:
             "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           background: "#fafafa",
@@ -31,33 +40,29 @@ export default function GlobalError({
       >
         <div
           style={{
-            maxWidth: "28rem",
+            maxWidth: "32rem",
             width: "100%",
-            textAlign: "center",
             border: "1px solid #e5e5e5",
             borderRadius: "1rem",
-            padding: "2rem",
+            padding: "1.75rem",
             background: "#ffffff",
           }}
         >
-          <h1 style={{ fontSize: "1.25rem", fontWeight: 600, marginTop: 0 }}>
-            Vitness Crew
-          </h1>
-          <p style={{ color: "#525252", fontSize: "0.875rem" }}>
-            Es ist ein unerwarteter Fehler aufgetreten. Bitte lade die Seite neu.
-          </p>
-          {error.digest && (
-            <p
-              style={{
-                fontFamily: "monospace",
-                fontSize: "0.625rem",
-                color: "#737373",
-                marginTop: "0.75rem",
-              }}
-            >
-              Code: {error.digest}
+          <div style={{ textAlign: "center" }}>
+            <h1 style={{ fontSize: "1.25rem", fontWeight: 600, marginTop: 0 }}>
+              Vitness Crew
+            </h1>
+            <p style={{ color: "#525252", fontSize: "0.875rem", margin: "0.5rem 0 0" }}>
+              Es ist ein unerwarteter Fehler aufgetreten. Kopier den Report
+              unten und schick ihn an die Studioleitung.
             </p>
-          )}
+          </div>
+
+          {/* ErrorDetails nutzt Tailwind-Klassen -- in global-error wird
+              globals.css meist mitgeladen, fuer den seltenen Fall dass
+              nicht: die Inline-Styles oben sorgen fuer minimum Layout. */}
+          <ErrorDetails error={error} />
+
           <div
             style={{
               display: "flex",

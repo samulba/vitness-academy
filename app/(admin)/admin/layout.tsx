@@ -21,36 +21,39 @@ export default async function AdminLayout({
   // standardmaessig alle Standorte. Filter pro Page bei Bedarf via
   // URL-Param. Im Mitarbeiter-Mode bleibt der Switcher in der Topbar/
   // Sidebar weiterhin verfuegbar (eigenes Layout).
+  //
+  // Layout-Pattern: Topbar/Sidebar/MobileNav sind alle position:fixed
+  // -- keine flex-Container drumherum, weil das auf iOS Safari den
+  // fixed-Behavior unzuverlaessig macht. main steuert Padding selbst
+  // (pt fuer mobile Topbar, lg:ml-60 fuer Desktop Sidebar).
   return (
-    <div className="flex min-h-screen flex-col">
+    <>
       <Topbar
         fullName={profile.full_name}
         role={profile.role}
         avatarPath={profile.avatar_path}
         notificationSlot={<NotificationBellServer placement="auto" />}
       />
-      <div className="flex flex-1">
-        <Sidebar
-          rolle={profile.role}
-          fullName={profile.full_name}
-          avatarPath={profile.avatar_path}
-          notificationSlot={<NotificationBellServer placement="side-right" />}
-          kannProvisionen={profile.kann_provisionen}
-        />
-        <main
-          id="main"
-          className="min-w-0 flex-1 overflow-x-clip px-4 pb-24 pt-20 lg:ml-60 lg:px-8 lg:pb-10 lg:pt-6"
-        >
-          <div className="mx-auto w-full max-w-6xl">
-            <MobileAdminBanner />
-            {children}
-          </div>
-        </main>
-      </div>
+      <Sidebar
+        rolle={profile.role}
+        fullName={profile.full_name}
+        avatarPath={profile.avatar_path}
+        notificationSlot={<NotificationBellServer placement="side-right" />}
+        kannProvisionen={profile.kann_provisionen}
+      />
+      <main
+        id="main"
+        className="min-h-screen overflow-x-clip px-4 pb-24 pt-20 lg:ml-60 lg:px-8 lg:pb-10 lg:pt-6"
+      >
+        <div className="mx-auto w-full max-w-6xl">
+          <MobileAdminBanner />
+          {children}
+        </div>
+      </main>
       <MobileNav
         rolle={profile.role}
         kannProvisionen={profile.kann_provisionen}
       />
-    </div>
+    </>
   );
 }

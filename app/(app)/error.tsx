@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { AlertTriangle, Home, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ErrorDetails } from "@/components/ui/error-details";
 
 export default function AppError({
   error,
@@ -18,22 +19,22 @@ export default function AppError({
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center">
-        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[hsl(var(--destructive)/0.12)] text-[hsl(var(--destructive))]">
-          <AlertTriangle className="h-6 w-6" />
-        </span>
-        <h1 className="mt-4 text-xl font-semibold tracking-tight">
-          Hoppla — die Seite mag gerade nicht
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Versuch es nochmal. Wenn das Problem bleibt, sag deiner Studioleitung
-          Bescheid.
-        </p>
-        {error.digest && (
-          <p className="mt-3 inline-block rounded-md bg-muted px-2 py-1 font-mono text-[10px] text-muted-foreground">
-            Code: {error.digest}
+      <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <div className="text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[hsl(var(--destructive)/0.12)] text-[hsl(var(--destructive))]">
+            <AlertTriangle className="h-6 w-6" />
+          </span>
+          <h1 className="mt-4 text-xl font-semibold tracking-tight">
+            Hoppla — die Seite mag gerade nicht
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Versuch es nochmal. Wenn das Problem bleibt, kopier den Report
+            unten und schick ihn an deine Studioleitung.
           </p>
-        )}
+        </div>
+
+        <ErrorDetails error={error} />
+
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <Button onClick={reset} className="gap-2">
             <RotateCw className="h-4 w-4" />

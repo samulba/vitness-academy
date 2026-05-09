@@ -57,8 +57,11 @@ export default async function AppLayout({
     <StandortSwitcher aktiv={aktiv} optionen={standorte} variant="row" />
   );
 
+  // Layout-Pattern: Topbar/Sidebar/MobileNav sind alle position:fixed
+  // -- keine flex-Container drumherum, weil das auf iOS Safari den
+  // fixed-Behavior unzuverlaessig macht. main steuert Padding selbst.
   return (
-    <div className="flex min-h-screen flex-col">
+    <>
       <Topbar
         fullName={profile.full_name}
         role={profile.role}
@@ -66,22 +69,20 @@ export default async function AppLayout({
         notificationSlot={<NotificationBellServer placement="auto" />}
         standortSlot={switcherTopbar}
       />
-      <div className="flex flex-1">
-        <Sidebar
-          rolle={profile.role}
-          fullName={profile.full_name}
-          avatarPath={profile.avatar_path}
-          notificationSlot={<NotificationBellServer placement="side-right" />}
-          standortSlot={switcherSidebar}
-          kannProvisionen={profile.kann_provisionen}
-        />
-        <main
-          id="main"
-          className="min-w-0 flex-1 overflow-x-clip px-4 pb-24 pt-20 sm:pt-24 lg:ml-60 lg:px-10 lg:pb-12 lg:pt-10 2xl:px-16"
-        >
-          <div className="mx-auto w-full max-w-7xl">{children}</div>
-        </main>
-      </div>
+      <Sidebar
+        rolle={profile.role}
+        fullName={profile.full_name}
+        avatarPath={profile.avatar_path}
+        notificationSlot={<NotificationBellServer placement="side-right" />}
+        standortSlot={switcherSidebar}
+        kannProvisionen={profile.kann_provisionen}
+      />
+      <main
+        id="main"
+        className="min-h-screen overflow-x-clip px-4 pb-24 pt-20 sm:pt-24 lg:ml-60 lg:px-10 lg:pb-12 lg:pt-10 2xl:px-16"
+      >
+        <div className="mx-auto w-full max-w-7xl">{children}</div>
+      </main>
       <MobileNav
         rolle={profile.role}
         kannProvisionen={profile.kann_provisionen}
@@ -90,6 +91,6 @@ export default async function AppLayout({
         <OnboardingDialog vorname={profile.first_name ?? profile.full_name} />
       )}
       <CmdK />
-    </div>
+    </>
   );
 }
