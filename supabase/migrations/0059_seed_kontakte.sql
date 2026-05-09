@@ -3,16 +3,21 @@
 -- Initialer Seed der Studio-Kontaktliste (aus Notion exportiert).
 --
 -- Inhalt: ~48 Kontakte (interne Mitarbeiter + externe Partner).
--- Standort-Zuordnung via Name-Lookup (locations.name = 'Poing' /
--- 'Feldkirchen'). Kontakte fuer beide Studios bekommen
--- location_id = NULL.
+-- Standort-Zuordnung via Name-Lookup mit Fallback:
+--   1. exakter Match auf 'Poing' / 'Feldkirchen'
+--   2. ILIKE-Match auf '%poing%' / '%feldkirch%' (fuer 'V-itness
+--      Poing', 'Studio Feldkirchen' etc.)
+--   3. wenn nichts gefunden: NOTICE + location_id bleibt NULL
+--      (Kontakt erscheint dann unter beiden Studios) -- besser als
+--      die Migration komplett scheitern zu lassen.
+--
 -- Telefon-Notation: [G]/[P]-Prefixes wurden gestrippt und in
--- notes uebernommen ("Geschaeftlich" / "Privat").
+-- notes uebernommen ('Geschaeftlich' / 'Privat').
 -- Fehlende fuehrende 0en bei Mobilnummern wurden ergaenzt.
 --
 -- IDEMPOTENT: Dedupe per (lower(email)) + per
 -- (lower(first_name||last_name)). Beim erneuten Lauf werden
--- vorhandene Kontakte ge-UPDATEd statt doppelt eingefuegt.
+-- vorhandene Kontakte nicht doppelt eingefuegt.
 -- =============================================================
 
 DO $$
@@ -20,11 +25,24 @@ DECLARE
   poing_id      uuid;
   feldkirch_id  uuid;
 BEGIN
-  SELECT id INTO poing_id      FROM public.locations WHERE name = 'Poing'       LIMIT 1;
-  SELECT id INTO feldkirch_id  FROM public.locations WHERE name = 'Feldkirchen' LIMIT 1;
+  -- Stufe 1: exakter Match
+  SELECT id INTO poing_id     FROM public.locations WHERE name = 'Poing'       LIMIT 1;
+  SELECT id INTO feldkirch_id FROM public.locations WHERE name = 'Feldkirchen' LIMIT 1;
 
-  IF poing_id IS NULL OR feldkirch_id IS NULL THEN
-    RAISE EXCEPTION 'Standorte "Poing" und/oder "Feldkirchen" fehlen in public.locations';
+  -- Stufe 2: ILIKE-Fallback (handelt 'V-itness Poing', 'Studio Poing' etc.)
+  IF poing_id IS NULL THEN
+    SELECT id INTO poing_id FROM public.locations WHERE name ILIKE '%poing%' LIMIT 1;
+  END IF;
+  IF feldkirch_id IS NULL THEN
+    SELECT id INTO feldkirch_id FROM public.locations WHERE name ILIKE '%feldkirch%' LIMIT 1;
+  END IF;
+
+  -- Stufe 3: nicht gefunden -> NOTICE, weiter mit NULL
+  IF poing_id IS NULL THEN
+    RAISE NOTICE 'Standort "Poing" nicht in public.locations gefunden -- Poing-spezifische Kontakte bekommen location_id = NULL und erscheinen unter beiden Studios';
+  END IF;
+  IF feldkirch_id IS NULL THEN
+    RAISE NOTICE 'Standort "Feldkirchen" nicht in public.locations gefunden -- Feldkirchen-spezifische Kontakte bekommen location_id = NULL und erscheinen unter beiden Studios';
   END IF;
 
   -- Optionaler Reset: Test-Eintraege Georg Pickl + Rafael Schmidbauer
