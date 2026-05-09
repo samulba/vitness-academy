@@ -140,7 +140,7 @@ export default async function AuditLogPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const sp = await searchParams;
 
   const tableName = typeof sp.tabelle === "string" ? sp.tabelle : undefined;
