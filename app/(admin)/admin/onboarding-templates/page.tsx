@@ -9,7 +9,7 @@ import { OnboardingTemplatesTable } from "./OnboardingTemplatesTable";
 import { ChecklistItemsListe } from "./ChecklistItemsListe";
 
 export default async function OnboardingTemplatesPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const [templates, checklistItems] = await Promise.all([
     ladeTemplates(),
     ladeChecklistItems(null),

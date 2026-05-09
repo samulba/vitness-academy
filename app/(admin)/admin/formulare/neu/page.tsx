@@ -4,7 +4,7 @@ import { TemplateForm } from "../TemplateForm";
 import { templateAnlegen } from "../actions";
 
 export default async function NeuesTemplatePage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader

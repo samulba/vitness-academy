@@ -5,7 +5,7 @@ import { KontaktForm } from "../KontaktForm";
 import { kontaktAnlegen } from "../actions";
 
 export default async function NeuerKontaktPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const rollen = await ladeRollen();
   return (
     <div className="mx-auto max-w-2xl space-y-6">

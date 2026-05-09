@@ -7,7 +7,7 @@ import { ladeKontakte } from "@/lib/kontakte";
 import { KontakteTable } from "./KontakteTable";
 
 export default async function KontakteAdminPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   // Admin sieht alle Kontakte ueber alle Standorte.
   const kontakte = await ladeKontakte(null);
   const mitTel = kontakte.filter((k) => k.phone).length;

@@ -8,7 +8,7 @@ import { ladeStandorte } from "@/lib/standorte";
 import { InfosTable } from "./InfosTable";
 
 export default async function InfosAdminPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   // Admin sieht alle Infos aller Standorte.
   const [infos, standorte] = await Promise.all([
     ladeAnnouncements({ nurPublished: false, locationId: null }),

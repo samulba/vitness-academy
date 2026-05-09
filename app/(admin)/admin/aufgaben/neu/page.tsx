@@ -5,7 +5,7 @@ import { AufgabeForm } from "../AufgabeForm";
 import { aufgabeAnlegen } from "../actions";
 
 export default async function NeueAufgabePage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
 
   const supabase = await createClient();
   const { data } = await supabase

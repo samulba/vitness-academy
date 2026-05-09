@@ -5,7 +5,7 @@ import { TemplateForm, type PfadOption } from "../TemplateForm";
 import { templateAnlegen } from "../actions";
 
 export default async function NeuesTemplatePage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const supabase = await createClient();
   const { data: pfade } = await supabase
     .from("learning_paths")

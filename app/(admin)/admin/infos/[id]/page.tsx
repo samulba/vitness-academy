@@ -12,7 +12,7 @@ export default async function InfoBearbeitenPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const { id } = await params;
   const [info, standorte] = await Promise.all([
     ladeAnnouncement(id),

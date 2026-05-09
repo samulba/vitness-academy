@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { standortAnlegen } from "../actions";
 
 export default async function NeuerStandortPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
 
   return (
     <div className="mx-auto max-w-xl space-y-6">

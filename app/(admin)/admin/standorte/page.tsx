@@ -7,7 +7,7 @@ import { ladeStandorte } from "@/lib/standorte";
 import { StandorteTable } from "./StandorteTable";
 
 export default async function StandorteAdminPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const standorte = await ladeStandorte();
   const mitarbeiterSumme = standorte.reduce(
     (s, x) => s + x.mitarbeiter_count,

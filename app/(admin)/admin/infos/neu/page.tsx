@@ -5,7 +5,7 @@ import { InfoForm } from "../InfoForm";
 import { infoAnlegen } from "../actions";
 
 export default async function NeueInfoPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const standorte = await ladeStandorte();
   return (
     <div className="mx-auto max-w-2xl space-y-6">
