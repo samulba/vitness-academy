@@ -34,7 +34,7 @@ const SUBMISSION_SELECT = `
   submitted_at, processed_by, processed_at,
   submitter:submitted_by ( full_name ),
   processor:processed_by ( full_name ),
-  template:template_id ( title )
+  template:template_id ( title, slug, fields )
 `;
 
 function mapTemplate(r: {
@@ -111,7 +111,7 @@ type SubmissionRoh = {
   processed_at: string | null;
   submitter: { full_name: string | null } | null;
   processor: { full_name: string | null } | null;
-  template: { title: string | null } | null;
+  template: { title: string | null; slug: string | null; fields: unknown } | null;
 };
 
 function mapSubmission(r: SubmissionRoh): Submission {
@@ -121,6 +121,10 @@ function mapSubmission(r: SubmissionRoh): Submission {
     submitted_by: r.submitted_by,
     submitted_by_name: r.submitter?.full_name ?? null,
     template_title: r.template?.title ?? null,
+    template_slug: r.template?.slug ?? null,
+    template_fields: Array.isArray(r.template?.fields)
+      ? (r.template.fields as FormField[])
+      : [],
     data:
       typeof r.data === "object" && r.data !== null
         ? (r.data as Record<string, unknown>)

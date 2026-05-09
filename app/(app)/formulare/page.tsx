@@ -7,16 +7,9 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
-import { StatusPill } from "@/components/admin/StatusPill";
 import { requireProfile } from "@/lib/auth";
-import {
-  ladeSubmissions,
-  ladeTemplates,
-  STATUS_LABEL,
-  type SubmissionStatus,
-  type Template,
-} from "@/lib/formulare";
-import { formatDatum } from "@/lib/format";
+import { ladeSubmissions, ladeTemplates, type Template } from "@/lib/formulare";
+import { MeineAnfragenListe } from "@/components/formulare/MeineAnfragenListe";
 
 const STANDARD_META: Record<
   string,
@@ -31,20 +24,6 @@ const STANDARD_META: Record<
     tint: "bg-amber-500/10 text-amber-600",
   },
 };
-
-function StatusBadge({ status }: { status: SubmissionStatus }) {
-  if (status === "erledigt")
-    return <StatusPill ton="success">{STATUS_LABEL[status]}</StatusPill>;
-  if (status === "abgelehnt")
-    return <StatusPill ton="danger">{STATUS_LABEL[status]}</StatusPill>;
-  if (status === "in_bearbeitung")
-    return <StatusPill ton="warn">{STATUS_LABEL[status]}</StatusPill>;
-  return (
-    <StatusPill ton="primary" dot>
-      {STATUS_LABEL[status]}
-    </StatusPill>
-  );
-}
 
 export default async function FormulareUebersichtPage() {
   const profile = await requireProfile();
@@ -160,24 +139,9 @@ export default async function FormulareUebersichtPage() {
           <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
             Deine Einreichungen
           </h2>
-          <ul className="mt-3 overflow-hidden rounded-2xl border border-border bg-card">
-            {meine.slice(0, 10).map((s, i) => (
-              <li key={s.id} className={i > 0 ? "border-t border-border" : ""}>
-                <div className="flex items-center gap-4 px-5 py-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium leading-tight">
-                      {s.template_title ?? "Formular"}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Eingereicht am {formatDatum(s.submitted_at)}
-                      {s.admin_note && <> · Antwort: {s.admin_note}</>}
-                    </p>
-                  </div>
-                  <StatusBadge status={s.status} />
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-3">
+            <MeineAnfragenListe submissions={meine.slice(0, 20)} />
+          </div>
         </section>
       )}
     </div>

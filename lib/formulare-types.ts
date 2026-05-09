@@ -104,6 +104,13 @@ export type Submission = {
   submitted_by: string;
   submitted_by_name: string | null;
   template_title: string | null;
+  template_slug: string | null;
+  /**
+   * Felder des Templates -- wird mitgeladen damit der Detail-Dialog
+   * die Werte mit echten Labels (statt nur Field-Keys) anzeigen kann.
+   * Leere Liste falls Template inzwischen geloescht wurde.
+   */
+  template_fields: FormField[];
   data: Record<string, unknown>;
   status: SubmissionStatus;
   admin_note: string | null;
