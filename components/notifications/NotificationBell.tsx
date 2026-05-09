@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   Bell,
@@ -68,14 +69,73 @@ export function NotificationBell({
   placement?: "auto" | "side-right";
 }) {
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
 
-  // Klick außerhalb schließt das Popover
+  // Portal-Mount-Guard (SSR -> document undefined)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Position berechnen relativ zum Bell-Button. Wir rendern das
+  // Popover via Portal an <body>, damit keine Stacking-Context-
+  // Probleme die Sichtbarkeit kappen. Position muss daher manuell
+  // auf Basis der Button-Bounding-Box gesetzt werden.
+  useEffect(() => {
+    if (!open) return;
+    function update() {
+      const btn = buttonRef.current;
+      if (!btn) return;
+      const r = btn.getBoundingClientRect();
+      const isMobile = window.matchMedia("(max-width: 639px)").matches;
+      if (isMobile) {
+        // Mobile: full-width unter dem Button, 8px Margin
+        setPosition({
+          top: Math.round(r.bottom + 8),
+          left: 8,
+          width: window.innerWidth - 16,
+        });
+      } else if (placement === "side-right") {
+        // Desktop Sidebar: rechts neben den Bell-Button
+        setPosition({
+          top: Math.round(r.top),
+          left: Math.round(r.right + 8),
+          width: 380,
+        });
+      } else {
+        // Desktop Topbar: unter dem Button, rechtsbuendig
+        setPosition({
+          top: Math.round(r.bottom + 8),
+          left: Math.round(r.right - 380),
+          width: 380,
+        });
+      }
+    }
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open, placement]);
+
+  // Klick außerhalb schließt das Popover (Button ODER Popover-Inhalt
+  // gelten als "innen", damit Buttons innerhalb nicht zu schliessen
+  // fuehren).
   useEffect(() => {
     if (!open) return;
     function handler(e: MouseEvent) {
-      if (!containerRef.current) return;
-      if (!containerRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (buttonRef.current?.contains(target)) return;
+      if (popoverRef.current?.contains(target)) return;
+      setOpen(false);
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -92,8 +152,9 @@ export function NotificationBell({
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative">
+    <>
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-label={
@@ -117,19 +178,22 @@ export function NotificationBell({
         )}
       </button>
 
-      {open && (
-        <div
-          className={cn(
-            "z-50 overflow-hidden rounded-xl border border-border bg-popover shadow-lg",
-            // Mobile: fixed unter Topbar mit ~8px Margin links/rechts
-            "fixed left-2 right-2 top-[60px]",
-            // sm+: zurueck zum absoluten Popover
-            "sm:absolute sm:left-auto sm:right-auto sm:top-full sm:mt-2 sm:w-[380px] sm:max-w-[calc(100vw-2rem)]",
-            placement === "side-right"
-              ? "sm:left-full sm:top-0 sm:ml-2"
-              : "sm:right-0",
-          )}
-        >
+      {mounted && open && position &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            style={{
+              position: "fixed",
+              top: position.top,
+              left: position.left,
+              width: position.width,
+              zIndex: 100,
+            }}
+            className={cn(
+              "overflow-hidden rounded-xl border border-border bg-popover shadow-2xl",
+              "max-w-[calc(100vw-1rem)]",
+            )}
+          >
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <p className="text-[13px] font-semibold tracking-tight">
               Benachrichtigungen
@@ -173,9 +237,10 @@ export function NotificationBell({
               </ul>
             )}
           </div>
-        </div>
-      )}
-    </div>
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 
