@@ -25,6 +25,7 @@ import { ladeSubmissions } from "@/lib/formulare";
 import { getAktiverStandort } from "@/lib/standort-context";
 import { AufgabenZeile } from "@/components/aufgaben/AufgabenZeile";
 import { PutzprotokollHeuteCard } from "@/components/putzprotokoll/PutzprotokollHeuteCard";
+import { MeineAnfragenListe } from "@/components/formulare/MeineAnfragenListe";
 import { Tageszeitgruss } from "./Tageszeitgruss";
 import { Heutedatum } from "./Heutedatum";
 import { createClient } from "@/lib/supabase/server";
@@ -82,19 +83,6 @@ const QUICK_ACTIONS: {
     tint: "bg-emerald-500/10 text-emerald-600",
   },
 ];
-
-const SUBMISSION_LABEL: Record<string, { label: string; tint: string }> = {
-  eingereicht: { label: "Eingereicht", tint: "bg-blue-500/15 text-blue-700" },
-  in_bearbeitung: {
-    label: "In Bearbeitung",
-    tint: "bg-amber-500/15 text-amber-700",
-  },
-  erledigt: {
-    label: "Erledigt",
-    tint: "bg-emerald-500/15 text-emerald-700",
-  },
-  abgelehnt: { label: "Abgelehnt", tint: "bg-rose-500/15 text-rose-700" },
-};
 
 export default async function DashboardPage() {
   const profile = await requireProfile();
@@ -433,45 +421,7 @@ export default async function DashboardPage() {
             titel="Meine Anfragen"
             href="/formulare"
           />
-          <ul className="overflow-hidden rounded-2xl border border-border bg-card">
-            {anfragen.slice(0, 4).map((s, i) => {
-              const meta = SUBMISSION_LABEL[s.status] ?? {
-                label: s.status,
-                tint: "bg-muted text-muted-foreground",
-              };
-              return (
-                <li
-                  key={s.id}
-                  className={
-                    i > 0
-                      ? "flex items-center gap-3 border-t border-border px-4 py-3 sm:gap-4 sm:px-5 sm:py-4"
-                      : "flex items-center gap-3 px-4 py-3 sm:gap-4 sm:px-5 sm:py-4"
-                  }
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--brand-pink)/0.08)] text-[hsl(var(--brand-pink))]">
-                    <ClipboardList className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">
-                      {s.template_title ?? "Anfrage"}
-                    </p>
-                    <p className="truncate text-[11px] text-muted-foreground sm:text-xs">
-                      {new Date(s.submitted_at).toLocaleDateString("de-DE", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider sm:px-2.5 sm:py-1 sm:text-[11px] ${meta.tint}`}
-                  >
-                    {meta.label}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+          <MeineAnfragenListe submissions={anfragen.slice(0, 4)} />
         </section>
       )}
 

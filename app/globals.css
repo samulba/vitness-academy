@@ -170,6 +170,28 @@
   dt {
     overflow-wrap: break-word;
   }
+
+  /* App-Shell: kein Text-Selektieren auf UI-Chrome (Cards, Buttons,
+     Navigation, Status-Pills usw.). Verhindert das nervige Highlight-
+     Verhalten beim Hovern/Klicken auf nicht-textuelle Elemente. Inputs,
+     Textarea, contenteditable und Body-Text-Container bekommen
+     gezielten Opt-In via .select-text bzw. den Tag-Selektoren unten,
+     damit User dort weiterhin markieren/kopieren kann. */
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  input,
+  textarea,
+  select,
+  [contenteditable="true"],
+  [role="textbox"],
+  .prose-vitness,
+  .select-text,
+  .select-text * {
+    -webkit-user-select: text;
+    user-select: text;
+  }
 }
 
 @layer components {
