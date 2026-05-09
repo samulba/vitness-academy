@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
 import { requireRole } from "@/lib/auth";
 import { ladeKontakte } from "@/lib/kontakte";
-import { KontakteListe } from "./KontakteListe";
+import { KontakteListe } from "@/components/kontakte/KontakteListe";
 
 export default async function KontakteAdminPage() {
   await requireRole(["fuehrungskraft", "admin", "superadmin"]);
@@ -47,7 +47,10 @@ export default async function KontakteAdminPage() {
           />
         </div>
       ) : (
-        <KontakteListe kontakte={kontakte} />
+        <KontakteListe
+          kontakte={kontakte}
+          detailHrefBuilder={(k) => `/admin/kontakte/${k.id}`}
+        />
       )}
     </div>
   );
