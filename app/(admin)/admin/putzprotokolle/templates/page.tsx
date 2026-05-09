@@ -10,7 +10,7 @@ import { templateAnlegenWennFehlt } from "./actions";
 export const dynamic = "force-dynamic";
 
 export default async function PutzprotokollTemplatesPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const standorte = await ladeStandorte();
 
   // Pro Standort: existiert Template? Wieviele Sections?

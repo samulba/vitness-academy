@@ -13,7 +13,7 @@ import { ladeAlleAufgabenAdmin } from "@/lib/aufgaben";
 import { InstancesTable, TemplatesTable } from "./AufgabenTables";
 
 export default async function AufgabenAdminPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   // Admin sieht Aufgaben ueber alle Standorte.
   const alle = await ladeAlleAufgabenAdmin(null);
   const templates = alle.filter((a) => a.recurrence !== "none");

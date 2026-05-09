@@ -12,7 +12,7 @@ export default async function KontaktBearbeitenPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const { id } = await params;
   const [k, rollen] = await Promise.all([ladeKontakt(id), ladeRollen()]);
   if (!k) notFound();

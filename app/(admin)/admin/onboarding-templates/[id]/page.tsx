@@ -14,7 +14,7 @@ export default async function TemplateBearbeitenPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const { id } = await params;
   const template = await ladeTemplate(id);
   if (!template) notFound();

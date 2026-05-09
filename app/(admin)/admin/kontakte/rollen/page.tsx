@@ -10,7 +10,7 @@ import { ladeRollen } from "@/lib/contact-roles";
 import { rolleAnlegen, rolleLoeschen } from "../actions";
 
 export default async function RollenAdminPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const rollen = await ladeRollen();
 
   return (

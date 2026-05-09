@@ -28,7 +28,7 @@ export default async function TemplateEditorPage({
 }: {
   params: Promise<{ locationId: string }>;
 }) {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const { locationId } = await params;
 
   const supabase = await createClient();

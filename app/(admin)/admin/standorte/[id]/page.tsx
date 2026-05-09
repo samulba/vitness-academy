@@ -21,7 +21,7 @@ export default async function StandortDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const { id } = await params;
   const standort = await ladeStandort(id);
   if (!standort) notFound();

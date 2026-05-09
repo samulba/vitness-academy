@@ -7,7 +7,7 @@ import { ladeSubmissions, ladeTemplates } from "@/lib/formulare";
 import { FormulareTable } from "./FormulareTable";
 
 export default async function FormulareAdminPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const [templates, offen, alle] = await Promise.all([
     ladeTemplates(),
     ladeSubmissions({ status: ["eingereicht", "in_bearbeitung"] }),

@@ -12,7 +12,7 @@ export default async function AufgabeBearbeitenPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const { id } = await params;
   const a = await ladeAufgabe(id);
   if (!a) notFound();
