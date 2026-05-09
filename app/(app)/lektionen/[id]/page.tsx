@@ -81,7 +81,7 @@ export default async function LektionPage({
           <img
             src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/lesson-images/${lektion.hero_image_path}`}
             alt=""
-            className="aspect-[16/9] w-full object-cover"
+            className="h-44 w-full object-cover sm:h-56 lg:h-64"
           />
         </div>
       )}

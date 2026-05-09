@@ -48,7 +48,7 @@ export default async function LernpfadDetailPage({
           <img
             src={heroUrl}
             alt=""
-            className="aspect-[16/9] w-full object-cover"
+            className="h-44 w-full object-cover sm:h-56 lg:h-64"
           />
         </div>
       )}
