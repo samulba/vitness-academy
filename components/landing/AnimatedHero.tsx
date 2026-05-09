@@ -144,8 +144,8 @@ export function AnimatedHero() {
               greift hier eh nicht (Children sind p/div, nicht span). Das
               hat vorher dazu gefuehrt, dass Subline + Pills + Card alle
               inline nebeneinander sassen statt untereinander gestackt. */}
-          <div className="lg:grid lg:grid-cols-12 lg:items-center lg:gap-12">
-            <div className="lg:col-span-7">
+          <div className="lg:grid lg:grid-cols-12 lg:items-center lg:gap-10 xl:gap-14">
+            <div className="lg:col-span-8 xl:col-span-7">
 
               {/* Headline -- Word-by-Word Reveal funktioniert: jedes Wort
                   ist ein <span class="word-reveal"> mit innerem <span> der
@@ -233,10 +233,10 @@ export function AnimatedHero() {
             </div>
 
             {/* Rechte Spalte: Preview-Card mit max-w-md (Phone-Mockup-
-                Format), rechts in der Spalte ausgerichtet. Vorher fuellte
-                sie die ganze 5/12-Spalte (~620px) was uebertrieben gross
-                wirkte. Jetzt ~448px max -- wie ein Phone-Frame. */}
-            <div className="mt-12 hidden w-full lg:col-span-5 lg:mt-0 lg:block">
+                Format), zentriert in der schmaleren 4/12-Spalte (xl:5/12).
+                Damit ist die Card nicht ganz rechts angeklebt sondern
+                naeher an die Headline gerueckt. */}
+            <div className="mt-12 hidden lg:col-span-4 lg:mt-0 lg:block xl:col-span-5">
               <HeroPreviewCard />
             </div>
           </div>
@@ -285,6 +285,10 @@ export function AnimatedHero() {
           0%, 100% { opacity: 0.18; transform: translate(0, 0); }
           50%      { opacity: 0.26; transform: translate(15px, -10px); }
         }
+        @keyframes notification-float {
+          0%, 100% { transform: translateY(0) rotate(-2deg); }
+          50%      { transform: translateY(-4px) rotate(1deg); }
+        }
         .hero-glow-1 {
           animation: hero-glow-pulse-1 12s ease-in-out infinite;
         }
@@ -293,6 +297,7 @@ export function AnimatedHero() {
         }
         @media (prefers-reduced-motion: reduce) {
           .hero-glow-1, .hero-glow-2 { animation: none; }
+          [style*="notification-float"] { animation: none !important; }
         }
         /* Spotlight nur auf Desktop (Hover-faehige Pointer) — auf
          * Touch-Devices kein Cursor → keinen Sinn die Mouse-Effekte
@@ -386,9 +391,20 @@ function HeroPreviewCard() {
 
   return (
     <div
-      className="block w-full max-w-md lg:ml-auto"
+      className="relative block w-full max-w-md lg:mx-auto"
       style={{ perspective: "1200px" }}
     >
+      {/* Decoration-Card hinter der Hauptcard -- erzeugt Tiefe, wirkt wie
+          ein gestapeltes Deck. Leicht rotiert + transluzent. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-20 translate-x-3 translate-y-3 rotate-[3deg] rounded-2xl border border-white/[0.06] bg-white/[0.02]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-20 -translate-x-2 translate-y-1 -rotate-[2deg] rounded-2xl border border-white/[0.04] bg-white/[0.015]"
+      />
+
       <div
         ref={cardRef}
         className="hero-preview-card relative w-full will-change-transform"
@@ -403,6 +419,19 @@ function HeroPreviewCard() {
               "radial-gradient(closest-side, hsl(var(--primary) / 0.5), transparent)",
           }}
         />
+
+        {/* Floating Notification-Pill -- schwebt rechts oben ueber der
+            Card, klar erkennbar dass hier "etwas passiert". */}
+        <div
+          aria-hidden
+          className="absolute -right-3 -top-4 z-20 flex items-center gap-1.5 rounded-full border border-white/10 bg-[hsl(var(--brand-pink))] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-[0_10px_30px_-8px_hsl(var(--brand-pink)/0.6)]"
+          style={{
+            animation: "notification-float 4s ease-in-out infinite",
+          }}
+        >
+          <Sparkles className="h-3 w-3" />
+          Neue Lektion
+        </div>
 
         <div className="w-full rounded-2xl border border-white/12 bg-[hsl(var(--brand-ink)/0.7)] p-5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] backdrop-blur-xl">
           {/* Header: Avatar + Greeting */}
@@ -430,18 +459,29 @@ function HeroPreviewCard() {
             </span>
           </div>
 
-          {/* Stats-Pill-Row */}
+          {/* Stats-Pill-Row -- erste Box "Aufgaben" mit Magenta-Akzent
+              (Border + Tint), wirkt als CTA-Highlight innerhalb der Card. */}
           <div className="mt-3 grid grid-cols-3 gap-2">
             {[
-              { label: "Aufgaben", wert: "3" },
-              { label: "Anfragen", wert: "1" },
-              { label: "Lernpfad", wert: "47%" },
+              { label: "Aufgaben", wert: "3", akzent: true },
+              { label: "Anfragen", wert: "1", akzent: false },
+              { label: "Lernpfad", wert: "47%", akzent: false },
             ].map((s) => (
               <div
                 key={s.label}
-                className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-2.5 py-2"
+                className={
+                  s.akzent
+                    ? "rounded-xl border border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--primary)/0.08)] px-2.5 py-2 shadow-[0_0_20px_-4px_hsl(var(--primary)/0.4)]"
+                    : "rounded-xl border border-white/[0.08] bg-white/[0.03] px-2.5 py-2"
+                }
               >
-                <p className="text-[9px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-cream)/0.45)]">
+                <p
+                  className={
+                    s.akzent
+                      ? "text-[9px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-pink))]"
+                      : "text-[9px] font-semibold uppercase tracking-wider text-[hsl(var(--brand-cream)/0.45)]"
+                  }
+                >
                   {s.label}
                 </p>
                 <p className="mt-1 text-lg font-semibold tabular-nums">
