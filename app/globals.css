@@ -140,10 +140,14 @@
   }
   /* Globaler Schutz gegen Horizontal-Scroll: ein einzelnes
      ueberlaufendes Element (z.B. langes User-Wort, Tabelle) darf NIE
-     die ganze Page seitlich verschieben. */
+     die ganze Page seitlich verschieben.
+     WICHTIG: clip statt hidden! "hidden" macht html/body zu einem
+     Scroll-Container, was auf iOS Safari `position: fixed` brechen
+     kann (fixed haengt sich an html statt Viewport). "clip" clippt
+     genau wie hidden, ohne Scroll-Container zu erzeugen. */
   html,
   body {
-    overflow-x: hidden;
+    overflow-x: clip;
   }
   body {
     @apply bg-background text-foreground antialiased;
