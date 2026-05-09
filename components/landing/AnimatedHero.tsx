@@ -232,9 +232,10 @@ export function AnimatedHero() {
               </div>
             </div>
 
-            {/* Rechte Spalte: Preview-Card mit voller Spaltenbreite (vorher
-                schrumpfte sie via word-reveal/inline-block auf Content-
-                Groesse, sah dadurch viel zu klein aus). */}
+            {/* Rechte Spalte: Preview-Card mit max-w-md (Phone-Mockup-
+                Format), rechts in der Spalte ausgerichtet. Vorher fuellte
+                sie die ganze 5/12-Spalte (~620px) was uebertrieben gross
+                wirkte. Jetzt ~448px max -- wie ein Phone-Frame. */}
             <div className="mt-12 hidden w-full lg:col-span-5 lg:mt-0 lg:block">
               <HeroPreviewCard />
             </div>
@@ -319,7 +320,7 @@ function HeroPreviewCard() {
     if (!card) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const MAX_TILT = 6; // Grad - bewusst dezent
+    const MAX_TILT = 3; // Grad - bewusst sehr dezent (6 war zu stark)
     let targetRX = 0;
     let targetRY = 0;
     let currentRX = 0;
@@ -385,7 +386,7 @@ function HeroPreviewCard() {
 
   return (
     <div
-      className="block w-full"
+      className="block w-full max-w-md lg:ml-auto"
       style={{ perspective: "1200px" }}
     >
       <div
