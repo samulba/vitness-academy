@@ -288,15 +288,38 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      {/* === Aktuelle Infos === */}
+      {/* === Aktuelle Infos ===
+          Visuell hervorgehoben gegenueber den anderen Card-Sections
+          (Mein Lernen, Handbuch). Magenta-tinted Container + farbige
+          Severity-Leiste links auf jedem Eintrag. */}
       {aktuelleInfos.length > 0 && (
-        <section className="space-y-3 sm:space-y-5">
-          <SectionHeader
-            eyebrow="Aktuell aus dem Studio"
-            titel="Wichtige Infos"
-            href="/infos"
+        <section className="relative overflow-hidden rounded-2xl border border-[hsl(var(--brand-pink)/0.25)] bg-gradient-to-br from-[hsl(var(--brand-pink)/0.06)] via-card to-card p-4 shadow-[0_8px_32px_-12px_hsl(var(--brand-pink)/0.18)] sm:p-6">
+          {/* dekorativer Magenta-Glow oben rechts */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-[hsl(var(--brand-pink)/0.15)] blur-3xl"
           />
-          <ul className="space-y-2.5">
+
+          <header className="relative flex items-end justify-between gap-3">
+            <div>
+              <p className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))] sm:text-[11px]">
+                <Megaphone className="h-3 w-3" strokeWidth={2} />
+                Aktuell aus dem Studio
+              </p>
+              <h2 className="mt-1.5 text-[18px] font-semibold tracking-tight sm:text-xl">
+                Wichtige Infos
+              </h2>
+            </div>
+            <Link
+              href="/infos"
+              className="inline-flex items-center gap-1 text-[12px] font-medium text-muted-foreground transition-colors hover:text-[hsl(var(--brand-pink))]"
+            >
+              Alle ansehen
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </header>
+
+          <ul className="relative mt-4 space-y-2 sm:mt-5 sm:space-y-2.5">
             {aktuelleInfos.map((info) => {
               const importance =
                 info.importance === "critical"
@@ -304,28 +327,38 @@ export default async function DashboardPage() {
                       label: "Dringend",
                       pill:
                         "bg-[hsl(var(--destructive)/0.12)] text-[hsl(var(--destructive))]",
-                      border: "border-[hsl(var(--destructive)/0.4)]",
+                      bar: "bg-[hsl(var(--destructive))]",
+                      iconColor: "text-[hsl(var(--destructive))]",
                     }
                   : info.importance === "warning"
-                  ? {
-                      label: "Wichtig",
-                      pill:
-                        "bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning))]",
-                      border: "border-[hsl(var(--warning)/0.4)]",
-                    }
-                  : {
-                      label: "Info",
-                      pill:
-                        "bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]",
-                      border: "border-border",
-                    };
+                    ? {
+                        label: "Wichtig",
+                        pill:
+                          "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
+                        bar: "bg-amber-500",
+                        iconColor: "text-amber-600 dark:text-amber-400",
+                      }
+                    : {
+                        label: "Info",
+                        pill:
+                          "bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))]",
+                        bar: "bg-[hsl(var(--brand-pink))]",
+                        iconColor: "text-[hsl(var(--brand-pink))]",
+                      };
               return (
                 <li key={info.id}>
                   <Link
                     href="/infos"
-                    className={`group flex items-start gap-3 rounded-xl border bg-card p-3.5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] sm:p-4 ${importance.border}`}
+                    className="group relative flex items-start gap-3 overflow-hidden rounded-xl border border-border bg-card p-3.5 pl-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_12px_32px_-16px_hsl(var(--primary)/0.25)] sm:p-4 sm:pl-5"
                   >
-                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--brand-pink)/0.10)] text-[hsl(var(--brand-pink))]">
+                    {/* Severity-Leiste links */}
+                    <span
+                      aria-hidden
+                      className={`absolute left-0 top-0 h-full w-1 ${importance.bar}`}
+                    />
+                    <span
+                      className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted ${importance.iconColor}`}
+                    >
                       {info.pinned ? (
                         <Sparkles className="h-4 w-4" />
                       ) : (
