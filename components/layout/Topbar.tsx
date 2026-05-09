@@ -47,7 +47,7 @@ export function Topbar({
 }: Props) {
   const avatarUrl = avatarUrlFuerPfad(avatarPath);
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/70 lg:hidden">
+    <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/70 lg:hidden">
       <Link
         href="/dashboard"
         className="flex items-center gap-2.5 text-foreground"
