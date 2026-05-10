@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getCurrentProfile, istAdmin, istFuehrungskraftOderHoeher } from "@/lib/auth";
+import {
+  getCurrentProfile,
+  istAdmin,
+  istFuehrungskraftOderHoeher,
+  requireRole,
+} from "@/lib/auth";
 import { istUUID } from "@/lib/utils";
 import type { Rolle } from "@/lib/rollen";
 
@@ -322,10 +327,7 @@ export async function notizAnlegen(
   benutzerId: string,
   formData: FormData,
 ): Promise<void> {
-  const aktuell = await getCurrentProfile();
-  if (!aktuell || !(istAdmin(aktuell.role) || istFuehrungskraftOderHoeher(aktuell.role))) {
-    redirect("/admin");
-  }
+  const aktuell = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
   const body = String(formData.get("body") ?? "").trim();
   if (body.length === 0) {
     redirect(`/admin/benutzer/${benutzerId}?toast=error`);
@@ -349,8 +351,7 @@ export async function notizLoeschen(
   notizId: string,
   benutzerId: string,
 ): Promise<void> {
-  const aktuell = await getCurrentProfile();
-  if (!aktuell) redirect("/admin");
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
 
   const supabase = await createClient();
   await supabase.from("mitarbeiter_notizen").delete().eq("id", notizId);
@@ -363,10 +364,11 @@ export async function checklistTogglen(
   itemId: string,
   benutzerId: string,
 ): Promise<void> {
-  const aktuell = await getCurrentProfile();
-  if (!aktuell || !(istAdmin(aktuell.role) || istFuehrungskraftOderHoeher(aktuell.role))) {
-    redirect("/admin");
-  }
+  const aktuell = await requireRole([
+    "fuehrungskraft",
+    "admin",
+    "superadmin",
+  ]);
 
   const supabase = await createClient();
   const { data: existing } = await supabase

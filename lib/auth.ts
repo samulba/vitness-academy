@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Profil, Rolle } from "@/lib/rollen";
+import {
+  istFuehrungskraftOderHoeher,
+  type Profil,
+  type Rolle,
+} from "@/lib/rollen";
 
 export type { Profil, Rolle } from "@/lib/rollen";
 export {
@@ -91,7 +95,10 @@ export async function requireProfile(): Promise<Profil> {
 export async function requireRole(roles: Rolle[]): Promise<Profil> {
   const profile = await requireProfile();
   if (!roles.includes(profile.role)) {
-    redirect("/dashboard");
+    // Smart-Fallback: Fuehrungskraft+ bleibt im Admin-Bereich (nur diese
+    // Action war zu strikt fuer ihre Rolle). Echter Mitarbeiter ohne
+    // Admin-Zugang wird zur Mitarbeiter-Startseite geschickt.
+    redirect(istFuehrungskraftOderHoeher(profile.role) ? "/admin" : "/dashboard");
   }
   return profile;
 }

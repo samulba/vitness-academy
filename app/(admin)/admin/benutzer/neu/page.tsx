@@ -5,7 +5,7 @@ import { ladeTemplatesFuerForm } from "@/lib/onboarding-templates";
 import { NeuerBenutzerForm } from "./Form";
 
 export default async function NeuerBenutzerPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
 
   const supabase = await createClient();
   const [{ data: pfade }, { data: locs }, templates] = await Promise.all([
