@@ -31,8 +31,9 @@ export type RolleVoll = {
   updated_at: string;
   /** Permission-Matrix als Array. Leer wenn keine Rechte erteilt. */
   permissions: RollePermission[];
-  /** Anzahl Mitarbeiter mit dieser Custom-Rolle (custom_role_id-Match).
-   *  Nur für Custom-Rollen relevant; bei System-Rollen NULL. */
+  /** Anzahl Mitarbeiter mit dieser Custom-Rolle (Match in
+   *  profile_roles-Junction, Migration 0066). Nur für Custom-Rollen
+   *  relevant; bei System-Rollen NULL. */
   user_count: number | null;
 };
 
@@ -83,10 +84,10 @@ export async function ladeRollen(): Promise<RolleVoll[]> {
         .order("is_system", { ascending: false })
         .order("name", { ascending: true }),
       supabase.from("role_permissions").select("role_id, modul, aktion"),
-      supabase
-        .from("profiles")
-        .select("custom_role_id")
-        .not("custom_role_id", "is", null),
+      // user_count via Junction-Tabelle (Migration 0066). Mehrere
+      // Mitarbeiter mit derselben Rolle = mehrere Rows -> count per
+      // role_id durch GroupBy clientseitig.
+      supabase.from("profile_roles").select("role_id"),
     ]);
     const rollen = (rollenRes.data ?? []) as RolleRoh[];
     const perms = (permsRes.data ?? []) as {
@@ -95,7 +96,7 @@ export async function ladeRollen(): Promise<RolleVoll[]> {
       aktion: string;
     }[];
     const userRows = (userCountsRes.data ?? []) as {
-      custom_role_id: string | null;
+      role_id: string | null;
     }[];
 
     const permsByRole = new Map<string, RollePermission[]>();
@@ -110,11 +111,8 @@ export async function ladeRollen(): Promise<RolleVoll[]> {
 
     const userCounts = new Map<string, number>();
     for (const u of userRows) {
-      if (!u.custom_role_id) continue;
-      userCounts.set(
-        u.custom_role_id,
-        (userCounts.get(u.custom_role_id) ?? 0) + 1,
-      );
+      if (!u.role_id) continue;
+      userCounts.set(u.role_id, (userCounts.get(u.role_id) ?? 0) + 1);
     }
 
     return rollen.map((r) => ({
@@ -152,9 +150,9 @@ export async function ladeRolle(id: string): Promise<RolleVoll | null> {
         .select("modul, aktion")
         .eq("role_id", id),
       supabase
-        .from("profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("custom_role_id", id),
+        .from("profile_roles")
+        .select("profile_id", { count: "exact", head: true })
+        .eq("role_id", id),
     ]);
     if (!rolleRes.data) return null;
     const r = rolleRes.data as RolleRoh;
