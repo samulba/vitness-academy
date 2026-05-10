@@ -29,6 +29,8 @@ import { NotizenThread } from "@/components/benutzer/NotizenThread";
 import { OnboardingChecklist } from "@/components/benutzer/OnboardingChecklist";
 import { TemplateAuswahl } from "@/components/benutzer/TemplateAuswahl";
 import { ladeTemplatesFuerForm } from "@/lib/onboarding-templates";
+import { ladeRollen } from "@/lib/rollen-verwaltung";
+import { MODUL_LABELS } from "@/lib/permissions";
 import { requireRole } from "@/lib/auth";
 import { formatDatum, formatProzent, rolleLabel } from "@/lib/format";
 import {
@@ -63,11 +65,12 @@ type Profil = {
   archived_at: string | null;
   avatar_path: string | null;
   template_id: string | null;
+  custom_role_id: string | null;
   email: string | null;
 };
 
 const FELDER_VOLL =
-  "id, full_name, first_name, last_name, phone, role, location_id, kann_provisionen, personalnummer, geburtsdatum, eintritt_am, austritt_am, vertragsart, wochenstunden, tags, interne_notiz, created_at, archived_at, avatar_path, template_id";
+  "id, full_name, first_name, last_name, phone, role, location_id, kann_provisionen, personalnummer, geburtsdatum, eintritt_am, austritt_am, vertragsart, wochenstunden, tags, interne_notiz, created_at, archived_at, avatar_path, template_id, custom_role_id";
 const FELDER_OHNE_NEU =
   "id, full_name, first_name, last_name, phone, role, location_id, kann_provisionen, personalnummer, created_at, archived_at, avatar_path";
 const FELDER_BASIS =
@@ -128,6 +131,7 @@ async function ladeProfil(id: string): Promise<Profil | null> {
     archived_at: (row.archived_at as string | null) ?? null,
     avatar_path: (row.avatar_path as string | null) ?? null,
     template_id: (row.template_id as string | null) ?? null,
+    custom_role_id: (row.custom_role_id as string | null) ?? null,
     email: null,
   };
 }
@@ -217,6 +221,7 @@ export default async function BenutzerBearbeitenPage({
     zuweisungen,
     fortschritt,
     memberships,
+    alleRollen,
   ] = await Promise.all([
     ladeProfil(id),
     ladeStandorte(),
@@ -224,6 +229,7 @@ export default async function BenutzerBearbeitenPage({
     ladeZuweisungen(id),
     ladeMeineLernpfade(id),
     ladeMemberships(id),
+    ladeRollen(),
   ]);
 
   const quizVerlauf = await mitarbeiterQuizVerlauf(id, 10);
@@ -238,6 +244,14 @@ export default async function BenutzerBearbeitenPage({
   const verfuegbareLernpfade = alleLernpfade.filter(
     (p) => !zugewieseneIds.has(p.id),
   );
+
+  // Custom-Rollen-Liste fuer Dropdown (Custom-Rollen + System als
+  // Option). Aktuelle Custom-Rolle des Users vorab finden fuer
+  // Effective-Permissions-Preview.
+  const aktuelleCustomRolle = profil.custom_role_id
+    ? alleRollen.find((r) => r.id === profil.custom_role_id) ?? null
+    : null;
+  const customRollenOptionen = alleRollen.filter((r) => !r.is_system);
 
   return (
     <div className="space-y-6">
@@ -385,6 +399,88 @@ export default async function BenutzerBearbeitenPage({
                   </span>
                 </span>
               </label>
+
+              {/* Custom-Rolle (optional). Wenn gesetzt, ueberschreiben
+                  deren Permissions die Defaults der Basis-Rolle.
+                  Custom-Rollen werden unter /admin/rollen angelegt. */}
+              <div className="space-y-2">
+                <Label htmlFor="custom_role_id">
+                  Custom-Rolle
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">
+                    (optional, ueberschreibt Basis-Permissions)
+                  </span>
+                </Label>
+                <select
+                  id="custom_role_id"
+                  name="custom_role_id"
+                  defaultValue={profil.custom_role_id ?? ""}
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">— keine (Standard-Rolle) —</option>
+                  {customRollenOptionen.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                      {r.beschreibung ? ` — ${r.beschreibung}` : ""}
+                    </option>
+                  ))}
+                </select>
+                {customRollenOptionen.length === 0 && (
+                  <p className="text-[11px] text-muted-foreground">
+                    Noch keine Custom-Rollen angelegt.{" "}
+                    <Link
+                      href="/admin/rollen/neu"
+                      className="text-[hsl(var(--primary))] underline-offset-2 hover:underline"
+                    >
+                      Rolle anlegen
+                    </Link>
+                  </p>
+                )}
+
+                {/* Effective-Permissions-Preview: zeigt was der User
+                    DURCH die Custom-Rolle tatsaechlich darf. Klare
+                    Visualisierung damit man nicht im Dunkeln rumtappt. */}
+                {aktuelleCustomRolle && (
+                  <div className="mt-2 rounded-lg border border-[hsl(var(--brand-pink)/0.3)] bg-[hsl(var(--brand-pink)/0.05)] p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
+                      Aktuelle Berechtigungen via &bdquo;{aktuelleCustomRolle.name}&rdquo;
+                    </p>
+                    {aktuelleCustomRolle.permissions.length === 0 ? (
+                      <p className="mt-1 text-xs italic text-muted-foreground">
+                        Diese Rolle hat aktuell keine Permissions.
+                      </p>
+                    ) : (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {Array.from(
+                          new Set(
+                            aktuelleCustomRolle.permissions.map((p) => p.modul),
+                          ),
+                        ).map((m) => (
+                          <span
+                            key={m}
+                            className="inline-flex items-center rounded-full bg-card px-2 py-0.5 text-[10px] font-medium"
+                          >
+                            {MODUL_LABELS[m]}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <p className="mt-2 text-[10px] text-muted-foreground">
+                      {aktuelleCustomRolle.permissions.length}{" "}
+                      Permissions ueber{" "}
+                      {new Set(
+                        aktuelleCustomRolle.permissions.map((p) => p.modul),
+                      ).size}{" "}
+                      Module —{" "}
+                      <Link
+                        href={`/admin/rollen/${aktuelleCustomRolle.id}`}
+                        className="text-[hsl(var(--primary))] underline-offset-2 hover:underline"
+                      >
+                        Rolle bearbeiten
+                      </Link>
+                    </p>
+                  </div>
+                )}
+              </div>
             </fieldset>
 
             {/* Vertragsdaten */}
