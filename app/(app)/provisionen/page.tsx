@@ -8,6 +8,7 @@ import {
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { requireProfile } from "@/lib/auth";
+import { hatModulZugriff } from "@/lib/permissions";
 import {
   aggregiere,
   formatEuro,
@@ -80,7 +81,9 @@ export default async function ProvisionenPage({
   searchParams: Promise<{ monat?: string }>;
 }) {
   const profile = await requireProfile();
-  if (!profile.kann_provisionen) redirect("/dashboard");
+  if (!hatModulZugriff(profile.permissions, "mitarbeiter-provisionen")) {
+    redirect("/dashboard");
+  }
 
   const sp = await searchParams;
   const monat = sp.monat?.match(/^\d{4}-\d{2}$/) ? sp.monat : aktuellerMonat();
