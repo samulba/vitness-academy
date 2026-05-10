@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { ArrowRight, Plus, Shield, ShieldCheck, Users } from "lucide-react";
+import {
+  ArrowRight,
+  Briefcase,
+  Plus,
+  Shield,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusPill } from "@/components/admin/StatusPill";
 import { requirePermission } from "@/lib/auth";
@@ -12,13 +19,17 @@ export default async function RollenPage() {
 
   const system = rollen.filter((r) => r.is_system);
   const custom = rollen.filter((r) => !r.is_system);
+  // Klassifikation nach Basis-Level: mitarbeiter -> Mitarbeiter-Rolle,
+  // alles andere -> Verwaltungs-Rolle.
+  const customMitarbeiter = custom.filter((r) => r.base_level === "mitarbeiter");
+  const customVerwaltung = custom.filter((r) => r.base_level !== "mitarbeiter");
 
   return (
     <div className="space-y-8">
       <PageHeader
         eyebrow="Stammdaten"
         title="Rollen & Rechte"
-        description='System-Rollen sind fest. Lege bei Bedarf eigene Custom-Rollen an — z.B. "Reinigungs-Manager" der nur Putzprotokolle bearbeiten darf.'
+        description='System-Rollen sind fest. Lege eigene Rollen an — entweder als Mitarbeiter-Rolle (filtert Tabs in der Mitarbeiter-App) oder als Verwaltungs-Rolle (steuert /admin/-Module).'
         primaryAction={{
           label: "Neue Rolle",
           icon: <Plus />,
@@ -44,40 +55,83 @@ export default async function RollenPage() {
         </ul>
       </section>
 
-      {/* Custom-Rollen */}
-      <section>
-        <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-          Custom-Rollen
-        </h2>
-        {custom.length === 0 ? (
-          <div className="mt-4 rounded-2xl border border-dashed border-border bg-card p-8 text-center">
-            <Shield className="mx-auto h-8 w-8 text-muted-foreground/50" />
-            <p className="mt-3 text-sm font-medium">
-              Noch keine Custom-Rollen angelegt
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Lege z.B. eine Rolle für deinen Reinigungs-Manager oder
-              Vertriebs-Lead an.
-            </p>
-            <Link
-              href="/admin/rollen/neu"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--primary))] px-4 py-2 text-xs font-semibold text-[hsl(var(--primary-foreground))] transition-colors hover:bg-[hsl(var(--primary)/0.9)]"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Rolle anlegen
-            </Link>
-          </div>
-        ) : (
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
-            {custom.map((r) => (
-              <li key={r.id}>
-                <RolleCard rolle={r} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {/* Custom Mitarbeiter-Rollen */}
+      <CustomBereich
+        titel="Mitarbeiter-Rollen"
+        beschreibung="Filtert Tabs in der Mitarbeiter-App. Basis-Level Mitarbeiter."
+        icon={<Briefcase className="h-4 w-4" strokeWidth={1.75} />}
+        emptyHint="Z.B. Vertrieb (nur Provisionen) oder Reinigung (nur Putzprotokoll)."
+        anlegenHref="/admin/rollen/neu?typ=mitarbeiter"
+        rollen={customMitarbeiter}
+      />
+
+      {/* Custom Verwaltungs-Rollen */}
+      <CustomBereich
+        titel="Verwaltungs-Rollen"
+        beschreibung="Feingranularer Zugriff auf /admin/. Basis-Level Führungskraft oder Admin."
+        icon={<Shield className="h-4 w-4" strokeWidth={1.75} />}
+        emptyHint="Z.B. Buchhalter (nur Provisionen + Lohn) oder Marketing-Lead."
+        anlegenHref="/admin/rollen/neu?typ=verwaltung"
+        rollen={customVerwaltung}
+      />
     </div>
+  );
+}
+
+function CustomBereich({
+  titel,
+  beschreibung,
+  icon,
+  emptyHint,
+  anlegenHref,
+  rollen,
+}: {
+  titel: string;
+  beschreibung: string;
+  icon: React.ReactNode;
+  emptyHint: string;
+  anlegenHref: string;
+  rollen: RolleVoll[];
+}) {
+  return (
+    <section>
+      <div className="flex items-end justify-between gap-2">
+        <div>
+          <h2 className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+            <span className="text-[hsl(var(--brand-pink))]">{icon}</span>
+            {titel}
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">{beschreibung}</p>
+        </div>
+        <Link
+          href={anlegenHref}
+          className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium transition-colors hover:bg-muted"
+        >
+          <Plus className="h-3 w-3" />
+          Neue {titel.replace("-Rollen", "-Rolle")}
+        </Link>
+      </div>
+      {rollen.length === 0 ? (
+        <div className="mt-4 rounded-2xl border border-dashed border-border bg-card p-6 text-center">
+          <p className="text-xs text-muted-foreground">{emptyHint}</p>
+          <Link
+            href={anlegenHref}
+            className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--primary))] px-3 py-1.5 text-[11px] font-semibold text-[hsl(var(--primary-foreground))] transition-colors hover:bg-[hsl(var(--primary)/0.9)]"
+          >
+            <Plus className="h-3 w-3" />
+            Rolle anlegen
+          </Link>
+        </div>
+      ) : (
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
+          {rollen.map((r) => (
+            <li key={r.id}>
+              <RolleCard rolle={r} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

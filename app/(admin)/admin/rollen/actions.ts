@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { istUUID } from "@/lib/utils";
 import {
   AKTIONEN,
+  istMitarbeiterModul,
   MODULE,
   type Aktion,
   type Modul,
@@ -30,17 +31,29 @@ function validBaseLevel(s: string): BaseLevel | null {
 /**
  * Liest aus FormData die ausgewaehlten Permissions.
  * Felder heissen `permission_<modul>_<aktion>` mit value="on".
+ *
+ * Strict-Trennung (defense in depth gegen Form-Tampering):
+ *  - base_level=mitarbeiter -> nur mitarbeiter-*-Permissions akzeptieren
+ *  - base_level fuehrungskraft/admin -> nur Verwaltungs-Permissions
+ *  - System-Rollen (is_system=true) ueberspringen den Filter, weil ihr
+ *    Bereich nicht der Custom-Rollen-Logik folgt.
  */
 function permissionsAusFormData(
   formData: FormData,
+  baseLevel: BaseLevel | null,
+  istSystemRolle: boolean,
 ): { modul: Modul; aktion: Aktion }[] {
   const permissions: { modul: Modul; aktion: Aktion }[] = [];
   for (const m of MODULE) {
     for (const a of AKTIONEN) {
       const key = `permission_${m}_${a}`;
-      if (formData.get(key) === "on") {
-        permissions.push({ modul: m, aktion: a });
+      if (formData.get(key) !== "on") continue;
+      if (!istSystemRolle && baseLevel) {
+        const mitarbeiterPerm = istMitarbeiterModul(m);
+        if (baseLevel === "mitarbeiter" && !mitarbeiterPerm) continue;
+        if (baseLevel !== "mitarbeiter" && mitarbeiterPerm) continue;
       }
+      permissions.push({ modul: m, aktion: a });
     }
   }
   return permissions;
@@ -94,7 +107,7 @@ export async function rolleAnlegen(formData: FormData): Promise<void> {
     redirect("/admin/rollen/neu?toast=error");
   }
 
-  const permissions = permissionsAusFormData(formData);
+  const permissions = permissionsAusFormData(formData, baseLevel, false);
   if (permissions.length > 0) {
     const rows = permissions.map((p) => ({
       role_id: created.id,
@@ -157,7 +170,19 @@ export async function rolleAktualisieren(
   // Beide Fehler werfen wir explizit weiter (vorher nur geloggt) --
   // sonst zeigt das Form "Gespeichert" obwohl RLS den Schreibvorgang
   // blockiert hat.
-  const permissions = permissionsAusFormData(formData);
+  //
+  // Filter-Baseline: Bei Custom-Rolle die DB-Baseline (vor Update) holen
+  // und gegen die filtern; bei System-Rolle bleibt der Permissions-
+  // Bereich frei. Falls die Action selbst gerade das base_level aendert,
+  // ist der NEUE Wert relevant -- den ziehen wir wieder aus FormData.
+  const aktuellesBaseLevel = rolle.is_system
+    ? null
+    : validBaseLevel(String(formData.get("base_level") ?? ""));
+  const permissions = permissionsAusFormData(
+    formData,
+    aktuellesBaseLevel,
+    rolle.is_system,
+  );
   const { error: deleteError } = await supabase
     .from("role_permissions")
     .delete()

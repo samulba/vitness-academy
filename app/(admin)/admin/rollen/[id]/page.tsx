@@ -15,6 +15,17 @@ export default async function RolleDetailPage({
   const rolle = await ladeRolle(id);
   if (!rolle) notFound();
 
+  // Typ klassifizieren: Custom-Rollen mit base_level=mitarbeiter sind
+  // "Mitarbeiter-Rollen", alles andere ist Verwaltung. System-Rollen
+  // verhalten sich auf der Edit-Seite wie Verwaltungs-Rollen, weil ihre
+  // Permissions in der Praxis nur Verwaltungs-Module umfassen (Mitarbeiter-
+  // Tab-Sichtbarkeit wird bei System-Rollen permissiv via lib/auth.ts
+  // berechnet, nicht in der DB gehalten).
+  const typ: "mitarbeiter" | "verwaltung" =
+    !rolle.is_system && rolle.base_level === "mitarbeiter"
+      ? "mitarbeiter"
+      : "verwaltung";
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader
@@ -33,8 +44,10 @@ export default async function RolleDetailPage({
       <div className="flex flex-wrap items-center gap-2">
         {rolle.is_system ? (
           <StatusPill ton="info">System-Rolle</StatusPill>
+        ) : typ === "mitarbeiter" ? (
+          <StatusPill ton="primary">Mitarbeiter-Rolle</StatusPill>
         ) : (
-          <StatusPill ton="primary">Custom-Rolle</StatusPill>
+          <StatusPill ton="primary">Verwaltungs-Rolle</StatusPill>
         )}
         <StatusPill ton="neutral">Basis: {rolle.base_level}</StatusPill>
         {rolle.user_count !== null && (
@@ -52,6 +65,7 @@ export default async function RolleDetailPage({
         beschreibung={rolle.beschreibung}
         base_level={rolle.base_level}
         is_system={rolle.is_system}
+        typ={typ}
         user_count={rolle.user_count}
         initialPermissions={rolle.permissions}
       />

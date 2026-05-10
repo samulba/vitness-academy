@@ -12,9 +12,19 @@ import {
 import type { Aktion, Modul } from "@/lib/permissions";
 import type { RolleBaseLevel } from "@/lib/rollen-verwaltung";
 
+/**
+ * RollenTyp:
+ *   - "mitarbeiter": Custom-Rolle die Mitarbeiter-Tabs filtert.
+ *                    Basis-Level immer "mitarbeiter", nur Mitarbeiter-Permissions.
+ *   - "verwaltung":  Custom-Rolle die /admin/-Module steuert.
+ *                    Basis-Level "fuehrungskraft" oder "admin", nur Verwaltungs-Permissions.
+ */
+export type RollenTyp = "mitarbeiter" | "verwaltung";
+
 type FormProps =
   | {
       mode: "neu";
+      typ: RollenTyp;
     }
   | {
       mode: "edit";
@@ -23,6 +33,7 @@ type FormProps =
       beschreibung: string | null;
       base_level: RolleBaseLevel;
       is_system: boolean;
+      typ: RollenTyp;
       user_count: number | null;
       initialPermissions: { modul: Modul; aktion: Aktion }[];
     };
@@ -30,6 +41,7 @@ type FormProps =
 export function RollenForm(props: FormProps) {
   const istEdit = props.mode === "edit";
   const istSystem = istEdit && props.is_system;
+  const istMitarbeiterTyp = props.typ === "mitarbeiter";
   const [pending, startTransition] = useTransition();
 
   // Server-Action direkt als Form-Action binden (Next.js Standard-
@@ -50,6 +62,15 @@ export function RollenForm(props: FormProps) {
       await rolleArchivieren(props.id);
     });
   }
+
+  // Default base_level richtet sich nach Typ:
+  //   mitarbeiter -> "mitarbeiter" (fix)
+  //   verwaltung  -> "fuehrungskraft" (User kann auf admin hochstufen)
+  const defaultBaseLevel: RolleBaseLevel = istEdit
+    ? props.base_level
+    : istMitarbeiterTyp
+      ? "mitarbeiter"
+      : "fuehrungskraft";
 
   return (
     <form action={submitAction} className="space-y-6">
@@ -72,7 +93,11 @@ export function RollenForm(props: FormProps) {
             required
             disabled={istSystem}
             defaultValue={istEdit ? props.name : ""}
-            placeholder="z.B. Reinigungs-Manager"
+            placeholder={
+              istMitarbeiterTyp
+                ? "z.B. Vertrieb, Trainer, Reinigung"
+                : "z.B. Buchhalter, Marketing-Lead"
+            }
             className="mt-1 block w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus-visible:border-[hsl(var(--ring))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:bg-muted/40 disabled:text-muted-foreground"
           />
           {istSystem && (
@@ -100,6 +125,9 @@ export function RollenForm(props: FormProps) {
           />
         </div>
 
+        {/* Basis-Level: Bei Mitarbeiter-Typ fix; bei Verwaltungs-Typ
+            wählbar zwischen Fuehrungskraft und Admin. Mitarbeiter und
+            Superadmin werden bewusst nicht als Custom-Rolle exponiert. */}
         <div>
           <label
             htmlFor="base_level"
@@ -107,24 +135,30 @@ export function RollenForm(props: FormProps) {
           >
             Basis-Level
           </label>
-          <select
-            id="base_level"
-            name="base_level"
-            required
-            disabled={istSystem}
-            defaultValue={istEdit ? props.base_level : "mitarbeiter"}
-            className="mt-1 block w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus-visible:border-[hsl(var(--ring))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:bg-muted/40 disabled:text-muted-foreground"
-          >
-            <option value="mitarbeiter">Mitarbeiter</option>
-            <option value="fuehrungskraft">Führungskraft</option>
-            <option value="admin">Admin</option>
-            <option value="superadmin">Superadmin</option>
-          </select>
+          {istMitarbeiterTyp ? (
+            <>
+              <input type="hidden" name="base_level" value="mitarbeiter" />
+              <div className="mt-1 rounded-lg border border-dashed border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                Mitarbeiter (fest für Mitarbeiter-Rollen)
+              </div>
+            </>
+          ) : (
+            <select
+              id="base_level"
+              name="base_level"
+              required
+              disabled={istSystem}
+              defaultValue={defaultBaseLevel}
+              className="mt-1 block w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus-visible:border-[hsl(var(--ring))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:bg-muted/40 disabled:text-muted-foreground"
+            >
+              <option value="fuehrungskraft">Führungskraft</option>
+              <option value="admin">Admin</option>
+            </select>
+          )}
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Bestimmt die DB-Rechte (RLS) -- z.B. &bdquo;admin&rdquo; gibt vollen
-            Datenbank-Zugriff zusätzlich zu den ausgewählten Permissions.
-            Custom-Rollen für Mitarbeiter mit Verwaltungs-Rechten setzen
-            das Level meist auf &bdquo;fuehrungskraft&rdquo; oder &bdquo;admin&rdquo;.
+            {istMitarbeiterTyp
+              ? "Bestimmt die DB-Rechte (RLS). Mitarbeiter-Rollen erben Mitarbeiter-Rechte und ergänzen sie um die ausgewählten Tabs."
+              : "Bestimmt die DB-Rechte (RLS). Admin gibt vollen Datenbank-Zugriff zusätzlich zu den ausgewählten Permissions; Führungskraft ist restriktiver."}
           </p>
         </div>
       </section>
@@ -136,14 +170,15 @@ export function RollenForm(props: FormProps) {
             Permissions
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Wähle aus, welche Module diese Rolle sehen, anlegen, bearbeiten
-            oder löschen darf. Die Sidebar zeigt nur Module, für die mind.
-            eine Aktion erteilt ist.
+            {istMitarbeiterTyp
+              ? "Wähle, welche Tabs ihre Mitarbeiter in der App sehen. Was sie damit tun, regelt RLS."
+              : "Wähle Module und Aktionen, die diese Rolle bedienen darf. Die Sidebar zeigt nur Module, für die mind. eine Aktion erteilt ist."}
           </p>
         </div>
         <PermissionsMatrix
           initial={istEdit ? props.initialPermissions : []}
           vorlageLaden={istEdit ? undefined : ladeSystemRollenVorlage}
+          bereich={istMitarbeiterTyp ? "mitarbeiter" : "verwaltung"}
         />
       </section>
 
