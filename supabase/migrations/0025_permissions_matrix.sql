@@ -62,7 +62,7 @@ create index if not exists profiles_custom_role_idx
 -- =========================================================
 insert into public.roles (id, name, beschreibung, base_level, is_system) values
   ('00000000-0000-0000-0000-000000000001', 'Mitarbeiter', 'Standardrolle für Mitarbeiter im Studio.', 'mitarbeiter', true),
-  ('00000000-0000-0000-0000-000000000002', 'Führungskraft', 'Studioleitung mit Zugriff auf Inbox-Bereiche.', 'fuehrungskraft', true),
+  ('00000000-0000-0000-0000-000000000002', 'Führungskraft', 'Studioleitung mit Zugriff auf Inbox-Bereiche.', 'fuehrungskraft', false),
   ('00000000-0000-0000-0000-000000000003', 'Admin', 'Voller Verwaltungs-Zugriff auf alle Inhalte.', 'admin', true),
   ('00000000-0000-0000-0000-000000000004', 'Superadmin', 'Wie Admin plus Rollen-Verwaltung.', 'superadmin', true)
 on conflict (id) do nothing;

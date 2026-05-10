@@ -146,7 +146,10 @@ export const AKTION_LABELS: Record<Aktion, string> = {
 };
 
 /**
- * UUIDs der 4 System-Rollen, deterministisch in Migration 0025 geseedet.
+ * UUIDs der 4 Basis-Rollen, deterministisch in Migration 0025 geseedet.
+ * Nach Migration 0065 ist Führungskraft is_system=false (Custom-Rolle),
+ * die UUID bleibt aber stabil damit getCurrentProfile() das richtige
+ * Permission-Set für profiles.role='fuehrungskraft' findet.
  */
 export const SYSTEM_ROLE_IDS = {
   mitarbeiter: "00000000-0000-0000-0000-000000000001",
@@ -154,6 +157,25 @@ export const SYSTEM_ROLE_IDS = {
   admin: "00000000-0000-0000-0000-000000000003",
   superadmin: "00000000-0000-0000-0000-000000000004",
 } as const;
+
+/**
+ * Pflicht-Permissions für Admin und Superadmin -- können im Editor
+ * NICHT abgewählt werden, verhindert Self-Lockout. Server validiert
+ * ebenfalls.
+ *
+ * Mitarbeiter-System-Rolle hat keine Pflichten (hat per Default keine
+ * Verwaltungs-Permissions). Führungskraft ist seit 0065 keine System-
+ * Rolle mehr und damit voll konfigurierbar.
+ */
+export const PFLICHT_PERMISSIONS: Record<string, readonly string[]> = {
+  [SYSTEM_ROLE_IDS.admin]: ["benutzer:view", "rollen:view"],
+  [SYSTEM_ROLE_IDS.superadmin]: [
+    "benutzer:view",
+    "rollen:view",
+    "rollen:edit",
+    "rollen:delete",
+  ],
+};
 
 export function permissionKey(modul: Modul, aktion: Aktion): string {
   return `${modul}:${aktion}`;
