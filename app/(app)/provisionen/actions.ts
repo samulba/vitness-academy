@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireProfile, requirePermission } from "@/lib/auth";
+import { hatModulZugriff } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
 
 const UUID_RE =
@@ -23,7 +24,7 @@ export async function abschlussAnlegen(
   formData: FormData,
 ): Promise<ProvisionsErgebnis> {
   const profile = await requireProfile();
-  if (!profile.kann_provisionen) {
+  if (!hatModulZugriff(profile.permissions, "mitarbeiter-provisionen")) {
     return { ok: false, message: "Keine Berechtigung für Provisions-Einträge." };
   }
 
