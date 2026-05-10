@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabList, Tab, TabPanel } from "@/components/ui/tabs";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { SpeichernButton } from "@/components/admin/SpeichernButton";
 import { createClient } from "@/lib/supabase/server";
@@ -28,9 +29,9 @@ import { AktivitaetsHeatmap } from "@/components/charts/AktivitaetsHeatmap";
 import { NotizenThread } from "@/components/benutzer/NotizenThread";
 import { OnboardingChecklist } from "@/components/benutzer/OnboardingChecklist";
 import { TemplateAuswahl } from "@/components/benutzer/TemplateAuswahl";
+import { RollenPicker } from "@/components/benutzer/RollenPicker";
 import { ladeTemplatesFuerForm } from "@/lib/onboarding-templates";
 import { ladeRollen } from "@/lib/rollen-verwaltung";
-import { MODUL_LABELS } from "@/lib/permissions";
 import { requirePermission } from "@/lib/auth";
 import { formatDatum, formatProzent, rolleLabel } from "@/lib/format";
 import {
@@ -38,7 +39,8 @@ import {
   lernpfadZuweisen,
   mitarbeiterArchivieren,
   mitarbeiterReaktivieren,
-  profilAktualisieren,
+  profilRollenAktualisieren,
+  profilStammdatenAktualisieren,
   standortAlsPrimary,
   standortEntfernen,
   standortHinzufuegen,
@@ -65,12 +67,12 @@ type Profil = {
   archived_at: string | null;
   avatar_path: string | null;
   template_id: string | null;
-  custom_role_id: string | null;
+  custom_role_ids: string[];
   email: string | null;
 };
 
 const FELDER_VOLL =
-  "id, full_name, first_name, last_name, phone, role, location_id, kann_provisionen, personalnummer, geburtsdatum, eintritt_am, austritt_am, vertragsart, wochenstunden, tags, interne_notiz, created_at, archived_at, avatar_path, template_id, custom_role_id";
+  "id, full_name, first_name, last_name, phone, role, location_id, kann_provisionen, personalnummer, geburtsdatum, eintritt_am, austritt_am, vertragsart, wochenstunden, tags, interne_notiz, created_at, archived_at, avatar_path, template_id";
 const FELDER_OHNE_NEU =
   "id, full_name, first_name, last_name, phone, role, location_id, kann_provisionen, personalnummer, created_at, archived_at, avatar_path";
 const FELDER_BASIS =
@@ -78,9 +80,6 @@ const FELDER_BASIS =
 
 async function ladeProfil(id: string): Promise<Profil | null> {
   const supabase = await createClient();
-  // 3-Stufen-Fallback: erst alle neuen Felder (0044), dann ohne, dann
-  // basis (vor 0042). Damit funktioniert die Page auch wenn nicht alle
-  // Migrationen gerade in Cloud sind.
   const erst = await supabase
     .from("profiles")
     .select(FELDER_VOLL)
@@ -104,6 +103,28 @@ async function ladeProfil(id: string): Promise<Profil | null> {
     }
   }
   if (!row) return null;
+
+  // Multi-Custom-Rollen aus Junction (Migration 0066) laden, mit
+  // Legacy-Fallback auf profiles.custom_role_id.
+  let customRoleIds: string[] = [];
+  const junction = await supabase
+    .from("profile_roles")
+    .select("role_id")
+    .eq("profile_id", id);
+  if (junction.error) {
+    const { data: legacy } = await supabase
+      .from("profiles")
+      .select("custom_role_id")
+      .eq("id", id)
+      .maybeSingle();
+    const legacyId = (legacy?.custom_role_id as string | null) ?? null;
+    if (legacyId) customRoleIds = [legacyId];
+  } else {
+    customRoleIds = (
+      (junction.data ?? []) as { role_id: string }[]
+    ).map((r) => r.role_id);
+  }
+
   const wsRaw = row.wochenstunden;
   return {
     id: row.id as string,
@@ -131,7 +152,7 @@ async function ladeProfil(id: string): Promise<Profil | null> {
     archived_at: (row.archived_at as string | null) ?? null,
     avatar_path: (row.avatar_path as string | null) ?? null,
     template_id: (row.template_id as string | null) ?? null,
-    custom_role_id: (row.custom_role_id as string | null) ?? null,
+    custom_role_ids: customRoleIds,
     email: null,
   };
 }
@@ -206,13 +227,19 @@ async function ladeZuweisungen(userId: string) {
   }));
 }
 
+const GUELTIGE_TABS = ["profil", "rolle", "onboarding", "notizen", "lernen"];
+
 export default async function BenutzerBearbeitenPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { id } = await params;
+  const { tab } = await searchParams;
   const aktuell = await requirePermission("benutzer", "create");
+  const startTab = tab && GUELTIGE_TABS.includes(tab) ? tab : "profil";
 
   const [
     profil,
@@ -245,14 +272,6 @@ export default async function BenutzerBearbeitenPage({
     (p) => !zugewieseneIds.has(p.id),
   );
 
-  // Custom-Rollen-Liste für Dropdown (Custom-Rollen + System als
-  // Option). Aktuelle Custom-Rolle des Users vorab finden für
-  // Effective-Permissions-Preview.
-  const aktuelleCustomRolle = profil.custom_role_id
-    ? alleRollen.find((r) => r.id === profil.custom_role_id) ?? null
-    : null;
-  const customRollenOptionen = alleRollen.filter((r) => !r.is_system);
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -274,669 +293,586 @@ export default async function BenutzerBearbeitenPage({
         }
       />
 
-      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <header className="mb-5">
-          <h2 className="text-base font-semibold tracking-tight">Stammdaten</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Persönliche Daten, Rolle, Standort, Vertragsangaben.
-          </p>
-        </header>
-        <div>
-          <form
-            action={profilAktualisieren.bind(null, profil.id)}
-            className="space-y-6"
-          >
-            {/* Persönliche Daten */}
-            <fieldset className="space-y-4">
-              <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Persönliche Daten
-              </legend>
-              <div className="space-y-2">
-                <Label htmlFor="full_name">Anzeigename</Label>
-                <Input
-                  id="full_name"
-                  name="full_name"
-                  defaultValue={profil.full_name ?? ""}
-                  placeholder="Vor- und Nachname"
-                />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="first_name">Vorname</Label>
-                  <Input
-                    id="first_name"
-                    name="first_name"
-                    defaultValue={profil.first_name ?? ""}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="last_name">Nachname</Label>
-                  <Input
-                    id="last_name"
-                    name="last_name"
-                    defaultValue={profil.last_name ?? ""}
-                  />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefon</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    defaultValue={profil.phone ?? ""}
-                    placeholder="+49 …"
-                    autoComplete="tel"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="geburtsdatum">Geburtsdatum</Label>
-                  <Input
-                    id="geburtsdatum"
-                    name="geburtsdatum"
-                    type="date"
-                    defaultValue={profil.geburtsdatum ?? ""}
-                  />
-                </div>
-              </div>
-            </fieldset>
+      <Tabs defaultValue={startTab}>
+        <TabList>
+          <Tab value="profil">Profil</Tab>
+          <Tab value="rolle">Rolle &amp; Standorte</Tab>
+          <Tab value="onboarding">Onboarding</Tab>
+          <Tab value="notizen">Notizen</Tab>
+          <Tab value="lernen">Lernen</Tab>
+        </TabList>
 
-            {/* Rolle + Standort + Provisionen */}
-            <fieldset className="space-y-4 border-t border-border pt-5">
-              <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Rolle & Berechtigung
-              </legend>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="role">Rolle</Label>
-                  <select
-                    id="role"
-                    name="role"
-                    defaultValue={profil.role}
-                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="mitarbeiter">Mitarbeiter</option>
-                    <option value="fuehrungskraft">Führungskraft</option>
-                    <option value="admin">Admin</option>
-                    {aktuell.role === "superadmin" ? (
-                      <option value="superadmin">Superadmin</option>
-                    ) : null}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location_id">Heim-Standort</Label>
-                  <select
-                    id="location_id"
-                    name="location_id"
-                    defaultValue={profil.location_id ?? ""}
-                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="">— ohne —</option>
-                    {standorte.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 transition-colors hover:border-[hsl(var(--primary))] has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--primary)/0.06)]">
-                <input
-                  type="checkbox"
-                  name="kann_provisionen"
-                  defaultChecked={profil.kann_provisionen}
-                  className="mt-1 h-4 w-4 accent-[hsl(var(--primary))]"
-                />
-                <span className="flex-1">
-                  <span className="block text-sm font-semibold">
-                    Vertriebsrolle (Provisionen)
-                  </span>
-                  <span className="mt-0.5 block text-xs text-muted-foreground">
-                    Mitarbeiter:in sieht die Provisionen-Section in der Sidebar
-                    und darf Abschlüsse eintragen.
-                  </span>
-                </span>
-              </label>
-
-              {/* Custom-Rolle (optional). Wenn gesetzt, überschreiben
-                  deren Permissions die Defaults der Basis-Rolle.
-                  Custom-Rollen werden unter /admin/rollen angelegt. */}
-              <div className="space-y-2">
-                <Label htmlFor="custom_role_id">
-                  Custom-Rolle
-                  <span className="ml-1 text-xs font-normal text-muted-foreground">
-                    (optional, ueberschreibt Basis-Permissions)
-                  </span>
-                </Label>
-                <select
-                  id="custom_role_id"
-                  name="custom_role_id"
-                  defaultValue={profil.custom_role_id ?? ""}
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="">— keine (Standard-Rolle) —</option>
-                  {customRollenOptionen.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}
-                      {r.beschreibung ? ` — ${r.beschreibung}` : ""}
-                    </option>
-                  ))}
-                </select>
-                {customRollenOptionen.length === 0 && (
-                  <p className="text-[11px] text-muted-foreground">
-                    Noch keine Custom-Rollen angelegt.{" "}
-                    <Link
-                      href="/admin/rollen/neu"
-                      className="text-[hsl(var(--primary))] underline-offset-2 hover:underline"
-                    >
-                      Rolle anlegen
-                    </Link>
-                  </p>
-                )}
-
-                {/* Effective-Permissions-Preview: zeigt was der User
-                    DURCH die Custom-Rolle tatsächlich darf. Klare
-                    Visualisierung damit man nicht im Dunkeln rumtappt. */}
-                {aktuelleCustomRolle && (
-                  <div className="mt-2 rounded-lg border border-[hsl(var(--brand-pink)/0.3)] bg-[hsl(var(--brand-pink)/0.05)] p-3">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--brand-pink))]">
-                      Aktuelle Berechtigungen via &bdquo;{aktuelleCustomRolle.name}&rdquo;
-                    </p>
-                    {aktuelleCustomRolle.permissions.length === 0 ? (
-                      <p className="mt-1 text-xs italic text-muted-foreground">
-                        Diese Rolle hat aktuell keine Permissions.
-                      </p>
-                    ) : (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {Array.from(
-                          new Set(
-                            aktuelleCustomRolle.permissions.map((p) => p.modul),
-                          ),
-                        ).map((m) => (
-                          <span
-                            key={m}
-                            className="inline-flex items-center rounded-full bg-card px-2 py-0.5 text-[10px] font-medium"
-                          >
-                            {MODUL_LABELS[m]}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <p className="mt-2 text-[10px] text-muted-foreground">
-                      {aktuelleCustomRolle.permissions.length}{" "}
-                      Permissions ueber{" "}
-                      {new Set(
-                        aktuelleCustomRolle.permissions.map((p) => p.modul),
-                      ).size}{" "}
-                      Module —{" "}
-                      <Link
-                        href={`/admin/rollen/${aktuelleCustomRolle.id}`}
-                        className="text-[hsl(var(--primary))] underline-offset-2 hover:underline"
-                      >
-                        Rolle bearbeiten
-                      </Link>
-                    </p>
-                  </div>
-                )}
-              </div>
-            </fieldset>
-
-            {/* Vertragsdaten */}
-            <fieldset className="space-y-4 border-t border-border pt-5">
-              <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Vertrag
-              </legend>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="eintritt_am">Eintritt am</Label>
-                  <Input
-                    id="eintritt_am"
-                    name="eintritt_am"
-                    type="date"
-                    defaultValue={profil.eintritt_am ?? ""}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="austritt_am">
-                    Austritt am
-                    <span className="ml-1 text-xs font-normal text-muted-foreground">
-                      (optional)
-                    </span>
-                  </Label>
-                  <Input
-                    id="austritt_am"
-                    name="austritt_am"
-                    type="date"
-                    defaultValue={profil.austritt_am ?? ""}
-                  />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="vertragsart">Vertragsart</Label>
-                  <select
-                    id="vertragsart"
-                    name="vertragsart"
-                    defaultValue={profil.vertragsart ?? ""}
-                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="">— nicht gesetzt —</option>
-                    <option value="vollzeit">Vollzeit</option>
-                    <option value="teilzeit">Teilzeit</option>
-                    <option value="minijob">Minijob</option>
-                    <option value="aushilfe">Aushilfe</option>
-                    <option value="selbstaendig">Selbstständig</option>
-                    <option value="praktikant">Praktikant:in</option>
-                    <option value="sonstiges">Sonstiges</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="wochenstunden">
-                    Wochenstunden
-                    <span className="ml-1 text-xs font-normal text-muted-foreground">
-                      (z.B. 38,5)
-                    </span>
-                  </Label>
-                  <Input
-                    id="wochenstunden"
-                    name="wochenstunden"
-                    inputMode="decimal"
-                    defaultValue={
-                      profil.wochenstunden !== null
-                        ? String(profil.wochenstunden).replace(".", ",")
-                        : ""
-                    }
-                    placeholder="z.B. 20"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="personalnummer">
-                  Personalnummer
-                  <span className="ml-1 text-xs font-normal text-muted-foreground">
-                    (für Lohn-CSV)
-                  </span>
-                </Label>
-                <Input
-                  id="personalnummer"
-                  name="personalnummer"
-                  defaultValue={profil.personalnummer ?? ""}
-                  placeholder="z.B. 1042"
-                  maxLength={32}
-                />
-              </div>
-            </fieldset>
-
-            {/* Tags + interne Notiz */}
-            <fieldset className="space-y-4 border-t border-border pt-5">
-              <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Tags & interne Notiz
-              </legend>
-              <div className="space-y-2">
-                <Label htmlFor="tags">
-                  Tags
-                  <span className="ml-1 text-xs font-normal text-muted-foreground">
-                    (Komma-getrennt, max. 12)
-                  </span>
-                </Label>
-                <Input
-                  id="tags"
-                  name="tags"
-                  defaultValue={(profil.tags ?? []).join(", ")}
-                  placeholder='z.B. "Theke-Profi, Personal Trainer, Reha-Coach"'
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="interne_notiz">
-                  Interne Notiz
-                  <span className="ml-1 text-xs font-normal text-muted-foreground">
-                    (nur Admin sichtbar)
-                  </span>
-                </Label>
-                <textarea
-                  id="interne_notiz"
-                  name="interne_notiz"
-                  rows={3}
-                  defaultValue={profil.interne_notiz ?? ""}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  placeholder="Quick-Memo für die Studioleitung. Längere Diskussionen → Notizen-Tab."
-                />
-              </div>
-            </fieldset>
-
-            <div className="flex justify-end">
-              <SpeichernButton />
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <header className="mb-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 className="text-base font-semibold tracking-tight">Onboarding</h2>
+        <TabPanel value="profil">
+          <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <header className="mb-5">
+              <h2 className="text-base font-semibold tracking-tight">
+                Persönliche Daten &amp; Vertrag
+              </h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Sichtbar sind Standard-Items + Items des aktiven Templates.
-                Items pflegt Admin in Onboarding-Templates.
+                Name, Kontakt, Vertragsdaten. Tags und interne Notizen unten.
               </p>
-            </div>
-            <TemplateAuswahl
-              benutzerId={profil.id}
-              aktivesTemplate={profil.template_id}
-              templates={templates.map((t) => ({ id: t.id, name: t.name }))}
-            />
-          </div>
-        </header>
-        <div>
-          <OnboardingChecklist
-            benutzerId={profil.id}
-            items={checklistItems}
-          />
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <header className="mb-5">
-          <h2 className="text-base font-semibold tracking-tight">Notizen</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Personalführungs-Notizen — Lob, Konflikte, Entwicklung. Sichtbar
-            für Admin und Führungskraft. Mitarbeiter:in selbst sieht das nicht.
-          </p>
-        </header>
-        <div>
-          <NotizenThread
-            benutzerId={profil.id}
-            notizen={notizen}
-            aktuellId={aktuell.id}
-          />
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <header className="mb-5">
-          <h2 className="text-base font-semibold tracking-tight">Standort-Mitgliedschaften</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Studios in denen diese:r Mitarbeiter:in Inhalte sieht. Das mit
-            dem Stern ist das Heim-Studio.
-          </p>
-        </header>
-        <div className="space-y-4">
-          {memberships.length === 0 ? (
-            <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-              Aktuell in keinem Studio Mitglied.
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {memberships.map((m) => (
-                <li
-                  key={m.location_id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{m.name}</span>
-                    {m.is_primary && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--primary)/0.1)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--primary))]">
-                        <Star className="h-2.5 w-2.5" />
-                        Heim
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {!m.is_primary && (
-                      <form
-                        action={standortAlsPrimary.bind(
-                          null,
-                          profil.id,
-                          m.location_id,
-                        )}
-                      >
-                        <button
-                          type="submit"
-                          className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                          <Star className="h-3 w-3" />
-                          Als Heim setzen
-                        </button>
-                      </form>
-                    )}
-                    <form
-                      action={standortEntfernen.bind(
-                        null,
-                        profil.id,
-                        m.location_id,
-                      )}
-                    >
-                      <button
-                        type="submit"
-                        className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-destructive"
-                      >
-                        <X className="h-3 w-3" />
-                        Entfernen
-                      </button>
-                    </form>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {standorte.filter(
-            (s) => !memberships.some((m) => m.location_id === s.id),
-          ).length > 0 && (
+            </header>
             <form
-              action={standortHinzufuegen.bind(null, profil.id)}
-              className="flex items-end gap-2 border-t border-border pt-4"
+              action={profilStammdatenAktualisieren.bind(null, profil.id)}
+              className="space-y-6"
             >
-              <div className="flex-1 space-y-1">
-                <Label
-                  htmlFor="add_location_id"
-                  className="text-[11px] uppercase tracking-wider text-muted-foreground"
-                >
-                  Standort hinzufügen
-                </Label>
-                <select
-                  id="add_location_id"
-                  name="location_id"
-                  defaultValue=""
-                  required
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="" disabled>
-                    Standort wählen…
-                  </option>
-                  {standorte
-                    .filter(
-                      (s) => !memberships.some((m) => m.location_id === s.id),
-                    )
-                    .map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                </select>
-              </div>
-              <Button type="submit" variant="outline" className="gap-1">
-                <Plus className="h-4 w-4" />
-                Hinzufügen
-              </Button>
-            </form>
-          )}
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <header className="mb-5">
-          <h2 className="text-base font-semibold tracking-tight">Lernpfad-Zuweisungen</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Welche Lernpfade dieser Mitarbeiter sehen soll.
-          </p>
-        </header>
-        <div className="space-y-3">
-          {zuweisungen.length === 0 ? (
-            <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-              Aktuell sind keine Lernpfade zugewiesen.
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {zuweisungen.map((z) => (
-                <li
-                  key={z.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4 text-primary" />
-                    <span className="font-medium">{z.pfad_title}</span>
-                    <span className="text-xs text-muted-foreground">
-                      seit {formatDatum(z.assigned_at)}
-                    </span>
-                  </div>
-                  <LoeschenButton
-                    action={lernpfadEntziehen.bind(null, profil.id, z.id)}
-                    label="Zuweisung entfernen"
-                    bestaetigung="Zuweisung wirklich entfernen? Fortschritt bleibt erhalten."
+              <fieldset className="space-y-4">
+                <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Persönliche Daten
+                </legend>
+                <div className="space-y-2">
+                  <Label htmlFor="full_name">Anzeigename</Label>
+                  <Input
+                    id="full_name"
+                    name="full_name"
+                    defaultValue={profil.full_name ?? ""}
+                    placeholder="Vor- und Nachname"
                   />
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {verfuegbareLernpfade.length > 0 ? (
-            <form
-              action={lernpfadZuweisen.bind(null, profil.id)}
-              className="flex flex-wrap items-end gap-2 pt-2"
-            >
-              <div className="flex-1 min-w-[200px] space-y-1">
-                <Label htmlFor="learning_path_id">Lernpfad zuweisen</Label>
-                <select
-                  id="learning_path_id"
-                  name="learning_path_id"
-                  required
-                  defaultValue=""
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="">Lernpfad wählen …</option>
-                  {verfuegbareLernpfade.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <Button type="submit" size="sm">
-                <Plus className="h-4 w-4" />
-                Zuweisen
-              </Button>
-            </form>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              Alle vorhandenen Lernpfade sind bereits zugewiesen.
-            </p>
-          )}
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <header className="mb-5">
-          <h2 className="text-base font-semibold tracking-tight">Fortschritt</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Pro zugewiesenem Lernpfad.
-          </p>
-        </header>
-        <div>
-          {fortschritt.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Keine Lernpfade zugewiesen.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {fortschritt.map((p) => (
-                <div key={p.id} className="space-y-1">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <BookOpen className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{p.title}</span>
-                      <Badge variant="outline">
-                        {p.abgeschlossen}/{p.gesamt} Lektionen
-                      </Badge>
-                    </div>
-                    <span className="text-sm font-medium">
-                      {formatProzent(p.prozent)}
-                    </span>
-                  </div>
-                  <Progress value={p.prozent} />
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Aktivitaets-Heatmap */}
-      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <header className="mb-5">
-          <h2 className="text-base font-semibold tracking-tight">Lern-Aktivität</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Abgeschlossene Lektionen pro Tag, letzte 12 Monate.
-          </p>
-        </header>
-        <div>
-          <AktivitaetsHeatmap
-            data={aktivitaetsMap}
-            beschriftung="abgeschlossene Lektionen"
-          />
-        </div>
-      </section>
-
-      {/* Quiz-Verlauf */}
-      {quizVerlauf.length > 0 && (
-        <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-          <header className="mb-5">
-            <h2 className="text-base font-semibold tracking-tight">Quiz-Verlauf</h2>
-            <p className="mt-1 text-xs text-muted-foreground">Letzte 10 abgeschlossene Versuche.</p>
-          </header>
-          <div>
-            <ul className="divide-y divide-border">
-              {quizVerlauf.map((v) => (
-                <li
-                  key={v.attempt_id}
-                  className="flex items-center justify-between gap-3 py-2.5 text-sm"
-                >
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/admin/quizze/${v.quiz_id}/auswertung`}
-                      className="font-medium hover:underline"
-                    >
-                      {v.quiz_title ?? "Quiz"}
-                    </Link>
-                    <p className="text-xs text-muted-foreground">
-                      {v.completed_at && formatDatum(v.completed_at)}
-                    </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name">Vorname</Label>
+                    <Input
+                      id="first_name"
+                      name="first_name"
+                      defaultValue={profil.first_name ?? ""}
+                    />
                   </div>
-                  <span
-                    className={
-                      v.passed
-                        ? "rounded-full bg-[hsl(var(--success)/0.15)] px-2.5 py-0.5 text-xs font-bold text-[hsl(var(--success))]"
-                        : "rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-bold text-destructive"
-                    }
-                  >
-                    {v.score} %
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-      )}
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name">Nachname</Label>
+                    <Input
+                      id="last_name"
+                      name="last_name"
+                      defaultValue={profil.last_name ?? ""}
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefon</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      defaultValue={profil.phone ?? ""}
+                      placeholder="+49 …"
+                      autoComplete="tel"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="geburtsdatum">Geburtsdatum</Label>
+                    <Input
+                      id="geburtsdatum"
+                      name="geburtsdatum"
+                      type="date"
+                      defaultValue={profil.geburtsdatum ?? ""}
+                    />
+                  </div>
+                </div>
+              </fieldset>
 
-      {/* Archivieren / Reaktivieren */}
+              <fieldset className="space-y-4 border-t border-border pt-5">
+                <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Vertrag
+                </legend>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="eintritt_am">Eintritt am</Label>
+                    <Input
+                      id="eintritt_am"
+                      name="eintritt_am"
+                      type="date"
+                      defaultValue={profil.eintritt_am ?? ""}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="austritt_am">
+                      Austritt am
+                      <span className="ml-1 text-xs font-normal text-muted-foreground">
+                        (optional)
+                      </span>
+                    </Label>
+                    <Input
+                      id="austritt_am"
+                      name="austritt_am"
+                      type="date"
+                      defaultValue={profil.austritt_am ?? ""}
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="vertragsart">Vertragsart</Label>
+                    <select
+                      id="vertragsart"
+                      name="vertragsart"
+                      defaultValue={profil.vertragsart ?? ""}
+                      className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="">— nicht gesetzt —</option>
+                      <option value="vollzeit">Vollzeit</option>
+                      <option value="teilzeit">Teilzeit</option>
+                      <option value="minijob">Minijob</option>
+                      <option value="aushilfe">Aushilfe</option>
+                      <option value="selbstaendig">Selbstständig</option>
+                      <option value="praktikant">Praktikant:in</option>
+                      <option value="sonstiges">Sonstiges</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="wochenstunden">
+                      Wochenstunden
+                      <span className="ml-1 text-xs font-normal text-muted-foreground">
+                        (z.B. 38,5)
+                      </span>
+                    </Label>
+                    <Input
+                      id="wochenstunden"
+                      name="wochenstunden"
+                      inputMode="decimal"
+                      defaultValue={
+                        profil.wochenstunden !== null
+                          ? String(profil.wochenstunden).replace(".", ",")
+                          : ""
+                      }
+                      placeholder="z.B. 20"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="personalnummer">
+                    Personalnummer
+                    <span className="ml-1 text-xs font-normal text-muted-foreground">
+                      (für Lohn-CSV)
+                    </span>
+                  </Label>
+                  <Input
+                    id="personalnummer"
+                    name="personalnummer"
+                    defaultValue={profil.personalnummer ?? ""}
+                    placeholder="z.B. 1042"
+                    maxLength={32}
+                  />
+                </div>
+              </fieldset>
+
+              <fieldset className="space-y-4 border-t border-border pt-5">
+                <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Tags &amp; interne Notiz
+                </legend>
+                <div className="space-y-2">
+                  <Label htmlFor="tags">
+                    Tags
+                    <span className="ml-1 text-xs font-normal text-muted-foreground">
+                      (Komma-getrennt, max. 12)
+                    </span>
+                  </Label>
+                  <Input
+                    id="tags"
+                    name="tags"
+                    defaultValue={(profil.tags ?? []).join(", ")}
+                    placeholder='z.B. "Theke-Profi, Personal Trainer, Reha-Coach"'
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="interne_notiz">
+                    Interne Notiz
+                    <span className="ml-1 text-xs font-normal text-muted-foreground">
+                      (nur Admin sichtbar)
+                    </span>
+                  </Label>
+                  <textarea
+                    id="interne_notiz"
+                    name="interne_notiz"
+                    rows={3}
+                    defaultValue={profil.interne_notiz ?? ""}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    placeholder="Quick-Memo für die Studioleitung. Längere Diskussionen → Notizen-Tab."
+                  />
+                </div>
+              </fieldset>
+
+              <div className="flex justify-end">
+                <SpeichernButton />
+              </div>
+            </form>
+          </section>
+        </TabPanel>
+
+        <TabPanel value="rolle">
+          <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <header className="mb-5">
+              <h2 className="text-base font-semibold tracking-tight">
+                Rolle &amp; Berechtigungen
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Basis-Rolle bestimmt DB-Rechte (RLS). Verwaltungs-Rolle
+                überschreibt Permissions im /admin-Bereich. Mitarbeiter-Rollen
+                filtern die Tabs im Mitarbeiter-Bereich.
+              </p>
+            </header>
+            <form
+              action={profilRollenAktualisieren.bind(null, profil.id)}
+              className="space-y-6"
+            >
+              <RollenPicker
+                initialRole={profil.role}
+                initialLocationId={profil.location_id}
+                initialKannProvisionen={profil.kann_provisionen}
+                initialCustomRoleIds={profil.custom_role_ids}
+                alleRollen={alleRollen}
+                standorte={standorte}
+                superadminVerfuegbar={aktuell.role === "superadmin"}
+              />
+
+              <div className="flex justify-end border-t border-border pt-5">
+                <SpeichernButton />
+              </div>
+            </form>
+          </section>
+
+          <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <header className="mb-5">
+              <h2 className="text-base font-semibold tracking-tight">
+                Standort-Mitgliedschaften
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Studios in denen diese:r Mitarbeiter:in Inhalte sieht. Das mit
+                dem Stern ist das Heim-Studio.
+              </p>
+            </header>
+            <div className="space-y-4">
+              {memberships.length === 0 ? (
+                <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                  Aktuell in keinem Studio Mitglied.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {memberships.map((m) => (
+                    <li
+                      key={m.location_id}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">{m.name}</span>
+                        {m.is_primary && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--primary)/0.1)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--primary))]">
+                            <Star className="h-2.5 w-2.5" />
+                            Heim
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!m.is_primary && (
+                          <form
+                            action={standortAlsPrimary.bind(
+                              null,
+                              profil.id,
+                              m.location_id,
+                            )}
+                          >
+                            <button
+                              type="submit"
+                              className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                            >
+                              <Star className="h-3 w-3" />
+                              Als Heim setzen
+                            </button>
+                          </form>
+                        )}
+                        <form
+                          action={standortEntfernen.bind(
+                            null,
+                            profil.id,
+                            m.location_id,
+                          )}
+                        >
+                          <button
+                            type="submit"
+                            className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-destructive"
+                          >
+                            <X className="h-3 w-3" />
+                            Entfernen
+                          </button>
+                        </form>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {standorte.filter(
+                (s) => !memberships.some((m) => m.location_id === s.id),
+              ).length > 0 && (
+                <form
+                  action={standortHinzufuegen.bind(null, profil.id)}
+                  className="flex items-end gap-2 border-t border-border pt-4"
+                >
+                  <div className="flex-1 space-y-1">
+                    <Label
+                      htmlFor="add_location_id"
+                      className="text-[11px] uppercase tracking-wider text-muted-foreground"
+                    >
+                      Standort hinzufügen
+                    </Label>
+                    <select
+                      id="add_location_id"
+                      name="location_id"
+                      defaultValue=""
+                      required
+                      className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="" disabled>
+                        Standort wählen…
+                      </option>
+                      {standorte
+                        .filter(
+                          (s) =>
+                            !memberships.some(
+                              (m) => m.location_id === s.id,
+                            ),
+                        )
+                        .map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <Button type="submit" variant="outline" className="gap-1">
+                    <Plus className="h-4 w-4" />
+                    Hinzufügen
+                  </Button>
+                </form>
+              )}
+            </div>
+          </section>
+        </TabPanel>
+
+        <TabPanel value="onboarding">
+          <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <header className="mb-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-semibold tracking-tight">
+                    Onboarding
+                  </h2>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Sichtbar sind Standard-Items + Items des aktiven Templates.
+                    Items pflegt Admin in Onboarding-Templates.
+                  </p>
+                </div>
+                <TemplateAuswahl
+                  benutzerId={profil.id}
+                  aktivesTemplate={profil.template_id}
+                  templates={templates.map((t) => ({ id: t.id, name: t.name }))}
+                />
+              </div>
+            </header>
+            <OnboardingChecklist
+              benutzerId={profil.id}
+              items={checklistItems}
+            />
+          </section>
+        </TabPanel>
+
+        <TabPanel value="notizen">
+          <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <header className="mb-5">
+              <h2 className="text-base font-semibold tracking-tight">
+                Personalführungs-Notizen
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Lob, Konflikte, Entwicklung. Sichtbar für Admin und
+                Führungskraft. Mitarbeiter:in selbst sieht das nicht.
+              </p>
+            </header>
+            <NotizenThread
+              benutzerId={profil.id}
+              notizen={notizen}
+              aktuellId={aktuell.id}
+            />
+          </section>
+        </TabPanel>
+
+        <TabPanel value="lernen">
+          <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <header className="mb-5">
+              <h2 className="text-base font-semibold tracking-tight">
+                Lernpfad-Zuweisungen
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Welche Lernpfade dieser Mitarbeiter sehen soll.
+              </p>
+            </header>
+            <div className="space-y-3">
+              {zuweisungen.length === 0 ? (
+                <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                  Aktuell sind keine Lernpfade zugewiesen.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {zuweisungen.map((z) => (
+                    <li
+                      key={z.id}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="h-4 w-4 text-primary" />
+                        <span className="font-medium">{z.pfad_title}</span>
+                        <span className="text-xs text-muted-foreground">
+                          seit {formatDatum(z.assigned_at)}
+                        </span>
+                      </div>
+                      <LoeschenButton
+                        action={lernpfadEntziehen.bind(null, profil.id, z.id)}
+                        label="Zuweisung entfernen"
+                        bestaetigung="Zuweisung wirklich entfernen? Fortschritt bleibt erhalten."
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {verfuegbareLernpfade.length > 0 ? (
+                <form
+                  action={lernpfadZuweisen.bind(null, profil.id)}
+                  className="flex flex-wrap items-end gap-2 pt-2"
+                >
+                  <div className="flex-1 min-w-[200px] space-y-1">
+                    <Label htmlFor="learning_path_id">Lernpfad zuweisen</Label>
+                    <select
+                      id="learning_path_id"
+                      name="learning_path_id"
+                      required
+                      defaultValue=""
+                      className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="">Lernpfad wählen …</option>
+                      {verfuegbareLernpfade.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <Button type="submit" size="sm">
+                    <Plus className="h-4 w-4" />
+                    Zuweisen
+                  </Button>
+                </form>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Alle vorhandenen Lernpfade sind bereits zugewiesen.
+                </p>
+              )}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <header className="mb-5">
+              <h2 className="text-base font-semibold tracking-tight">
+                Fortschritt
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Pro zugewiesenem Lernpfad.
+              </p>
+            </header>
+            <div>
+              {fortschritt.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Keine Lernpfade zugewiesen.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {fortschritt.map((p) => (
+                    <div key={p.id} className="space-y-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">{p.title}</span>
+                          <Badge variant="outline">
+                            {p.abgeschlossen}/{p.gesamt} Lektionen
+                          </Badge>
+                        </div>
+                        <span className="text-sm font-medium">
+                          {formatProzent(p.prozent)}
+                        </span>
+                      </div>
+                      <Progress value={p.prozent} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <header className="mb-5">
+              <h2 className="text-base font-semibold tracking-tight">
+                Lern-Aktivität
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Abgeschlossene Lektionen pro Tag, letzte 12 Monate.
+              </p>
+            </header>
+            <AktivitaetsHeatmap
+              data={aktivitaetsMap}
+              beschriftung="abgeschlossene Lektionen"
+            />
+          </section>
+
+          {quizVerlauf.length > 0 && (
+            <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+              <header className="mb-5">
+                <h2 className="text-base font-semibold tracking-tight">
+                  Quiz-Verlauf
+                </h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Letzte 10 abgeschlossene Versuche.
+                </p>
+              </header>
+              <ul className="divide-y divide-border">
+                {quizVerlauf.map((v) => (
+                  <li
+                    key={v.attempt_id}
+                    className="flex items-center justify-between gap-3 py-2.5 text-sm"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        href={`/admin/quizze/${v.quiz_id}/auswertung`}
+                        className="font-medium hover:underline"
+                      >
+                        {v.quiz_title ?? "Quiz"}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">
+                        {v.completed_at && formatDatum(v.completed_at)}
+                      </p>
+                    </div>
+                    <span
+                      className={
+                        v.passed
+                          ? "rounded-full bg-[hsl(var(--success)/0.15)] px-2.5 py-0.5 text-xs font-bold text-[hsl(var(--success))]"
+                          : "rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-bold text-destructive"
+                      }
+                    >
+                      {v.score} %
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </TabPanel>
+      </Tabs>
+
       <section className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 sm:p-8">
         <header className="mb-5">
           <h2 className="text-base font-semibold tracking-tight text-destructive">
-            {profil.archived_at ? "Mitarbeiter reaktivieren" : "Mitarbeiter archivieren"}
+            {profil.archived_at
+              ? "Mitarbeiter reaktivieren"
+              : "Mitarbeiter archivieren"}
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
             {profil.archived_at
