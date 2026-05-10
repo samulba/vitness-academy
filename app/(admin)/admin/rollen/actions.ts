@@ -1,0 +1,238 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { requireRole } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { istUUID } from "@/lib/utils";
+import {
+  AKTIONEN,
+  MODULE,
+  type Aktion,
+  type Modul,
+} from "@/lib/permissions";
+import { SYSTEM_ROLE_IDS } from "@/lib/permissions";
+
+const VALID_BASE_LEVELS = [
+  "mitarbeiter",
+  "fuehrungskraft",
+  "admin",
+  "superadmin",
+] as const;
+type BaseLevel = (typeof VALID_BASE_LEVELS)[number];
+
+function validBaseLevel(s: string): BaseLevel | null {
+  return (VALID_BASE_LEVELS as readonly string[]).includes(s)
+    ? (s as BaseLevel)
+    : null;
+}
+
+/**
+ * Liest aus FormData die ausgewaehlten Permissions.
+ * Felder heissen `permission_<modul>_<aktion>` mit value="on".
+ */
+function permissionsAusFormData(
+  formData: FormData,
+): { modul: Modul; aktion: Aktion }[] {
+  const permissions: { modul: Modul; aktion: Aktion }[] = [];
+  for (const m of MODULE) {
+    for (const a of AKTIONEN) {
+      const key = `permission_${m}_${a}`;
+      if (formData.get(key) === "on") {
+        permissions.push({ modul: m, aktion: a });
+      }
+    }
+  }
+  return permissions;
+}
+
+/**
+ * Legt eine neue Custom-Rolle an inkl. ihrer Permissions.
+ * Nur Admin + Superadmin (RLS aus Migration 0061).
+ */
+export async function rolleAnlegen(formData: FormData): Promise<void> {
+  await requireRole(["admin", "superadmin"]);
+
+  const name = String(formData.get("name") ?? "").trim();
+  const beschreibung = String(formData.get("beschreibung") ?? "").trim() || null;
+  const baseLevelRaw = String(formData.get("base_level") ?? "mitarbeiter");
+  const baseLevel = validBaseLevel(baseLevelRaw);
+
+  if (name.length === 0) {
+    redirect("/admin/rollen/neu?toast=error");
+  }
+  if (!baseLevel) {
+    redirect("/admin/rollen/neu?toast=error");
+  }
+
+  const supabase = await createClient();
+
+  // Doppelten Namen verhindern (case-insensitive). Index in 0025 ist
+  // partial, schreibender INSERT bricht sonst hart ab.
+  const { data: existing } = await supabase
+    .from("roles")
+    .select("id")
+    .ilike("name", name)
+    .is("archived_at", null)
+    .maybeSingle();
+  if (existing) {
+    redirect("/admin/rollen/neu?toast=name_existiert");
+  }
+
+  const { data: created, error } = await supabase
+    .from("roles")
+    .insert({
+      name,
+      beschreibung,
+      base_level: baseLevel,
+      is_system: false,
+    })
+    .select("id")
+    .single();
+  if (error || !created) {
+    console.error("[rolleAnlegen] insert failed:", error);
+    redirect("/admin/rollen/neu?toast=error");
+  }
+
+  const permissions = permissionsAusFormData(formData);
+  if (permissions.length > 0) {
+    const rows = permissions.map((p) => ({
+      role_id: created.id,
+      modul: p.modul,
+      aktion: p.aktion,
+    }));
+    const { error: permsError } = await supabase
+      .from("role_permissions")
+      .insert(rows);
+    if (permsError) {
+      console.error("[rolleAnlegen] permissions failed:", permsError);
+    }
+  }
+
+  revalidatePath("/admin/rollen");
+  redirect(`/admin/rollen/${created.id}?toast=created`);
+}
+
+/**
+ * Aktualisiert eine Rolle. System-Rollen koennen nur in den
+ * Permissions geaendert werden -- Name/Beschreibung/base_level
+ * bleiben fix.
+ */
+export async function rolleAktualisieren(
+  id: string,
+  formData: FormData,
+): Promise<void> {
+  await requireRole(["admin", "superadmin"]);
+  if (!istUUID(id)) redirect("/admin/rollen?toast=error");
+
+  const supabase = await createClient();
+  const { data: rolle } = await supabase
+    .from("roles")
+    .select("id, is_system")
+    .eq("id", id)
+    .maybeSingle();
+  if (!rolle) redirect("/admin/rollen?toast=error");
+
+  // Nur fuer Custom-Rollen: Name/Beschreibung/base_level updaten
+  if (!rolle.is_system) {
+    const name = String(formData.get("name") ?? "").trim();
+    const beschreibung =
+      String(formData.get("beschreibung") ?? "").trim() || null;
+    const baseLevelRaw = String(formData.get("base_level") ?? "mitarbeiter");
+    const baseLevel = validBaseLevel(baseLevelRaw);
+    if (name.length === 0 || !baseLevel) {
+      redirect(`/admin/rollen/${id}?toast=error`);
+    }
+    const { error } = await supabase
+      .from("roles")
+      .update({ name, beschreibung, base_level: baseLevel })
+      .eq("id", id);
+    if (error) {
+      console.error("[rolleAktualisieren] update meta failed:", error);
+      redirect(`/admin/rollen/${id}?toast=error`);
+    }
+  }
+
+  // Permissions: Neu setzen (delete-all + insert)
+  const permissions = permissionsAusFormData(formData);
+  await supabase.from("role_permissions").delete().eq("role_id", id);
+  if (permissions.length > 0) {
+    const rows = permissions.map((p) => ({
+      role_id: id,
+      modul: p.modul,
+      aktion: p.aktion,
+    }));
+    const { error: permsError } = await supabase
+      .from("role_permissions")
+      .insert(rows);
+    if (permsError) {
+      console.error("[rolleAktualisieren] permissions failed:", permsError);
+    }
+  }
+
+  revalidatePath("/admin/rollen");
+  revalidatePath(`/admin/rollen/${id}`);
+  redirect(`/admin/rollen/${id}?toast=saved`);
+}
+
+/**
+ * Archiviert eine Custom-Rolle. System-Rollen koennen nicht
+ * archiviert werden. Profile mit dieser custom_role_id behalten den
+ * FK -- die Rolle ist nur "ausgeblendet". Sicherer als delete weil
+ * Audit-Log und Profile-Refs erhalten bleiben.
+ */
+export async function rolleArchivieren(id: string): Promise<void> {
+  await requireRole(["admin", "superadmin"]);
+  if (!istUUID(id)) redirect("/admin/rollen?toast=error");
+
+  const supabase = await createClient();
+  const { data: rolle } = await supabase
+    .from("roles")
+    .select("id, is_system")
+    .eq("id", id)
+    .maybeSingle();
+  if (!rolle || rolle.is_system) {
+    redirect("/admin/rollen?toast=error");
+  }
+
+  const { error } = await supabase
+    .from("roles")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) {
+    console.error("[rolleArchivieren] failed:", error);
+    redirect(`/admin/rollen/${id}?toast=error`);
+  }
+
+  revalidatePath("/admin/rollen");
+  redirect("/admin/rollen?toast=archived");
+}
+
+/**
+ * Helper fuer die UI: laedt die Permissions einer System-Rolle als
+ * Vorlage fuer das Anlegen einer neuen Custom-Rolle. Wird vom
+ * "Vorlage laden"-Button genutzt -- aber als Server-Action damit man
+ * die Permissions clientseitig rendern kann ohne extra-Query.
+ */
+export async function ladeSystemRollenVorlage(
+  baseLevel: BaseLevel,
+): Promise<{ modul: Modul; aktion: Aktion }[]> {
+  await requireRole(["admin", "superadmin"]);
+  const roleId = SYSTEM_ROLE_IDS[baseLevel];
+  if (!roleId) return [];
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("role_permissions")
+    .select("modul, aktion")
+    .eq("role_id", roleId);
+  const result: { modul: Modul; aktion: Aktion }[] = [];
+  for (const p of (data ?? []) as { modul: string; aktion: string }[]) {
+    if (
+      (MODULE as readonly string[]).includes(p.modul) &&
+      (AKTIONEN as readonly string[]).includes(p.aktion)
+    ) {
+      result.push({ modul: p.modul as Modul, aktion: p.aktion as Aktion });
+    }
+  }
+  return result;
+}
