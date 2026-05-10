@@ -6,6 +6,7 @@ import {
   type Rolle,
 } from "@/lib/rollen";
 import {
+  MITARBEITER_MODULE,
   permissionKey,
   SYSTEM_ROLE_IDS,
   type Aktion,
@@ -106,6 +107,26 @@ export async function getCurrentProfile(): Promise<Profil | null> {
     }
   }
 
+  // Permissive Default fuer den Mitarbeiter-Bereich:
+  // System-Rollen ohne Custom-Rolle (Standard-Mitarbeiter, Fuehrungs-
+  // kraft+, etc.) sehen alle Mitarbeiter-Tabs wie bisher. Nur Custom-
+  // Rollen muessen Mitarbeiter-Module explizit gesetzt bekommen, sonst
+  // sieht der User die jeweiligen Tabs nicht.
+  // Spezialfall Provisionen: zusaetzlich an profiles.kann_provisionen
+  // gekoppelt -- der Boolean bleibt die Quelle der Wahrheit fuer
+  // "darf Provisionen eintragen" (RLS-Policies pruefen darauf).
+  const istCustomRolle = customRoleId !== null;
+  const kannProvisionen = Boolean(row.kann_provisionen);
+  if (!istCustomRolle) {
+    for (const m of MITARBEITER_MODULE) {
+      if (m === "mitarbeiter-provisionen") continue;
+      permissionsSet.add(`${m}:view`);
+    }
+    if (kannProvisionen) {
+      permissionsSet.add("mitarbeiter-provisionen:view");
+    }
+  }
+
   return {
     id: row.id as string,
     full_name: (row.full_name as string | null) ?? null,
@@ -117,7 +138,7 @@ export async function getCurrentProfile(): Promise<Profil | null> {
     onboarding_done: Boolean(row.onboarding_done),
     archived_at: (row.archived_at as string | null) ?? null,
     avatar_path: (row.avatar_path as string | null) ?? null,
-    kann_provisionen: Boolean(row.kann_provisionen),
+    kann_provisionen: kannProvisionen,
     template_id: (row.template_id as string | null) ?? null,
     custom_role_id: customRoleId,
     permissions: permissionsSet,

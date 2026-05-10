@@ -66,33 +66,42 @@ type AdminGruppe = {
 };
 
 // Mein Tag = Dashboard, solo ganz oben
-const MEIN_TAG: NavEintrag = { href: "/dashboard", label: "Mein Tag", icon: Home };
+const MEIN_TAG: NavEintrag = {
+  href: "/dashboard",
+  label: "Mein Tag",
+  icon: Home,
+  modul: "mitarbeiter-dashboard",
+};
 
 // Drei Untergruppen statt einer flachen Liste -- die Sidebar bleibt
 // übersichtlich auch wenn Provisionen/Feedback dazu kommen.
 const STUDIO_NAV: NavEintrag[] = [
-  { href: "/aufgaben", label: "Aufgaben", icon: ListTodo },
-  { href: "/formulare", label: "Anfragen", icon: FileText },
-  { href: "/maengel", label: "Mängel melden", icon: AlertTriangle },
-  { href: "/putzprotokoll", label: "Putzprotokoll", icon: Sparkles },
-  { href: "/lohn", label: "Schichten & Lohn", icon: Clock },
+  { href: "/aufgaben", label: "Aufgaben", icon: ListTodo, modul: "mitarbeiter-aufgaben" },
+  { href: "/formulare", label: "Anfragen", icon: FileText, modul: "mitarbeiter-formulare" },
+  { href: "/maengel", label: "Mängel melden", icon: AlertTriangle, modul: "mitarbeiter-maengel" },
+  { href: "/putzprotokoll", label: "Putzprotokoll", icon: Sparkles, modul: "mitarbeiter-putzprotokoll" },
+  { href: "/lohn", label: "Schichten & Lohn", icon: Clock, modul: "mitarbeiter-lohn" },
 ];
 
-// "Verkauf" wird nur für Vertriebler sichtbar (per profile.kann_provisionen)
+// "Verkauf" — Provisionen-Tab: gated by Permission "mitarbeiter-
+// provisionen:view". getCurrentProfile setzt die Permission automatisch
+// aus profiles.kann_provisionen fuer Standard-Rollen, sodass das alte
+// Verhalten ("nur Vertriebler") erhalten bleibt. Custom-Rollen koennen
+// die Permission explizit (de)aktivieren.
 const VERKAUF_NAV: NavEintrag[] = [
-  { href: "/provisionen", label: "Provisionen", icon: TrendingUp },
+  { href: "/provisionen", label: "Provisionen", icon: TrendingUp, modul: "mitarbeiter-provisionen" },
 ];
 
 const TEAM_NAV: NavEintrag[] = [
-  { href: "/infos", label: "Wichtige Infos", icon: Megaphone },
-  { href: "/feedback", label: "Mitglieder-Feedback", icon: MessageCircle },
-  { href: "/kontakte", label: "Kontakte", icon: Contact },
-  { href: "/wissen", label: "Handbuch", icon: BookOpen },
+  { href: "/infos", label: "Wichtige Infos", icon: Megaphone, modul: "mitarbeiter-infos" },
+  { href: "/feedback", label: "Mitglieder-Feedback", icon: MessageCircle, modul: "mitarbeiter-feedback" },
+  { href: "/kontakte", label: "Kontakte", icon: Contact, modul: "mitarbeiter-kontakte" },
+  { href: "/wissen", label: "Handbuch", icon: BookOpen, modul: "mitarbeiter-wissen" },
 ];
 
 const LERNEN_NAV: NavEintrag[] = [
-  { href: "/lernpfade", label: "Lernpfade", icon: GraduationCap },
-  { href: "/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare },
+  { href: "/lernpfade", label: "Lernpfade", icon: GraduationCap, modul: "mitarbeiter-lernpfade" },
+  { href: "/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare, modul: "mitarbeiter-praxisfreigaben" },
 ];
 
 const ADMIN_OVERVIEW: NavEintrag = {
@@ -221,20 +230,27 @@ export function Sidebar({
   const [openGroup, setOpenGroup] = useState<string | null>(offen);
   const permsSet = new Set(permissions);
 
-  // Filter ADMIN_GROUPS auf Permission-Basis:
-  //  - Eintrag mit `modul`: nur sichtbar wenn hatModulZugriff(permissions, modul)
-  //  - Eintrag ohne `modul` (z.B. Showcase): nach alter Logik (Dev-Flag)
-  // Fallback fuer Migrations-Lag: wenn Permissions leer sind UND der
-  // User Fuehrungskraft+ ist, zeige nach alter Rolle-basierter Logik
-  // (kann_provisionen, istDev, sonst alles). So bricht der UI nicht
-  // bevor Migration 0061 eingespielt ist.
+  // Bereichs-spezifische Aktiv-Flags:
+  //  - Verwaltung: irgendeine Permission ohne "mitarbeiter-"-Praefix
+  //  - Mitarbeiter: irgendeine "mitarbeiter-"-Permission
+  // Wenn Bereich INAKTIV ist (= Migrations-Lag oder leer), gilt die
+  // alte Rolle-basierte Logik fuer den jeweiligen Bereich. Damit bricht
+  // weder Verwaltungs- noch Mitarbeiter-Sidebar bei Migrations-Lag,
+  // und Custom-Rollen filtern strikt sobald sie greifen.
   const istDev = process.env.NODE_ENV === "development";
-  const permissionsAktiv = permsSet.size > 0;
+  let verwaltungAktiv = false;
+  let mitarbeiterAktiv = false;
+  for (const p of permsSet) {
+    if (p.startsWith("mitarbeiter-")) mitarbeiterAktiv = true;
+    else verwaltungAktiv = true;
+    if (verwaltungAktiv && mitarbeiterAktiv) break;
+  }
+
   const sichtbareGruppen = ADMIN_GROUPS.map((g) => ({
     ...g,
     eintraege: g.eintraege.filter((e) => {
       if (e.href === "/admin/showcase") return istDev;
-      if (permissionsAktiv) {
+      if (verwaltungAktiv) {
         if (!e.modul) return true;
         return hatModulZugriff(permsSet, e.modul);
       }
@@ -245,6 +261,27 @@ export function Sidebar({
       return true;
     }),
   })).filter((g) => g.eintraege.length > 0);
+
+  // Mitarbeiter-Bereich filtern. Bei aktiver Permission-Welt strikt;
+  // sonst alte Logik (Provisionen nur mit Boolean, Rest immer).
+  function filterMitarbeiter(items: NavEintrag[]): NavEintrag[] {
+    if (mitarbeiterAktiv) {
+      return items.filter((e) =>
+        e.modul ? hatModulZugriff(permsSet, e.modul) : true,
+      );
+    }
+    return items.filter((e) => {
+      if (e.href === "/provisionen" && !kannProvisionen) return false;
+      return true;
+    });
+  }
+  const meinTagSichtbar = mitarbeiterAktiv
+    ? hatModulZugriff(permsSet, "mitarbeiter-dashboard")
+    : true;
+  const studioNav = filterMitarbeiter(STUDIO_NAV);
+  const verkaufNav = filterMitarbeiter(VERKAUF_NAV);
+  const teamNav = filterMitarbeiter(TEAM_NAV);
+  const lernenNav = filterMitarbeiter(LERNEN_NAV);
 
   function toggle(id: string) {
     setOpenGroup((prev) => (prev === id ? null : id));
@@ -302,37 +339,45 @@ export function Sidebar({
             </>
           ) : (
             <>
-              <ul className="space-y-0.5">
-                <li>
-                  <NavLink eintrag={MEIN_TAG} pathname={pathname} />
-                </li>
-              </ul>
-              <NavGruppe
-                label="Studio"
-                eintraege={STUDIO_NAV}
-                pathname={pathname}
-                className="mt-5"
-              />
-              {kannProvisionen && (
+              {meinTagSichtbar && (
+                <ul className="space-y-0.5">
+                  <li>
+                    <NavLink eintrag={MEIN_TAG} pathname={pathname} />
+                  </li>
+                </ul>
+              )}
+              {studioNav.length > 0 && (
                 <NavGruppe
-                  label="Verkauf"
-                  eintraege={VERKAUF_NAV}
+                  label="Studio"
+                  eintraege={studioNav}
                   pathname={pathname}
                   className="mt-5"
                 />
               )}
-              <NavGruppe
-                label="Team"
-                eintraege={TEAM_NAV}
-                pathname={pathname}
-                className="mt-5"
-              />
-              <NavGruppe
-                label="Lernen"
-                eintraege={LERNEN_NAV}
-                pathname={pathname}
-                className="mt-5"
-              />
+              {verkaufNav.length > 0 && (
+                <NavGruppe
+                  label="Verkauf"
+                  eintraege={verkaufNav}
+                  pathname={pathname}
+                  className="mt-5"
+                />
+              )}
+              {teamNav.length > 0 && (
+                <NavGruppe
+                  label="Team"
+                  eintraege={teamNav}
+                  pathname={pathname}
+                  className="mt-5"
+                />
+              )}
+              {lernenNav.length > 0 && (
+                <NavGruppe
+                  label="Lernen"
+                  eintraege={lernenNav}
+                  pathname={pathname}
+                  className="mt-5"
+                />
+              )}
             </>
           )}
         </nav>

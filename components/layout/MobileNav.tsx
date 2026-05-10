@@ -31,13 +31,15 @@ type MobileLink = {
   modul?: Modul;
 };
 
-// Mitarbeiter: 4 daily-use Tabs + Center-FAB zum Hub-Sheet
-// (Mitarbeiter-Bereich nicht permission-gated -- bleibt unveraendert.)
-const MITARBEITER_LINKS: MobileLink[] = [
-  { href: "/dashboard", label: "Mein Tag", icon: Home },
-  { href: "/aufgaben", label: "Aufgaben", icon: ListTodo },
-  { href: "/lohn", label: "Schichten", icon: Clock },
-  { href: "/formulare", label: "Anfragen", icon: FileText },
+// Mitarbeiter: 4 daily-use Tabs + Center-FAB zum Hub-Sheet.
+// Pro Eintrag das Permission-Modul ("mitarbeiter-..."). Custom-Rollen
+// filtern strikt; Standard-Rollen sehen alle (permissive default in
+// getCurrentProfile).
+const MITARBEITER_LINKS_ALLE: MobileLink[] = [
+  { href: "/dashboard", label: "Mein Tag", icon: Home, modul: "mitarbeiter-dashboard" },
+  { href: "/aufgaben", label: "Aufgaben", icon: ListTodo, modul: "mitarbeiter-aufgaben" },
+  { href: "/lohn", label: "Schichten", icon: Clock, modul: "mitarbeiter-lohn" },
+  { href: "/formulare", label: "Anfragen", icon: FileText, modul: "mitarbeiter-formulare" },
 ];
 
 // Verwaltungs-Modus: 4 Operations-Tabs + Center-FAB zum Admin-Hub.
@@ -64,14 +66,20 @@ export function MobileNav({
   const zeigeAdmin = istFuehrungskraftOderHoeher(rolle);
   const adminMode = pathname === "/admin" || pathname.startsWith("/admin/");
   const permsSet = new Set(permissions);
-  const permissionsAktiv = permsSet.size > 0;
+  let verwaltungAktiv = false;
+  let mitarbeiterAktiv = false;
+  for (const p of permsSet) {
+    if (p.startsWith("mitarbeiter-")) mitarbeiterAktiv = true;
+    else verwaltungAktiv = true;
+    if (verwaltungAktiv && mitarbeiterAktiv) break;
+  }
 
-  // Verwaltung-Tabs auf Permissions filtern. Wenn Permissions inaktiv
-  // (Migrations-Lag), zeige alle Tabs (alte Logik).
-  // Wir behalten immer 4 Tabs -- wenn ein Tab gefiltert wuerde, fallen
-  // wir auf "Übersicht" als Platzhalter zurueck, damit das Grid stabil
-  // bleibt. Echte Filterung passiert auch im Hub-Sheet.
-  const verwaltungLinks: MobileLink[] = permissionsAktiv
+  // Tabs auf Permissions filtern. Wenn Bereich inaktiv (Migrations-Lag
+  // oder leer), zeige alle Tabs (alte Logik). Wir behalten immer 4 Tabs
+  // -- wenn ein Tab gefiltert wuerde, fallen wir auf den ersten
+  // Eintrag als Platzhalter zurueck, damit das Grid stabil bleibt.
+  // Echte Filterung passiert im Hub-Sheet.
+  const verwaltungLinks: MobileLink[] = verwaltungAktiv
     ? VERWALTUNG_LINKS_ALLE.map((l) =>
         !l.modul || hatModulZugriff(permsSet, l.modul)
           ? l
@@ -79,7 +87,15 @@ export function MobileNav({
       )
     : VERWALTUNG_LINKS_ALLE;
 
-  const links = zeigeAdmin && adminMode ? verwaltungLinks : MITARBEITER_LINKS;
+  const mitarbeiterLinks: MobileLink[] = mitarbeiterAktiv
+    ? MITARBEITER_LINKS_ALLE.map((l) =>
+        !l.modul || hatModulZugriff(permsSet, l.modul)
+          ? l
+          : MITARBEITER_LINKS_ALLE[0],
+      )
+    : MITARBEITER_LINKS_ALLE;
+
+  const links = zeigeAdmin && adminMode ? verwaltungLinks : mitarbeiterLinks;
 
   return (
     <>

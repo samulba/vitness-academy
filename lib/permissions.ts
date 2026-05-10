@@ -14,9 +14,16 @@
  *
  * RLS bleibt vorerst auf der enum-Logik; Custom Rollen mit Basis-Level
  * "admin" erben dadurch automatisch alle DB-Rechte ihrer Basis-Rolle.
+ *
+ * Bereiche:
+ *   - VERWALTUNG_MODULE: alles unter /admin/*. Default-deny --
+ *     Permission muss explizit gesetzt sein.
+ *   - MITARBEITER_MODULE: Tabs unter /(app)/*. Permissive default fuer
+ *     Standard-Rollen ohne Custom-Rolle (siehe getCurrentProfile);
+ *     Custom-Rollen filtern explizit.
  */
 
-export const MODULE = [
+export const VERWALTUNG_MODULE = [
   "lernpfade",
   "quizze",
   "praxisaufgaben",
@@ -40,12 +47,59 @@ export const MODULE = [
   "provisionen",
 ] as const;
 
+/**
+ * Mitarbeiter-Bereich-Module ("/(app)/*"-Tabs). Praefix "mitarbeiter-"
+ * grenzt sie eindeutig von den gleichnamigen Verwaltungs-Modulen ab
+ * (z.B. "lernpfade" = Admin-Verwaltung von Lernpfaden,
+ * "mitarbeiter-lernpfade" = eigene Lernpfade durchgehen).
+ *
+ * Aktion ist immer nur "view" -- entweder darf der Mitarbeiter den Tab
+ * sehen oder nicht. Was er auf der Seite tut, regelt RLS.
+ */
+export const MITARBEITER_MODULE = [
+  "mitarbeiter-dashboard",
+  "mitarbeiter-aufgaben",
+  "mitarbeiter-formulare",
+  "mitarbeiter-maengel",
+  "mitarbeiter-putzprotokoll",
+  "mitarbeiter-lohn",
+  "mitarbeiter-provisionen",
+  "mitarbeiter-infos",
+  "mitarbeiter-feedback",
+  "mitarbeiter-kontakte",
+  "mitarbeiter-wissen",
+  "mitarbeiter-lernpfade",
+  "mitarbeiter-praxisfreigaben",
+] as const;
+
+export const MODULE = [
+  ...VERWALTUNG_MODULE,
+  ...MITARBEITER_MODULE,
+] as const;
+
+export type VerwaltungModul = (typeof VERWALTUNG_MODULE)[number];
+export type MitarbeiterModul = (typeof MITARBEITER_MODULE)[number];
 export type Modul = (typeof MODULE)[number];
 
 export const AKTIONEN = ["view", "create", "edit", "delete"] as const;
 export type Aktion = (typeof AKTIONEN)[number];
 
+/**
+ * Mitarbeiter-Module kennen nur "view". Im Rollen-Editor werden die
+ * anderen Spalten fuer diese Module ausgeblendet.
+ */
+export const MITARBEITER_AKTIONEN = ["view"] as const;
+
 export type Permission = { modul: Modul; aktion: Aktion };
+
+export function istMitarbeiterModul(m: Modul): m is MitarbeiterModul {
+  return (MITARBEITER_MODULE as readonly string[]).includes(m);
+}
+
+/** Aktionen, die fuer ein bestimmtes Modul gueltig sind. */
+export function aktionenFuerModul(m: Modul): readonly Aktion[] {
+  return istMitarbeiterModul(m) ? MITARBEITER_AKTIONEN : AKTIONEN;
+}
 
 export const MODUL_LABELS: Record<Modul, string> = {
   lernpfade: "Lernpfade",
@@ -68,6 +122,20 @@ export const MODUL_LABELS: Record<Modul, string> = {
   feedback: "Mitglieder-Feedback",
   lohn: "Lohnabrechnungen",
   provisionen: "Provisionen",
+  // Mitarbeiter-Bereich
+  "mitarbeiter-dashboard": "Mein Tag (Dashboard)",
+  "mitarbeiter-aufgaben": "Aufgaben",
+  "mitarbeiter-formulare": "Anfragen / Formulare",
+  "mitarbeiter-maengel": "Mängel melden",
+  "mitarbeiter-putzprotokoll": "Putzprotokoll",
+  "mitarbeiter-lohn": "Schichten & Lohn",
+  "mitarbeiter-provisionen": "Provisionen",
+  "mitarbeiter-infos": "Wichtige Infos",
+  "mitarbeiter-feedback": "Mitglieder-Feedback",
+  "mitarbeiter-kontakte": "Kontakte",
+  "mitarbeiter-wissen": "Handbuch",
+  "mitarbeiter-lernpfade": "Lernpfade",
+  "mitarbeiter-praxisfreigaben": "Praxisfreigaben",
 };
 
 export const AKTION_LABELS: Record<Aktion, string> = {
@@ -113,7 +181,7 @@ export function hatModulZugriff(
   modul: Modul,
 ): boolean {
   if (!permissions) return false;
-  for (const a of AKTIONEN) {
+  for (const a of aktionenFuerModul(modul)) {
     if (permissions.has(permissionKey(modul, a))) return true;
   }
   return false;
