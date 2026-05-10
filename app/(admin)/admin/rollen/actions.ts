@@ -193,7 +193,10 @@ export async function rolleAktualisieren(
  * Audit-Log und Profile-Refs erhalten bleiben.
  */
 export async function rolleArchivieren(id: string): Promise<void> {
-  await requirePermission("rollen", "delete");
+  // Archivieren ist reversibel (setzt nur archived_at) -- edit-Permission
+  // statt delete. Migration 0025 schliesst Admin explizit von rollen:delete
+  // aus (nur Superadmin), aber Admin muss Custom-Rollen archivieren koennen.
+  await requirePermission("rollen", "edit");
   if (!istUUID(id)) redirect("/admin/rollen?toast=error");
 
   const supabase = await createClient();
