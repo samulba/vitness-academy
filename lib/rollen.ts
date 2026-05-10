@@ -13,10 +13,10 @@ export type Profil = {
   avatar_path: string | null;
   kann_provisionen: boolean;
   template_id: string | null;
-  /** UUID der Custom-Rolle (FK auf public.roles), oder null wenn der
-   *  User nur die Basis-Rolle hat. Wenn gesetzt, überschreiben die
-   *  Permissions der Custom-Rolle die System-Defaults. */
-  custom_role_id: string | null;
+  /** UUIDs der zugewiesenen Custom-Rollen (aus profile_roles-Junction,
+   *  Migration 0066). Permissions aller zugewiesenen Rollen werden
+   *  beim Laden UNIONiert. Leer wenn der User nur die Basis-Rolle hat. */
+  custom_role_ids: ReadonlyArray<string>;
   /** Permissions als "modul:aktion"-Strings. Wird in getCurrentProfile()
    *  einmal pro Request via JOIN auf role_permissions geladen.
    *  Leer für User ohne Permission-Eintraege. */
