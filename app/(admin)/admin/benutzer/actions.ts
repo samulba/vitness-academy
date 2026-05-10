@@ -66,20 +66,20 @@ function tagsParsen(raw: FormDataEntryValue | null): string[] {
   ).slice(0, 12);
 }
 
-export async function profilAktualisieren(
+/**
+ * Aktualisiert die Stammdaten (persönliche Daten, Vertrag, Tags/Notiz).
+ * Rolle + Custom-Rollen + Heim-Standort + Provisionen-Flag werden
+ * separat in profilRollenAktualisieren behandelt.
+ */
+export async function profilStammdatenAktualisieren(
   benutzerId: string,
   formData: FormData,
 ): Promise<void> {
-  const aktuell = await ensureAdmin();
+  await ensureAdmin();
   const full_name = nullbarString(formData.get("full_name"));
   const first_name = nullbarString(formData.get("first_name"));
   const last_name = nullbarString(formData.get("last_name"));
   const phone = nullbarString(formData.get("phone"));
-  const role = String(formData.get("role") ?? "mitarbeiter") as Rolle;
-  if (!VALIDE_ROLLEN.includes(role)) return;
-  if (role === "superadmin" && aktuell.role !== "superadmin") return;
-  const location_id = nullbarString(formData.get("location_id"));
-  const kann_provisionen = formData.get("kann_provisionen") === "on";
   const personalnummer = nullbarString(formData.get("personalnummer"));
 
   const geburtsdatum = nullbarDate(formData.get("geburtsdatum"));
@@ -94,51 +94,104 @@ export async function profilAktualisieren(
   const tags = tagsParsen(formData.get("tags"));
   const interne_notiz = nullbarString(formData.get("interne_notiz"));
 
-  // Custom-Rolle: leerer String = "keine Custom-Rolle" = null setzen.
-  // Nicht-UUID = Wert ignorieren (Form-Tampering-Schutz).
-  const customRoleRaw = String(formData.get("custom_role_id") ?? "").trim();
-  const custom_role_id =
-    customRoleRaw.length > 0 && istUUID(customRoleRaw) ? customRoleRaw : null;
-
   const supabase = await createClient();
   const voll = {
-    full_name, first_name, last_name, phone, role, location_id,
-    kann_provisionen, personalnummer, geburtsdatum, eintritt_am, austritt_am,
-    vertragsart, wochenstunden, tags, interne_notiz, custom_role_id,
+    full_name, first_name, last_name, phone, personalnummer,
+    geburtsdatum, eintritt_am, austritt_am, vertragsart, wochenstunden,
+    tags, interne_notiz,
   };
-  const ohneCustom = {
-    full_name, first_name, last_name, phone, role, location_id,
-    kann_provisionen, personalnummer, geburtsdatum, eintritt_am, austritt_am,
-    vertragsart, wochenstunden, tags, interne_notiz,
-  };
-  const ohneNeu = {
-    full_name, first_name, last_name, phone, role, location_id,
-    kann_provisionen, personalnummer,
-  };
-  const basis = { full_name, role, location_id, kann_provisionen };
+  const ohneNeu = { full_name, first_name, last_name, phone, personalnummer };
+  const basis = { full_name };
 
-  // 4-Stufen-Fallback: voll (mit custom_role_id) -> ohne Custom-Rolle
-  // (Migration 0025 fehlt) -> ohne neue Felder (0044 fehlt) -> Basis.
+  // 3-Stufen-Fallback für Migrations-Lag.
   const erst = await supabase.from("profiles").update(voll).eq("id", benutzerId);
   if (erst.error) {
     const zweit = await supabase
       .from("profiles")
-      .update(ohneCustom)
+      .update(ohneNeu)
       .eq("id", benutzerId);
     if (zweit.error) {
-      const dritt = await supabase
-        .from("profiles")
-        .update(ohneNeu)
-        .eq("id", benutzerId);
-      if (dritt.error) {
-        await supabase.from("profiles").update(basis).eq("id", benutzerId);
-      }
+      await supabase.from("profiles").update(basis).eq("id", benutzerId);
     }
   }
 
   revalidatePath("/admin/benutzer");
   revalidatePath(`/admin/benutzer/${benutzerId}`);
-  redirect(`/admin/benutzer/${benutzerId}?toast=saved`);
+  redirect(`/admin/benutzer/${benutzerId}?toast=saved&tab=profil`);
+}
+
+/**
+ * Aktualisiert Rolle + Custom-Rollen + Heim-Standort + Provisionen-Flag.
+ * Custom-Rollen werden in der profile_roles-Junction (Migration 0066)
+ * gespeichert -- mehrere möglich.
+ */
+export async function profilRollenAktualisieren(
+  benutzerId: string,
+  formData: FormData,
+): Promise<void> {
+  const aktuell = await ensureAdmin();
+  const role = String(formData.get("role") ?? "mitarbeiter") as Rolle;
+  if (!VALIDE_ROLLEN.includes(role)) return;
+  if (role === "superadmin" && aktuell.role !== "superadmin") return;
+  const location_id = nullbarString(formData.get("location_id"));
+  const kann_provisionen = formData.get("kann_provisionen") === "on";
+
+  // Custom-Rollen (Multi, Migration 0066): FormData liefert mehrere
+  // "role_ids" Felder. Nicht-UUIDs verwerfen (Form-Tampering).
+  // Dedup via Set, archivierte Rollen vom Loader sind ohnehin nicht
+  // in der Dropdown-Liste -- die UUIDs hier müssen aber gegen die
+  // DB geprüft werden, sonst kann ein Tamperer eine fremde Rolle
+  // setzen. Wir filtern unten gegen die roles-Tabelle.
+  const roleIdsRoh = formData.getAll("role_ids").map((v) => String(v).trim());
+  const customRoleIdsCandidates = Array.from(
+    new Set(roleIdsRoh.filter((s) => s.length > 0 && istUUID(s))),
+  );
+
+  const supabase = await createClient();
+  await supabase
+    .from("profiles")
+    .update({ role, location_id, kann_provisionen })
+    .eq("id", benutzerId);
+
+  // Custom-Rollen-Validierung gegen DB: nur aktive, nicht-archivierte
+  // Rollen akzeptieren. Verhindert Form-Tampering mit fremden UUIDs.
+  let gueltigeRoleIds: string[] = [];
+  if (customRoleIdsCandidates.length > 0) {
+    const { data: rolePruefung } = await supabase
+      .from("roles")
+      .select("id")
+      .in("id", customRoleIdsCandidates)
+      .is("archived_at", null);
+    gueltigeRoleIds = ((rolePruefung ?? []) as { id: string }[]).map(
+      (r) => r.id,
+    );
+  }
+
+  // profile_roles atomar ersetzen: delete + insert. Wenn die
+  // Junction-Tabelle noch fehlt (Migration 0066 nicht gelaufen),
+  // schlucken wir die Fehler und arbeiten mit dem alten Single-
+  // Custom-Role-Modell (Update der profiles.custom_role_id-Spalte).
+  const deleteRes = await supabase
+    .from("profile_roles")
+    .delete()
+    .eq("profile_id", benutzerId);
+  if (deleteRes.error) {
+    const fallback = gueltigeRoleIds[0] ?? null;
+    await supabase
+      .from("profiles")
+      .update({ custom_role_id: fallback })
+      .eq("id", benutzerId);
+  } else if (gueltigeRoleIds.length > 0) {
+    const rows = gueltigeRoleIds.map((role_id) => ({
+      profile_id: benutzerId,
+      role_id,
+    }));
+    await supabase.from("profile_roles").insert(rows);
+  }
+
+  revalidatePath("/admin/benutzer");
+  revalidatePath(`/admin/benutzer/${benutzerId}`);
+  redirect(`/admin/benutzer/${benutzerId}?toast=saved&tab=rolle`);
 }
 
 export async function lernpfadZuweisen(
