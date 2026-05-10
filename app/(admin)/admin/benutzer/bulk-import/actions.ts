@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type BulkInputRow = {
@@ -23,7 +23,7 @@ export type BulkErgebnis = {
 export async function bulkImportieren(
   rows: BulkInputRow[],
 ): Promise<{ ergebnisse: BulkErgebnis[] }> {
-  const aktuellerAdmin = await requireRole(["admin", "superadmin"]);
+  const aktuellerAdmin = await requirePermission("benutzer", "create");
   const admin = createAdminClient();
   const ergebnisse: BulkErgebnis[] = [];
 

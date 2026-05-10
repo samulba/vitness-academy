@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ladePayouts } from "@/lib/provisionen";
 
@@ -21,7 +21,7 @@ function fmtNum(n: number): string {
  * eine Zeile pro Eintrag liefert.
  */
 export async function GET(request: Request) {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "view");
 
   const url = new URL(request.url);
   const monat = url.searchParams.get("monat");

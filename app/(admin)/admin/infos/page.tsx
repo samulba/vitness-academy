@@ -2,13 +2,13 @@ import { EyeOff, Megaphone, Pin, Plus, Siren } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeAnnouncements } from "@/lib/infos";
 import { ladeStandorte } from "@/lib/standorte";
 import { InfosTable } from "./InfosTable";
 
 export default async function InfosAdminPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("infos", "view");
   // Admin sieht alle Infos aller Standorte.
   const [infos, standorte] = await Promise.all([
     ladeAnnouncements({ nurPublished: false, locationId: null }),

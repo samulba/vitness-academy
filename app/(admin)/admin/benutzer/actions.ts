@@ -8,7 +8,7 @@ import {
   getCurrentProfile,
   istAdmin,
   istFuehrungskraftOderHoeher,
-  requireRole,
+  requirePermission,
 } from "@/lib/auth";
 import { istUUID } from "@/lib/utils";
 import type { Rolle } from "@/lib/rollen";
@@ -349,7 +349,7 @@ export async function notizAnlegen(
   benutzerId: string,
   formData: FormData,
 ): Promise<void> {
-  const aktuell = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  const aktuell = await requirePermission("benutzer", "edit");
   const body = String(formData.get("body") ?? "").trim();
   if (body.length === 0) {
     redirect(`/admin/benutzer/${benutzerId}?toast=error`);
@@ -373,7 +373,7 @@ export async function notizLoeschen(
   notizId: string,
   benutzerId: string,
 ): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("benutzer", "edit");
 
   const supabase = await createClient();
   await supabase.from("mitarbeiter_notizen").delete().eq("id", notizId);
@@ -386,11 +386,7 @@ export async function checklistTogglen(
   itemId: string,
   benutzerId: string,
 ): Promise<void> {
-  const aktuell = await requireRole([
-    "fuehrungskraft",
-    "admin",
-    "superadmin",
-  ]);
+  const aktuell = await requirePermission("benutzer", "edit");
 
   const supabase = await createClient();
   const { data: existing } = await supabase

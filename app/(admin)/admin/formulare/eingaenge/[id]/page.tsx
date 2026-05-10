@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusPill } from "@/components/admin/StatusPill";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import {
   istFileWert,
   istVertretungsPlan,
@@ -35,7 +35,7 @@ export default async function EingangsDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("formulare", "view");
   const { id } = await params;
   const s = await ladeSubmission(id);
   if (!s) notFound();

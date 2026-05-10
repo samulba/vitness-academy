@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import {
   fotoUrlFuerPfad,
   ladeMangel,
@@ -20,7 +20,7 @@ export default async function MangelDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("maengel", "view");
   const { id } = await params;
   const m = await ladeMangel(id);
   if (!m) notFound();

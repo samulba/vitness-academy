@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
 import { StatusPill } from "@/components/admin/StatusPill";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import {
   aggregiere,
   formatEuro,
@@ -71,7 +71,7 @@ export default async function ProvisionenAdminPage({
     status?: string;
   }>;
 }) {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "view");
   const sp = await searchParams;
   const monat = sp.monat?.match(/^\d{4}-\d{2}$/) ? sp.monat : aktuellerMonat();
   const vertrieblerFilter = sp.vertriebler ?? null;

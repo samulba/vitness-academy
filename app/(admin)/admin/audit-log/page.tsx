@@ -1,5 +1,5 @@
 import { Activity, History, Pencil, Plus, Trash2 } from "lucide-react";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -140,7 +140,7 @@ export default async function AuditLogPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("audit", "view");
   const sp = await searchParams;
 
   const tableName = typeof sp.tabelle === "string" ? sp.tabelle : undefined;

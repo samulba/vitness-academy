@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeKontakt, vollerName } from "@/lib/kontakte";
 import { ladeRollen } from "@/lib/contact-roles";
 import { KontaktForm } from "../KontaktForm";
@@ -12,7 +12,7 @@ export default async function KontaktBearbeitenPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("kontakte", "view");
   const { id } = await params;
   const [k, rollen] = await Promise.all([ladeKontakt(id), ladeRollen()]);
   if (!k) notFound();

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatDatum } from "@/lib/format";
 
@@ -8,7 +8,7 @@ import { formatDatum } from "@/lib/format";
  * Eine Zeile pro Mitarbeiter × zugewiesener Lernpfad.
  */
 export async function GET() {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("fortschritt", "view");
   const supabase = await createClient();
 
   // Mitarbeiter

@@ -3,13 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 
 /** Stellt sicher dass es ein Template fuer den Standort gibt. */
 export async function templateAnlegenWennFehlt(
   locationId: string,
 ): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("putzprotokolle", "create");
   const supabase = await createClient();
   const { data: existiert } = await supabase
     .from("cleaning_protocol_templates")
@@ -31,7 +31,7 @@ export async function sectionAnlegen(
   templateId: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("putzprotokolle", "create");
   const titel = String(formData.get("titel") ?? "").trim();
   if (titel.length < 2) {
     redirect(`/admin/putzprotokolle/templates?toast=titel-fehlt`);
@@ -72,7 +72,7 @@ export async function sectionAktualisieren(
   sectionId: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("putzprotokolle", "edit");
   const titel = String(formData.get("titel") ?? "").trim();
   const aufgabenRaw = String(formData.get("aufgaben") ?? "");
   // Eine Aufgabe pro Zeile
@@ -105,7 +105,7 @@ export async function sectionAktualisieren(
 }
 
 export async function sectionLoeschen(sectionId: string): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("putzprotokolle", "delete");
   const supabase = await createClient();
   const { data: section } = await supabase
     .from("cleaning_protocol_sections")
@@ -130,7 +130,7 @@ export async function sectionVerschieben(
   sectionId: string,
   richtung: "up" | "down",
 ): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("putzprotokolle", "edit");
   const supabase = await createClient();
 
   const { data: section } = await supabase

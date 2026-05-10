@@ -13,7 +13,7 @@ import {
   QuizBestehensquoteChart,
   QuizFragenChart,
 } from "@/components/charts/QuizCharts";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
   frageStats,
@@ -37,7 +37,7 @@ export default async function QuizAuswertungPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("quizze", "view");
   const { id } = await params;
   const quiz = await ladeQuizMeta(id);
   if (!quiz) notFound();

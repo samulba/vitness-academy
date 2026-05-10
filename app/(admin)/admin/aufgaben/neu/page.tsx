@@ -1,11 +1,11 @@
 import { PageHeader } from "@/components/ui/page-header";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { AufgabeForm } from "../AufgabeForm";
 import { aufgabeAnlegen } from "../actions";
 
 export default async function NeueAufgabePage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("aufgaben", "create");
 
   const supabase = await createClient();
   const { data } = await supabase

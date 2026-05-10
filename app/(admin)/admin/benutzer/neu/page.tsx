@@ -1,11 +1,11 @@
 import { PageHeader } from "@/components/ui/page-header";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ladeTemplatesFuerForm } from "@/lib/onboarding-templates";
 import { NeuerBenutzerForm } from "./Form";
 
 export default async function NeuerBenutzerPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("benutzer", "create");
 
   const supabase = await createClient();
   const [{ data: pfade }, { data: locs }, templates] = await Promise.all([

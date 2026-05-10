@@ -1,12 +1,12 @@
 import { Plus, Settings2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeKontakte } from "@/lib/kontakte";
 import { KontakteListe } from "@/components/kontakte/KontakteListe";
 
 export default async function KontakteAdminPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("kontakte", "view");
   // Admin sieht alle Kontakte ueber alle Standorte.
   const kontakte = await ladeKontakte(null);
 

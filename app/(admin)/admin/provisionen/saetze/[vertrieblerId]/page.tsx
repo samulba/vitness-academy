@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
   formatEuro,
@@ -47,7 +47,7 @@ export default async function PersoenlicheSaetzePage({
 }: {
   params: Promise<{ vertrieblerId: string }>;
 }) {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "view");
   const { vertrieblerId } = await params;
 
   const [vertriebler, rates, bonusStufen, targets] = await Promise.all([

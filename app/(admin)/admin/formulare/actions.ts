@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import type { FormField, SubmissionStatus } from "@/lib/formulare";
 
 function slugify(input: string): string {
@@ -61,7 +61,7 @@ function buildPayload(formData: FormData) {
 }
 
 export async function templateAnlegen(formData: FormData): Promise<void> {
-  const profile = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  const profile = await requirePermission("formulare", "create");
   const payload = buildPayload(formData);
   if (!payload.title) return;
 
@@ -96,7 +96,7 @@ export async function templateAktualisieren(
   id: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("formulare", "edit");
   const payload = buildPayload(formData);
   if (!payload.title) return;
   const supabase = await createClient();
@@ -114,7 +114,7 @@ export async function templateAktualisieren(
 }
 
 export async function templateLoeschen(id: string): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("formulare", "delete");
   const supabase = await createClient();
   const { error } = await supabase
     .from("form_templates")
@@ -133,11 +133,7 @@ export async function submissionStatusSetzen(
   status: SubmissionStatus,
   formData: FormData,
 ): Promise<void> {
-  const profile = await requireRole([
-    "fuehrungskraft",
-    "admin",
-    "superadmin",
-  ]);
+  const profile = await requirePermission("formulare", "edit");
   const note = String(formData.get("admin_note") ?? "").trim();
   const supabase = await createClient();
   const { error } = await supabase

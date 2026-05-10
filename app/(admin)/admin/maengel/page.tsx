@@ -8,13 +8,13 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeMaengel } from "@/lib/maengel";
 import { tagesCounts, trendAusVerlauf } from "@/lib/admin/sparklines";
 import { MaengelTable } from "./MaengelTable";
 
 export default async function MaengelAdminPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("maengel", "view");
   // Admin-Bereich zeigt standardmaessig alle Standorte
   // (kein Standort-Switcher in der Admin-Sidebar/Topbar mehr).
   const sparkGemeldet = await tagesCounts("studio_issues", "created_at");

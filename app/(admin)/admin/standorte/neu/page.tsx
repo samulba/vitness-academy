@@ -1,11 +1,11 @@
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { standortAnlegen } from "../actions";
 
 export default async function NeuerStandortPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("standorte", "create");
 
   return (
     <div className="mx-auto max-w-xl space-y-6">

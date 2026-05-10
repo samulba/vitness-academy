@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { istUUID } from "@/lib/utils";
 import type { Rolle } from "@/lib/rollen";
@@ -26,11 +26,7 @@ export async function mitarbeiterAnlegen(
   _prev: OnboardingErgebnis | null,
   formData: FormData,
 ): Promise<OnboardingErgebnis> {
-  const aktuellerAdmin = await requireRole([
-    "fuehrungskraft",
-    "admin",
-    "superadmin",
-  ]);
+  const aktuellerAdmin = await requirePermission("benutzer", "create");
 
   const firstName = String(formData.get("first_name") ?? "").trim();
   const lastName = String(formData.get("last_name") ?? "").trim();

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, MapPin, Plus, Sparkles } from "lucide-react";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeStandorte } from "@/lib/standorte";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/page-header";
@@ -10,7 +10,7 @@ import { templateAnlegenWennFehlt } from "./actions";
 export const dynamic = "force-dynamic";
 
 export default async function PutzprotokollTemplatesPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("putzprotokolle", "view");
   const standorte = await ladeStandorte();
 
   // Pro Standort: existiert Template? Wieviele Sections?

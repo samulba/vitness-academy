@@ -31,7 +31,7 @@ import { TemplateAuswahl } from "@/components/benutzer/TemplateAuswahl";
 import { ladeTemplatesFuerForm } from "@/lib/onboarding-templates";
 import { ladeRollen } from "@/lib/rollen-verwaltung";
 import { MODUL_LABELS } from "@/lib/permissions";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { formatDatum, formatProzent, rolleLabel } from "@/lib/format";
 import {
   lernpfadEntziehen,
@@ -212,7 +212,7 @@ export default async function BenutzerBearbeitenPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const aktuell = await requireRole(["admin", "superadmin"]);
+  const aktuell = await requirePermission("benutzer", "edit");
 
   const [
     profil,

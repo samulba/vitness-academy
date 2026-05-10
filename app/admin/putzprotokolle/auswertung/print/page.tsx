@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { auswertungZeitraum } from "@/lib/putzprotokoll_stats";
 import { formatDatum, formatDatumUhrzeitBerlin } from "@/lib/format";
@@ -17,7 +17,7 @@ export default async function ComplianceReportPrint({
     bis?: string;
   }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("putzprotokolle", "view");
   const sp = await searchParams;
   if (!sp.locationId || !sp.von || !sp.bis) notFound();
 

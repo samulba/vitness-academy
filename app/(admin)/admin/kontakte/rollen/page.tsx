@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeRollen } from "@/lib/contact-roles";
 import { rolleAnlegen, rolleLoeschen } from "../actions";
 
 export default async function RollenAdminPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("kontakte", "view");
   const rollen = await ladeRollen();
 
   return (

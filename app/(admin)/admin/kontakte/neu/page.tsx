@@ -1,11 +1,11 @@
 import { PageHeader } from "@/components/ui/page-header";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeRollen } from "@/lib/contact-roles";
 import { KontaktForm } from "../KontaktForm";
 import { kontaktAnlegen } from "../actions";
 
 export default async function NeuerKontaktPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("kontakte", "create");
   const rollen = await ladeRollen();
   return (
     <div className="mx-auto max-w-2xl space-y-6">

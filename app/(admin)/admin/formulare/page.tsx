@@ -2,12 +2,12 @@ import { FileText, Inbox, Plus, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeSubmissions, ladeTemplates } from "@/lib/formulare";
 import { FormulareTable } from "./FormulareTable";
 
 export default async function FormulareAdminPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("formulare", "view");
   const [templates, offen, alle] = await Promise.all([
     ladeTemplates(),
     ladeSubmissions({ status: ["eingereicht", "in_bearbeitung"] }),

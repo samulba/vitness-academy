@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { istUUID } from "@/lib/utils";
 import {
@@ -51,7 +51,7 @@ function permissionsAusFormData(
  * Nur Admin + Superadmin (RLS aus Migration 0061).
  */
 export async function rolleAnlegen(formData: FormData): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("rollen", "create");
 
   const name = String(formData.get("name") ?? "").trim();
   const beschreibung = String(formData.get("beschreibung") ?? "").trim() || null;
@@ -122,7 +122,7 @@ export async function rolleAktualisieren(
   id: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("rollen", "edit");
   if (!istUUID(id)) redirect("/admin/rollen?toast=error");
 
   const supabase = await createClient();
@@ -193,7 +193,7 @@ export async function rolleAktualisieren(
  * Audit-Log und Profile-Refs erhalten bleiben.
  */
 export async function rolleArchivieren(id: string): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("rollen", "delete");
   if (!istUUID(id)) redirect("/admin/rollen?toast=error");
 
   const supabase = await createClient();
@@ -228,7 +228,7 @@ export async function rolleArchivieren(id: string): Promise<void> {
 export async function ladeSystemRollenVorlage(
   baseLevel: BaseLevel,
 ): Promise<{ modul: Modul; aktion: Aktion }[]> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("rollen", "view");
   const roleId = SYSTEM_ROLE_IDS[baseLevel];
   if (!roleId) return [];
   const supabase = await createClient();

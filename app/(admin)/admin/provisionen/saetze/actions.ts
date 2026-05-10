@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 const VALID_LAUFZEITEN = ["26", "52", "104", "sonst"];
@@ -15,7 +15,7 @@ function parseProzent(raw: FormDataEntryValue | null): number {
 }
 
 export async function satzAnlegen(formData: FormData): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "create");
   const laufzeit = String(formData.get("laufzeit") ?? "");
   const prozent_beitrag = parseProzent(formData.get("prozent_beitrag"));
   const prozent_startpaket = parseProzent(formData.get("prozent_startpaket"));
@@ -45,7 +45,7 @@ export async function satzAnlegen(formData: FormData): Promise<void> {
 }
 
 export async function satzLoeschen(id: string): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "delete");
   const supabase = await createClient();
   const { error } = await supabase
     .from("commission_rates")
@@ -68,7 +68,7 @@ export async function personalSatzAnlegen(
   vertrieblerId: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "create");
   const laufzeit = String(formData.get("laufzeit") ?? "");
   const prozent_beitrag = parseProzent(formData.get("prozent_beitrag"));
   const prozent_startpaket = parseProzent(formData.get("prozent_startpaket"));
@@ -105,7 +105,7 @@ export async function personalSatzLoeschen(
   id: string,
   vertrieblerId: string,
 ): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "delete");
   const supabase = await createClient();
   const { error } = await supabase
     .from("commission_rates_personal")
@@ -133,7 +133,7 @@ function parseInt0(raw: FormDataEntryValue | null): number {
 }
 
 export async function bonusStufeAnlegen(formData: FormData): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "create");
   const ab = parseInt0(formData.get("ab_abschluessen"));
   const prozent = parseProzent(formData.get("bonus_prozent"));
   const valid_from = String(formData.get("valid_from") ?? "").trim();
@@ -183,7 +183,7 @@ export async function bonusStufeAnlegen(formData: FormData): Promise<void> {
 }
 
 export async function bonusStufeLoeschen(id: string): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "delete");
   const supabase = await createClient();
   // Vertriebler_id holen für sauberen redirect
   const { data: row } = await supabase
@@ -226,7 +226,7 @@ export async function targetSetzen(
   vertrieblerId: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "edit");
   const monatYYYYMM = String(formData.get("monat_yyyymm") ?? "").trim();
   const zielAbschluesseRaw = String(
     formData.get("ziel_abschluesse") ?? "",
@@ -269,7 +269,7 @@ export async function targetLoeschen(
   id: string,
   vertrieblerId: string,
 ): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "delete");
   const supabase = await createClient();
   const { error } = await supabase
     .from("commission_targets")

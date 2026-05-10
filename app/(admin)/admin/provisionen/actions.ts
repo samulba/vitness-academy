@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -14,7 +14,7 @@ export async function abschlussGenehmigen(
   id: string,
   formData: FormData,
 ): Promise<void> {
-  const profile = await requireRole(["admin", "superadmin"]);
+  const profile = await requirePermission("provisionen", "edit");
   const note = String(formData.get("review_note") ?? "").trim();
 
   const supabase = await createClient();
@@ -57,7 +57,7 @@ export async function abschlussAblehnen(
   id: string,
   formData: FormData,
 ): Promise<void> {
-  const profile = await requireRole(["admin", "superadmin"]);
+  const profile = await requirePermission("provisionen", "edit");
   const note = String(formData.get("review_note") ?? "").trim();
 
   if (note.length < 3) {
@@ -105,7 +105,7 @@ export async function abschlussStornieren(
   id: string,
   formData: FormData,
 ): Promise<void> {
-  const profile = await requireRole(["admin", "superadmin"]);
+  const profile = await requirePermission("provisionen", "edit");
   const grund = String(formData.get("storno_grund") ?? "").trim();
 
   if (grund.length < 3) {

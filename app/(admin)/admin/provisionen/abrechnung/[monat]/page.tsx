@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { StatusPill } from "@/components/admin/StatusPill";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import {
   formatEuro,
   ladeAbrechnungsVorschau,
@@ -28,7 +28,7 @@ export default async function AbrechnungDetailPage({
 }: {
   params: Promise<{ monat: string }>;
 }) {
-  const profile = await requireRole(["admin", "superadmin"]);
+  const profile = await requirePermission("provisionen", "view");
   const { monat } = await params;
 
   if (!/^\d{4}-\d{2}$/.test(monat)) {

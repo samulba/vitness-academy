@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 
 function buildPayload(formData: FormData): {
   first_name: string | null;
@@ -40,7 +40,7 @@ function buildPayload(formData: FormData): {
 }
 
 export async function kontaktAnlegen(formData: FormData): Promise<void> {
-  const profile = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  const profile = await requirePermission("kontakte", "create");
   const payload = buildPayload(formData);
 
   if (
@@ -72,7 +72,7 @@ export async function kontaktAktualisieren(
   id: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("kontakte", "edit");
   const payload = buildPayload(formData);
 
   const supabase = await createClient();
@@ -92,7 +92,7 @@ export async function kontaktAktualisieren(
 }
 
 export async function kontaktLoeschen(id: string): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("kontakte", "delete");
   const supabase = await createClient();
   const { error } = await supabase
     .from("studio_contacts")
@@ -113,7 +113,7 @@ export async function kontaktLoeschen(id: string): Promise<void> {
 // =============================================================
 
 export async function rolleAnlegen(formData: FormData): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("kontakte", "create");
   const name = String(formData.get("name") ?? "").trim().slice(0, 40);
   if (name.length === 0) {
     redirect("/admin/kontakte/rollen?toast=error");
@@ -135,7 +135,7 @@ export async function rolleAnlegen(formData: FormData): Promise<void> {
 }
 
 export async function rolleLoeschen(id: string): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("kontakte", "delete");
   const supabase = await createClient();
   const { error } = await supabase
     .from("studio_contact_roles")
