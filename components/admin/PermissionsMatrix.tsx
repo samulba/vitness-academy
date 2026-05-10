@@ -36,6 +36,7 @@ type Permission = { modul: Modul; aktion: Aktion };
 export function PermissionsMatrix({
   initial,
   vorlageLaden,
+  bereich,
 }: {
   initial: Permission[];
   /** Optional: Server-Action zum Laden einer System-Rolle als
@@ -44,6 +45,10 @@ export function PermissionsMatrix({
   vorlageLaden?: (
     baseLevel: "mitarbeiter" | "fuehrungskraft" | "admin" | "superadmin",
   ) => Promise<Permission[]>;
+  /** Welche Sektion gerendert wird. Default: beide (z.B. fuer Edit-
+   *  Pages, die nicht typgebunden sind). "mitarbeiter": nur Mitarbeiter-
+   *  Bereich (Tab-Sichtbarkeit). "verwaltung": nur Verwaltungs-Bereich. */
+  bereich?: "mitarbeiter" | "verwaltung";
 }) {
   const initialKeys = new Set(initial.map((p) => `${p.modul}:${p.aktion}`));
   const [aktiveKeys, setAktiveKeys] = useState<Set<string>>(initialKeys);
@@ -93,17 +98,27 @@ export function PermissionsMatrix({
   }
 
   function setzeAlle(alle: boolean) {
-    if (!alle) {
-      setAktiveKeys(new Set());
-      return;
-    }
-    const next = new Set<string>();
-    for (const m of MODULE) {
-      for (const a of aktionenFuerModul(m)) {
-        next.add(key(m, a));
+    // Bei typgebundener Matrix ("mitarbeiter"/"verwaltung") wirken
+    // "Alle setzen/entfernen" nur auf die sichtbare Sektion. Permissions
+    // der anderen Sektion (z.B. aus Edit-Page mit gemischten Daten)
+    // bleiben unberuehrt.
+    const wirkBereich =
+      bereich === "mitarbeiter"
+        ? MITARBEITER_MODULE
+        : bereich === "verwaltung"
+          ? VERWALTUNG_MODULE
+          : MODULE;
+    setAktiveKeys((prev) => {
+      const next = new Set(prev);
+      for (const m of wirkBereich) {
+        for (const a of aktionenFuerModul(m)) {
+          const k = key(m, a);
+          if (alle) next.add(k);
+          else next.delete(k);
+        }
       }
-    }
-    setAktiveKeys(next);
+      return next;
+    });
   }
 
   function ladeVorlage(
@@ -116,7 +131,13 @@ export function PermissionsMatrix({
     });
   }
 
-  const gesamtMoeglich = MODULE.reduce(
+  const sichtbareModule =
+    bereich === "mitarbeiter"
+      ? MITARBEITER_MODULE
+      : bereich === "verwaltung"
+        ? VERWALTUNG_MODULE
+        : MODULE;
+  const gesamtMoeglich = sichtbareModule.reduce(
     (sum, m) => sum + aktionenFuerModul(m).length,
     0,
   );
@@ -157,19 +178,13 @@ export function PermissionsMatrix({
         >
           Alle entfernen
         </button>
-        {vorlageLaden && (
+        {/* Vorlage nur fuer Verwaltungs-Rollen sinnvoll -- System-
+            Mitarbeiter-Rolle hat keine geseedeten Permissions. */}
+        {vorlageLaden && bereich !== "mitarbeiter" && (
           <>
             <span className="ml-auto text-[11px] text-muted-foreground">
               Vorlage:
             </span>
-            <button
-              type="button"
-              onClick={() => ladeVorlage("mitarbeiter")}
-              disabled={pending}
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1 text-xs font-medium transition-colors hover:bg-muted disabled:opacity-50"
-            >
-              <Sparkles className="h-3 w-3" /> Mitarbeiter
-            </button>
             <button
               type="button"
               onClick={() => ladeVorlage("fuehrungskraft")}
@@ -190,29 +205,33 @@ export function PermissionsMatrix({
         )}
       </div>
 
-      <BereichTabelle
-        titel="Verwaltungs-Bereich"
-        beschreibung="Sichtbarkeit der Tabs unter /admin/* und Schreib-Rechte. Default-Deny: nicht angekreuzt = unsichtbar."
-        module={VERWALTUNG_MODULE}
-        sichtbareAktionen={AKTIONEN}
-        aktiveKeys={aktiveKeys}
-        toggle={toggle}
-        setzeZeile={setzeModulZeile}
-        onAlleSetzen={() => setzeBereich(VERWALTUNG_MODULE, true)}
-        onAlleEntfernen={() => setzeBereich(VERWALTUNG_MODULE, false)}
-      />
+      {bereich !== "mitarbeiter" && (
+        <BereichTabelle
+          titel="Verwaltungs-Bereich"
+          beschreibung="Sichtbarkeit der Tabs unter /admin/* und Schreib-Rechte. Default-Deny: nicht angekreuzt = unsichtbar."
+          module={VERWALTUNG_MODULE}
+          sichtbareAktionen={AKTIONEN}
+          aktiveKeys={aktiveKeys}
+          toggle={toggle}
+          setzeZeile={setzeModulZeile}
+          onAlleSetzen={() => setzeBereich(VERWALTUNG_MODULE, true)}
+          onAlleEntfernen={() => setzeBereich(VERWALTUNG_MODULE, false)}
+        />
+      )}
 
-      <BereichTabelle
-        titel="Mitarbeiter-Bereich"
-        beschreibung={`Sichtbarkeit der Tabs in der Mitarbeiter-App (Mein Tag, Studio, Team, Verkauf, Lernen). Nur „Sehen“, weil interne Aktionen in der Mitarbeiter-App durch die DB-Policies geregelt sind.`}
-        module={MITARBEITER_MODULE}
-        sichtbareAktionen={["view"]}
-        aktiveKeys={aktiveKeys}
-        toggle={toggle}
-        setzeZeile={setzeModulZeile}
-        onAlleSetzen={() => setzeBereich(MITARBEITER_MODULE, true)}
-        onAlleEntfernen={() => setzeBereich(MITARBEITER_MODULE, false)}
-      />
+      {bereich !== "verwaltung" && (
+        <BereichTabelle
+          titel="Mitarbeiter-Bereich"
+          beschreibung={`Sichtbarkeit der Tabs in der Mitarbeiter-App (Mein Tag, Studio, Team, Verkauf, Lernen). Nur „Sehen“, weil interne Aktionen in der Mitarbeiter-App durch die DB-Policies geregelt sind.`}
+          module={MITARBEITER_MODULE}
+          sichtbareAktionen={["view"]}
+          aktiveKeys={aktiveKeys}
+          toggle={toggle}
+          setzeZeile={setzeModulZeile}
+          onAlleSetzen={() => setzeBereich(MITARBEITER_MODULE, true)}
+          onAlleEntfernen={() => setzeBereich(MITARBEITER_MODULE, false)}
+        />
+      )}
 
       <p className="text-xs text-muted-foreground">
         {aktiveKeys.size} von {gesamtMoeglich} Permissions aktiv.
