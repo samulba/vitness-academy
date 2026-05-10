@@ -395,44 +395,63 @@ export default async function DashboardPage() {
         />
       )}
 
-      {/* === Aufgaben heute === */}
-      {aufgaben.heute.length > 0 && (
-        <section className="space-y-3 sm:space-y-5">
-          <SectionHeader
-            eyebrow="Heute zu erledigen"
-            titel="Aufgaben"
-            href="/aufgaben"
-          />
-          <ul className="overflow-hidden rounded-2xl border border-border bg-card">
-            {aufgaben.heute.slice(0, 5).map((a, i) => (
-              <li key={a.id} className={i > 0 ? "border-t border-border" : ""}>
-                <AufgabenZeile a={a} />
-              </li>
-            ))}
-          </ul>
-        </section>
+      {/* === Aufgaben heute + Meine Anfragen ===
+          Bento-Pair auf Desktop (lg+): zwei Spalten nebeneinander statt
+          zwei full-width Striche untereinander. Wenn nur eines existiert,
+          full-width. */}
+      {(aufgaben.heute.length > 0 || anfragen.length > 0) && (
+        <div
+          className={
+            aufgaben.heute.length > 0 && anfragen.length > 0
+              ? "grid gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8"
+              : "space-y-6"
+          }
+        >
+          {aufgaben.heute.length > 0 && (
+            <section className="space-y-3 sm:space-y-4">
+              <BentoSectionHeader
+                eyebrow="Heute zu erledigen"
+                titel="Aufgaben"
+                href="/aufgaben"
+              />
+              <ul className="overflow-hidden rounded-2xl border border-border bg-card">
+                {aufgaben.heute.slice(0, 5).map((a, i) => (
+                  <li key={a.id} className={i > 0 ? "border-t border-border" : ""}>
+                    <AufgabenZeile a={a} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {anfragen.length > 0 && (
+            <section className="space-y-3 sm:space-y-4">
+              <BentoSectionHeader
+                eyebrow="Status deiner Anträge"
+                titel="Meine Anfragen"
+                href="/formulare"
+              />
+              <MeineAnfragenListe submissions={anfragen.slice(0, 4)} />
+            </section>
+          )}
+        </div>
       )}
 
-      {/* === Meine offenen Anfragen === */}
-      {anfragen.length > 0 && (
-        <section className="space-y-3 sm:space-y-5">
-          <SectionHeader
-            eyebrow="Status deiner Anträge"
-            titel="Meine Anfragen"
-            href="/formulare"
-          />
-          <MeineAnfragenListe submissions={anfragen.slice(0, 4)} />
-        </section>
-      )}
 
-
-      {/* === Mein Lernen (kompakt) — nur wenn offene Lektion === */}
-      {next && abgeschlossen < gesamt && (
-        <section>
+      {/* === Mein Lernen + Handbuch ===
+          Bento-Pair: Lernen-Card (wenn offene Lektion) + Handbuch-Promo
+          nebeneinander auf Desktop. */}
+      {next && abgeschlossen < gesamt ? (
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8">
           <Link
             href={`/lektionen/${next.lesson_id}`}
-            className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)] sm:gap-4 sm:rounded-2xl sm:p-5"
+            className="group relative flex items-center gap-3 overflow-hidden rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary)/0.4)] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.25)] sm:gap-4 sm:rounded-2xl sm:p-5"
           >
+            {/* Severity-Bar links */}
+            <span
+              aria-hidden
+              className="absolute left-0 top-0 h-full w-1 bg-[hsl(var(--primary))]"
+            />
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))] sm:h-11 sm:w-11">
               <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
             </span>
@@ -449,39 +468,66 @@ export default async function DashboardPage() {
             </div>
             <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))] sm:h-5 sm:w-5" />
           </Link>
+
+          <Link
+            href="/wissen"
+            className="group relative flex items-center gap-3 overflow-hidden rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary))] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.3)] sm:gap-4 sm:rounded-2xl sm:p-5"
+          >
+            <span
+              aria-hidden
+              className="absolute left-0 top-0 h-full w-1 bg-[hsl(var(--brand-pink))]"
+            />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))] sm:h-11 sm:w-11">
+              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))] sm:text-[11px]">
+                Vitness Handbuch
+              </p>
+              <p className="mt-0.5 text-sm font-semibold sm:text-base">
+                Schnelle Antworten für den Studio-Alltag
+              </p>
+            </div>
+            <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))] sm:h-5 sm:w-5" />
+          </Link>
+        </div>
+      ) : (
+        <section>
+          <Link
+            href="/wissen"
+            className="group relative flex items-center gap-3 overflow-hidden rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary))] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.3)] sm:gap-4 sm:rounded-2xl sm:p-5"
+          >
+            <span
+              aria-hidden
+              className="absolute left-0 top-0 h-full w-1 bg-[hsl(var(--brand-pink))]"
+            />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))] sm:h-11 sm:w-11">
+              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))] sm:text-[11px]">
+                Vitness Handbuch
+              </p>
+              <p className="mt-0.5 text-sm font-semibold sm:text-base">
+                Schnelle Antworten für den Studio-Alltag
+              </p>
+            </div>
+            <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))] sm:h-5 sm:w-5" />
+          </Link>
         </section>
       )}
-
-      {/* === Handbuch-Promo (kompakt) === */}
-      <section>
-        <Link
-          href="/wissen"
-          className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--primary))] hover:shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.3)] sm:gap-4 sm:rounded-2xl sm:p-5"
-        >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--brand-pink)/0.12)] text-[hsl(var(--brand-pink))] sm:h-11 sm:w-11">
-            <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))] sm:text-[11px]">
-              Vitness Handbuch
-            </p>
-            <p className="mt-0.5 text-sm font-semibold sm:text-base">
-              Schnelle Antworten für den Studio-Alltag
-            </p>
-          </div>
-          <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[hsl(var(--primary))] sm:h-5 sm:w-5" />
-        </Link>
-      </section>
 
     </div>
   );
 }
 
 /* -------------------------------------------------------------------- */
-/* Section-Header (responsiv: Eyebrow + Titel + "Alle ansehen"-Link)    */
+/* Bento-Section-Header (kompakter als SectionHeader, weil Cards in der */
+/* Bento-Pair-Grid auf Desktop nur halb so breit sind -- ein 3xl-Title  */
+/* wuerde da uebertrieben gross wirken).                                 */
 /* -------------------------------------------------------------------- */
 
-function SectionHeader({
+function BentoSectionHeader({
   eyebrow,
   titel,
   href,
@@ -496,17 +542,17 @@ function SectionHeader({
         <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--brand-pink))] sm:text-[11px] sm:tracking-[0.22em]">
           {eyebrow}
         </p>
-        <h2 className="mt-1 text-lg font-semibold tracking-tight sm:mt-2 sm:text-3xl">
+        <h2 className="mt-1 text-lg font-semibold tracking-tight sm:mt-1.5 sm:text-xl lg:text-2xl">
           {titel}
         </h2>
       </div>
       <Link
         href={href}
-        className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:text-sm"
+        className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         <span className="hidden sm:inline">Alle ansehen</span>
         <span className="sm:hidden">Alle</span>
-        <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        <ArrowRight className="h-3.5 w-3.5" />
       </Link>
     </div>
   );
