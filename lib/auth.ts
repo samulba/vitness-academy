@@ -5,6 +5,12 @@ import {
   type Profil,
   type Rolle,
 } from "@/lib/rollen";
+import {
+  permissionKey,
+  SYSTEM_ROLE_IDS,
+  type Aktion,
+  type Modul,
+} from "@/lib/permissions";
 
 export type { Profil, Rolle } from "@/lib/rollen";
 export {
@@ -28,42 +34,77 @@ export async function getCurrentProfile(): Promise<Profil | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Drei-Stufen-Fallback fuer Migrations-Lag:
-  //   Voll  = mit template_id (Migration 0050)
-  //   Mid   = mit kann_provisionen (Migration 0034) ohne template_id
-  //   Basis = ohne beides
+  // Vier-Stufen-Fallback fuer Migrations-Lag (jeweils ein Step
+  // weniger Spalten falls neuere Migration noch nicht ausgefuehrt):
+  //   Plus  = mit custom_role_id (Migration 0025)
+  //   Voll  = mit template_id (Migration 0050) ohne custom_role_id
+  //   Mid   = mit kann_provisionen (Migration 0034) ohne beides
+  //   Basis = ohne alle drei
   let row: Record<string, unknown> | null = null;
-  const voll = await supabase
+  const plus = await supabase
     .from("profiles")
     .select(
-      "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path, kann_provisionen, template_id",
+      "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path, kann_provisionen, template_id, custom_role_id",
     )
     .eq("id", user.id)
     .maybeSingle();
-  if (voll.data) {
-    row = voll.data as Record<string, unknown>;
+  if (plus.data) {
+    row = plus.data as Record<string, unknown>;
   } else {
-    const mid = await supabase
+    const voll = await supabase
       .from("profiles")
       .select(
-        "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path, kann_provisionen",
+        "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path, kann_provisionen, template_id",
       )
       .eq("id", user.id)
       .maybeSingle();
-    if (mid.data) {
-      row = mid.data as Record<string, unknown>;
+    if (voll.data) {
+      row = voll.data as Record<string, unknown>;
     } else {
-      const basis = await supabase
+      const mid = await supabase
         .from("profiles")
         .select(
-          "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path",
+          "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path, kann_provisionen",
         )
         .eq("id", user.id)
         .maybeSingle();
-      if (basis.data) row = basis.data as Record<string, unknown>;
+      if (mid.data) {
+        row = mid.data as Record<string, unknown>;
+      } else {
+        const basis = await supabase
+          .from("profiles")
+          .select(
+            "id, full_name, first_name, last_name, phone, role, location_id, onboarding_done, archived_at, avatar_path",
+          )
+          .eq("id", user.id)
+          .maybeSingle();
+        if (basis.data) row = basis.data as Record<string, unknown>;
+      }
     }
   }
   if (!row) return null;
+
+  const role = row.role as Rolle;
+  const customRoleId = (row.custom_role_id as string | null) ?? null;
+
+  // Permissions laden: effective Role-ID = custom_role_id (falls gesetzt),
+  // sonst die System-Role-UUID aus der Basis-Rolle. Defensiv: bei
+  // fehlender Tabelle (Migration noch nicht gelaufen) leeres Set.
+  const effectiveRoleId = customRoleId ?? SYSTEM_ROLE_IDS[role];
+  let permissionsSet: Set<string> = new Set();
+  if (effectiveRoleId) {
+    const { data: perms } = await supabase
+      .from("role_permissions")
+      .select("modul, aktion")
+      .eq("role_id", effectiveRoleId);
+    if (perms) {
+      permissionsSet = new Set(
+        perms.map(
+          (p: { modul: string; aktion: string }) => `${p.modul}:${p.aktion}`,
+        ),
+      );
+    }
+  }
 
   return {
     id: row.id as string,
@@ -71,13 +112,15 @@ export async function getCurrentProfile(): Promise<Profil | null> {
     first_name: (row.first_name as string | null) ?? null,
     last_name: (row.last_name as string | null) ?? null,
     phone: (row.phone as string | null) ?? null,
-    role: row.role as Rolle,
+    role,
     location_id: (row.location_id as string | null) ?? null,
     onboarding_done: Boolean(row.onboarding_done),
     archived_at: (row.archived_at as string | null) ?? null,
     avatar_path: (row.avatar_path as string | null) ?? null,
     kann_provisionen: Boolean(row.kann_provisionen),
     template_id: (row.template_id as string | null) ?? null,
+    custom_role_id: customRoleId,
+    permissions: permissionsSet,
   };
 }
 
@@ -98,6 +141,33 @@ export async function requireRole(roles: Rolle[]): Promise<Profil> {
     // Smart-Fallback: Fuehrungskraft+ bleibt im Admin-Bereich (nur diese
     // Action war zu strikt fuer ihre Rolle). Echter Mitarbeiter ohne
     // Admin-Zugang wird zur Mitarbeiter-Startseite geschickt.
+    redirect(istFuehrungskraftOderHoeher(profile.role) ? "/admin" : "/dashboard");
+  }
+  return profile;
+}
+
+/**
+ * Permission-basierter Auth-Check fuer Verwaltungs-Pages und Server-
+ * Actions. Loest custom_role_id auf, sonst System-Role.
+ *
+ * Nutzung in Pages:    await requirePermission("maengel", "view")
+ * Nutzung in Actions:  await requirePermission("maengel", "edit")
+ *
+ * Smart-Fallback wie requireRole: bei fehlender Permission ->
+ *   Fuehrungskraft+ -> /admin
+ *   Sonst           -> /dashboard
+ *
+ * Layout-Auth (requireRole im Admin-Layout) bleibt erste Verteidigungs-
+ * linie -- entscheidet ob der User ueberhaupt im /admin/*-Bereich sein
+ * darf. Diese Helper hier filtert dann auf Modul-Ebene.
+ */
+export async function requirePermission(
+  modul: Modul,
+  aktion: Aktion,
+): Promise<Profil> {
+  const profile = await requireProfile();
+  const key = permissionKey(modul, aktion);
+  if (!profile.permissions.has(key)) {
     redirect(istFuehrungskraftOderHoeher(profile.role) ? "/admin" : "/dashboard");
   }
   return profile;

@@ -32,6 +32,12 @@ export const MODULE = [
   "rollen",
   "audit",
   "fortschritt",
+  // Erweiterte Module (Migration 0061)
+  "putzprotokolle",
+  "onboarding-templates",
+  "feedback",
+  "lohn",
+  "provisionen",
 ] as const;
 
 export type Modul = (typeof MODULE)[number];
@@ -57,6 +63,11 @@ export const MODUL_LABELS: Record<Modul, string> = {
   rollen: "Rollen & Rechte",
   audit: "Audit-Log",
   fortschritt: "Fortschritt",
+  putzprotokolle: "Putzprotokolle",
+  "onboarding-templates": "Onboarding-Templates",
+  feedback: "Mitglieder-Feedback",
+  lohn: "Lohnabrechnungen",
+  provisionen: "Provisionen",
 };
 
 export const AKTION_LABELS: Record<Aktion, string> = {
