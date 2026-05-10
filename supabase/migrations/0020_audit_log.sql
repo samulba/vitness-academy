@@ -1,6 +1,6 @@
 -- =============================================================
 -- 0020_audit_log.sql
--- Audit-Log: Wer hat wann was geaendert? Pro kritischer Tabelle
+-- Audit-Log: Wer hat wann was geändert? Pro kritischer Tabelle
 -- haengt ein Trigger, der vor/nach-Werte sowie auth.uid() in
 -- public.audit_log schreibt. Nur admin/superadmin sieht die Daten.
 -- =============================================================
@@ -120,5 +120,5 @@ create policy "audit_select_admin"
   to authenticated
   using (public.is_admin());
 
--- Niemand schreibt direkt -- das macht der Trigger ueber security definer.
+-- Niemand schreibt direkt -- das macht der Trigger über security definer.
 -- Service-Role bypasst RLS sowieso.

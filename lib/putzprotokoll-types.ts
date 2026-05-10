@@ -1,5 +1,5 @@
 /**
- * Client-safe Types fuer das Putzprotokoll-Feature.
+ * Client-safe Types für das Putzprotokoll-Feature.
  * KEINE Supabase-Imports — duerfen aus Client-Components importiert
  * werden.
  */
@@ -25,7 +25,7 @@ export type ProtocolStatus = "eingereicht" | "reviewed";
 
 /**
  * Snapshot eines Bereichs pro Protokoll-Eintrag. Wird beim Submit
- * eingefroren — wenn das Template spaeter geaendert wird, bleibt
+ * eingefroren — wenn das Template später geändert wird, bleibt
  * dieser Eintrag historisch korrekt.
  */
 export type ProtocolSectionEntry = {
@@ -58,7 +58,7 @@ export type CleaningProtocol = {
 };
 
 /**
- * Public-URL fuer ein Photo aus dem cleaning-photos-Bucket bauen.
+ * Public-URL für ein Photo aus dem cleaning-photos-Bucket bauen.
  * Bucket ist public (siehe Migration 0055), also reicht ein
  * direkter URL-Pfad ohne Signed-URL.
  */

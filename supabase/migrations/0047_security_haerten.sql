@@ -4,12 +4,12 @@
 --    auf INSERT, damit User A keine Datei unter "userB-uid/..." ablegen
 --    kann. Vorher: "with check (bucket_id = 'issue-photos')" -- ohne
 --    Pfad-Check, was Spoofing erlaubte.
--- 2) Pflichtfeld-Schutz: vertriebler_id darf bei UPDATE nicht geaendert
+-- 2) Pflichtfeld-Schutz: vertriebler_id darf bei UPDATE nicht geändert
 --    werden. Verhindert Provisions-Diebstahl. (Defense-in-Depth: aktuelle
 --    Policy schuetzt bereits via auth.uid()-Check, aber expliziter Block
 --    macht den Schutz lesbarer.)
 -- 3) Audit-Log Restrict: nicht direkt aenderbar (bestehende Policies
---    bleiben, hier nur DELETE-Block fuer alle non-superadmin)
+--    bleiben, hier nur DELETE-Block für alle non-superadmin)
 -- =====================================
 
 -- 1) issue-photos: INSERT braucht Pfad-Prefix = auth.uid()
@@ -43,7 +43,7 @@ create policy "issue_photos_authed_update"
   );
 
 -- SELECT bleibt offen (Bucket ist public, Mangel-Fotos sind nicht
--- streng vertraulich -- nur defektes Geraete-Bild). Falls spaeter
+-- streng vertraulich -- nur defektes Geraete-Bild). Falls später
 -- Bucket auf private umgestellt wird, hier auch UID-Filter ergaenzen.
 
 -- 2) Audit-Log: kein Mitarbeiter darf je DELETEn (nicht mal Admin)

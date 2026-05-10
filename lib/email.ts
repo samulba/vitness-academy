@@ -2,17 +2,17 @@ import { Resend } from "resend";
 import { istNextJsControlFlow } from "@/lib/admin/safe-loader";
 
 /**
- * Resend-Wrapper fuer alle Custom-Mails der App.
+ * Resend-Wrapper für alle Custom-Mails der App.
  *
- * Auth-Mails (Magic-Link, Passwort-Reset, Confirm) gehen separat ueber
+ * Auth-Mails (Magic-Link, Passwort-Reset, Confirm) gehen separat über
  * Supabase-Auth-SMTP — ist im Supabase Dashboard konfiguriert. Diese
- * lib/email.ts ist nur fuer code-getriebene Custom-Mails wie Welcome-
+ * lib/email.ts ist nur für code-getriebene Custom-Mails wie Welcome-
  * Mail oder Lohnabrechnung-Notification.
  *
  * ENV-Variablen:
  *   RESEND_API_KEY      — API-Key aus dem Resend-Dashboard
  *   EMAIL_FROM          — z.B. "Vitness Crew <team@vitness-crew.de>"
- *   NEXT_PUBLIC_APP_URL — Basis-URL fuer Links in den Mails
+ *   NEXT_PUBLIC_APP_URL — Basis-URL für Links in den Mails
  *                         (z.B. "https://www.vitness-crew.de")
  */
 

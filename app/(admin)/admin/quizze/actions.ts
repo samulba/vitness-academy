@@ -306,7 +306,7 @@ export async function optionReihenfolge(
 }
 
 /**
- * Bulk-Reorder fuer Drag-and-Drop von Fragen + Optionen. Kein
+ * Bulk-Reorder für Drag-and-Drop von Fragen + Optionen. Kein
  * revalidatePath -- lokaler Client-State zeigt schon korrekt.
  */
 export async function frageReihenfolgeBulk(

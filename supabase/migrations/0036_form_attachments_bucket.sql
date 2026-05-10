@@ -1,6 +1,6 @@
 -- =============================================================
 -- 0036_form_attachments_bucket.sql
--- Storage-Bucket fuer Datei-Anhaenge in Form-Submissions
+-- Storage-Bucket für Datei-Anhaenge in Form-Submissions
 -- (z.B. Krankenschein-PDF in Krankmeldung).
 -- Privat: Mitarbeiter laedt eigene hoch, sieht eigene + Admin
 -- alle. Pfad-Konvention: ${user_id}/${timestamp}-${field}.${ext}

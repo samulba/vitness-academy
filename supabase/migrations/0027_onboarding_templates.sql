@@ -1,9 +1,9 @@
 -- =============================================================
 -- 0027_onboarding_templates.sql
--- Onboarding-Templates fuer schnelles Mitarbeiter-Anlegen.
+-- Onboarding-Templates für schnelles Mitarbeiter-Anlegen.
 -- Studioleitung definiert "Trainer-Onboarding" -> 4 Lernpfade vor-
--- ausgewaehlt, "Service-Onboarding" -> andere Pfade. Beim Anlegen
--- eines neuen Mitarbeiters wird das Template gewaehlt und die
+-- ausgewählt, "Service-Onboarding" -> andere Pfade. Beim Anlegen
+-- eines neuen Mitarbeiters wird das Template gewählt und die
 -- Lernpfade sind automatisch geklickt.
 -- =============================================================
 

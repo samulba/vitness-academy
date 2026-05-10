@@ -5,7 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 /**
- * Editor fuer eine Liste von Aufgaben innerhalb eines Putzprotokoll-
+ * Editor für eine Liste von Aufgaben innerhalb eines Putzprotokoll-
  * Bereichs. Ersetzt das alte Textarea mit "eine pro Zeile"-Hint durch
  * einzelne Input-Felder + Add/Remove-Buttons.
  *
@@ -37,7 +37,7 @@ export function AufgabenEditor({ defaultValue }: { defaultValue: string[] }) {
     if (e.key === "Enter" && i === aufgaben.length - 1) {
       e.preventDefault();
       add();
-      // Fokus wird im naechsten Tick auf das neue Input gesetzt via
+      // Fokus wird im nächsten Tick auf das neue Input gesetzt via
       // autoFocus auf dem neuen Element — siehe input prop unten.
       setTimeout(() => {
         const inputs = document.querySelectorAll<HTMLInputElement>(
@@ -48,7 +48,7 @@ export function AufgabenEditor({ defaultValue }: { defaultValue: string[] }) {
     }
   }
 
-  // Hidden-Field fuer Server-Action: \n-joined, leere Strings raus.
+  // Hidden-Field für Server-Action: \n-joined, leere Strings raus.
   const aufgabenJoined = aufgaben
     .map((a) => a.trim())
     .filter((a) => a.length > 0)

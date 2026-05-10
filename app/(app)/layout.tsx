@@ -25,7 +25,7 @@ export default async function AppLayout({
 }) {
   const profile = await requireProfile();
 
-  // Recurring-Tasks-Generierung und Standort-Loading sind unabhaengig
+  // Recurring-Tasks-Generierung und Standort-Loading sind unabhängig
   // -- parallel statt sequenziell ausfuehren spart einen Roundtrip.
   // Beide defensiv: bei Fehler weiter ohne Crash.
   let standorte: StandortMembership[] = [];

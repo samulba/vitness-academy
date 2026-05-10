@@ -13,7 +13,7 @@ const PRESETS = [
 ] as const;
 
 /**
- * Range-Filter fuer die Auswertung. Schreibt URL-Params
+ * Range-Filter für die Auswertung. Schreibt URL-Params
  *   ?range=week|30days|90days|year|custom&von=YYYY-MM-DD&bis=YYYY-MM-DD
  * Server-Component lebt asynchronously von diesen URL-Params.
  */

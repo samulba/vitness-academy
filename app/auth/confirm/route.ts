@@ -3,11 +3,11 @@ import { type EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Auth-Confirm-Route fuer Magic-Links aus Email-Templates:
+ * Auth-Confirm-Route für Magic-Links aus Email-Templates:
  *   - Invite-User-Mail (type=invite)
  *   - Passwort-Reset (type=recovery)
  *   - Magic-Link-Login (type=magiclink)
- *   - Email-Bestaetigung (type=signup, type=email_change)
+ *   - Email-Bestätigung (type=signup, type=email_change)
  *
  * Der Email-Template-Link muss in Supabase so aufgebaut sein:
  *   {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite&next=/auth/set-password

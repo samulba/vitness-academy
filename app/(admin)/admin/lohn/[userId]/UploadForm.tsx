@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { lohnabrechnungHochladen } from "../actions";
 
 /**
- * Upload-Form fuer Lohnabrechnungs-PDF + optional Brutto/Netto.
+ * Upload-Form für Lohnabrechnungs-PDF + optional Brutto/Netto.
  * Zeigt File-Picker mit Drag-Drop-Optik (analog Mängel-Foto-Upload).
  */
 export function UploadForm({

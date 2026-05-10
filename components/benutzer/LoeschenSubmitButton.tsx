@@ -3,7 +3,7 @@
 import { Trash2 } from "lucide-react";
 
 /**
- * Submit-Button mit Browser-Confirm vor dem Endgueltig-Loeschen.
+ * Submit-Button mit Browser-Confirm vor dem Endgueltig-Löschen.
  * Eigene Component weil onClick + native confirm() nur in Client-
  * Components erlaubt sind.
  */

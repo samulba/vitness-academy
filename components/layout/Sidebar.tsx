@@ -85,7 +85,7 @@ const STUDIO_NAV: NavEintrag[] = [
 
 // "Verkauf" — Provisionen-Tab: gated by Permission "mitarbeiter-
 // provisionen:view". getCurrentProfile setzt die Permission automatisch
-// aus profiles.kann_provisionen fuer Standard-Rollen, sodass das alte
+// aus profiles.kann_provisionen für Standard-Rollen, sodass das alte
 // Verhalten ("nur Vertriebler") erhalten bleibt. Custom-Rollen koennen
 // die Permission explizit (de)aktivieren.
 const VERKAUF_NAV: NavEintrag[] = [
@@ -218,8 +218,8 @@ export function Sidebar({
   notificationSlot?: React.ReactNode;
   standortSlot?: React.ReactNode;
   kannProvisionen?: boolean;
-  /** Permissions als "modul:aktion"-Strings vom Layout. Set fuer
-   * O(1)-Lookup intern erzeugt. Leer fuer User ohne Custom-Rolle und
+  /** Permissions als "modul:aktion"-Strings vom Layout. Set für
+   * O(1)-Lookup intern erzeugt. Leer für User ohne Custom-Rolle und
    * fehlender Migration. */
   permissions?: readonly string[];
 }) {
@@ -234,7 +234,7 @@ export function Sidebar({
   //  - Verwaltung: irgendeine Permission ohne "mitarbeiter-"-Praefix
   //  - Mitarbeiter: irgendeine "mitarbeiter-"-Permission
   // Wenn Bereich INAKTIV ist (= Migrations-Lag oder leer), gilt die
-  // alte Rolle-basierte Logik fuer den jeweiligen Bereich. Damit bricht
+  // alte Rolle-basierte Logik für den jeweiligen Bereich. Damit bricht
   // weder Verwaltungs- noch Mitarbeiter-Sidebar bei Migrations-Lag,
   // und Custom-Rollen filtern strikt sobald sie greifen.
   const istDev = process.env.NODE_ENV === "development";
@@ -256,7 +256,7 @@ export function Sidebar({
       }
       // Fallback: alte Rolle-basierte Logik (vor Migration 0061)
       if (e.href === "/admin/provisionen" && !kannProvisionen) return false;
-      // Fuer "Rollen & Rechte" gilt der alte Pattern: nur Admin+
+      // Für "Rollen & Rechte" gilt der alte Pattern: nur Admin+
       if (e.href === "/admin/rollen" && !istAdmin(rolle)) return false;
       return true;
     }),
@@ -299,7 +299,7 @@ export function Sidebar({
           {notificationSlot}
         </div>
 
-        {/* Mode-Toggle (Mitarbeiter / Verwaltung) -- nur fuer
+        {/* Mode-Toggle (Mitarbeiter / Verwaltung) -- nur für
             fuehrungskraft+, weil Mitarbeiter keinen Verwaltungs-Modus
             haben. Aktiver Modus wird aus dem Pathname abgeleitet,
             damit Browser-Back/Direkt-Links funktionieren. */}

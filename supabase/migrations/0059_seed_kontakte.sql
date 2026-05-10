@@ -5,7 +5,7 @@
 -- Inhalt: ~48 Kontakte (interne Mitarbeiter + externe Partner).
 -- Standort-Zuordnung via Name-Lookup mit Fallback:
 --   1. exakter Match auf 'Poing' / 'Feldkirchen'
---   2. ILIKE-Match auf '%poing%' / '%feldkirch%' (fuer 'V-itness
+--   2. ILIKE-Match auf '%poing%' / '%feldkirch%' (für 'V-itness
 --      Poing', 'Studio Feldkirchen' etc.)
 --   3. wenn nichts gefunden: NOTICE + location_id bleibt NULL
 --      (Kontakt erscheint dann unter beiden Studios) -- besser als

@@ -12,7 +12,7 @@ export async function ProtokollDetail({
 }: {
   protokoll: CleaningProtocol;
 }) {
-  // Original-Aufgabenliste aus aktuellem Template (fuer "alle Aufgaben"-Anzeige)
+  // Original-Aufgabenliste aus aktuellem Template (für "alle Aufgaben"-Anzeige)
   const tpl = await ladeTemplateMitSections(protokoll.location_id);
   const aufgabenMap = new Map<string, string[]>();
   if (tpl) {

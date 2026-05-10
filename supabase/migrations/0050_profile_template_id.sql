@@ -1,6 +1,6 @@
 -- Migration 0050: profiles.template_id (Onboarding-Template-Verknuepfung)
 -- ====================================================================
--- Bisher: beim Mitarbeiter-Anlegen wird ein Template ausgewaehlt, das
+-- Bisher: beim Mitarbeiter-Anlegen wird ein Template ausgewählt, das
 -- die Form mit Rolle + Lernpfaden vorfuellt. Aber die Auswahl wird
 -- nicht gespeichert -> Template-spezifische Checklist-Items koennen
 -- nicht zugeordnet werden, weil profiles keine Verbindung zum

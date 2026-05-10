@@ -4,7 +4,7 @@
  * Im DB-Schema (Migration 0025):
  *   - public.roles: System-Rollen + Custom-Rollen
  *   - public.role_permissions: Modul x Aktion pro Rolle
- *   - profiles.custom_role_id: optional, ueberschreibt Default-Permissions
+ *   - profiles.custom_role_id: optional, überschreibt Default-Permissions
  *
  * Im App-Layer:
  *   - getCurrentProfile() laedt das Permission-Set einmal pro Request
@@ -18,7 +18,7 @@
  * Bereiche:
  *   - VERWALTUNG_MODULE: alles unter /admin/*. Default-deny --
  *     Permission muss explizit gesetzt sein.
- *   - MITARBEITER_MODULE: Tabs unter /(app)/*. Permissive default fuer
+ *   - MITARBEITER_MODULE: Tabs unter /(app)/*. Permissive default für
  *     Standard-Rollen ohne Custom-Rolle (siehe getCurrentProfile);
  *     Custom-Rollen filtern explizit.
  */
@@ -86,7 +86,7 @@ export type Aktion = (typeof AKTIONEN)[number];
 
 /**
  * Mitarbeiter-Module kennen nur "view". Im Rollen-Editor werden die
- * anderen Spalten fuer diese Module ausgeblendet.
+ * anderen Spalten für diese Module ausgeblendet.
  */
 export const MITARBEITER_AKTIONEN = ["view"] as const;
 

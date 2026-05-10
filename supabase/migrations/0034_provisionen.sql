@@ -1,13 +1,13 @@
 -- =============================================================
 -- 0034_provisionen.sql
--- Provisions-Modul fuer Vertriebler. Loest die Excel-Provisionsliste
+-- Provisions-Modul für Vertriebler. Loest die Excel-Provisionsliste
 -- ab.
 --
 -- Schema:
 --   - profiles.kann_provisionen: Flag, ob User die Vertriebs-Section
 --     in der Sidebar sehen + Eintraege anlegen darf.
 --   - commission_rates: versionierte Provisions-Saetze pro Laufzeit.
---     Beim Lesen wird der Satz gewaehlt mit valid_from <= entry.datum
+--     Beim Lesen wird der Satz gewählt mit valid_from <= entry.datum
 --     (max). So bleiben alte Eintraege unberuehrt wenn Admin neue
 --     Saetze anlegt.
 --   - commission_entries: 1 Zeile pro Abschluss. Provision wird im
@@ -89,7 +89,7 @@ alter table public.commission_rates enable row level security;
 alter table public.commission_entries enable row level security;
 
 -- commission_rates: alle authentifizierten lesen (App-Layer braucht
--- die Saetze fuer die Berechnung), nur Admin schreibt.
+-- die Saetze für die Berechnung), nur Admin schreibt.
 drop policy if exists "rates_select" on public.commission_rates;
 create policy "rates_select"
   on public.commission_rates for select

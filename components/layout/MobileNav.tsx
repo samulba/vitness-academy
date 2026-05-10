@@ -24,7 +24,7 @@ type MobileLink = {
   label: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   /** Wenn true, gilt der Eintrag NUR bei exakt passendem pathname als
-   *  aktiv -- sonst wuerde z.B. "Uebersicht" /admin auch bei
+   *  aktiv -- sonst wuerde z.B. "Übersicht" /admin auch bei
    *  /admin/benutzer aktiv erscheinen. */
   exact?: boolean;
   /** Permission-Modul. Leer = immer sichtbar. */
@@ -43,7 +43,7 @@ const MITARBEITER_LINKS_ALLE: MobileLink[] = [
 ];
 
 // Verwaltungs-Modus: 4 Operations-Tabs + Center-FAB zum Admin-Hub.
-// Alle 4 sind Inbox-/Daily-Use-Bereiche — Team/Auswertung kommen ueber
+// Alle 4 sind Inbox-/Daily-Use-Bereiche — Team/Auswertung kommen über
 // den Hub-Sheet, sind sekundaer. Pro Eintrag das Permission-Modul.
 const VERWALTUNG_LINKS_ALLE: MobileLink[] = [
   { href: "/admin", label: "Übersicht", icon: ShieldCheck, exact: true },

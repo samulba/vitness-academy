@@ -8,7 +8,7 @@ import {
 } from "@/lib/permissions";
 
 /**
- * Loader + Types fuer die Rollenverwaltung.
+ * Loader + Types für die Rollenverwaltung.
  * Schema in Migration 0025_permissions_matrix.sql + 0061_permissions_extend.sql.
  */
 
@@ -32,7 +32,7 @@ export type RolleVoll = {
   /** Permission-Matrix als Array. Leer wenn keine Rechte erteilt. */
   permissions: RollePermission[];
   /** Anzahl Mitarbeiter mit dieser Custom-Rolle (custom_role_id-Match).
-   *  Nur fuer Custom-Rollen relevant; bei System-Rollen NULL. */
+   *  Nur für Custom-Rollen relevant; bei System-Rollen NULL. */
   user_count: number | null;
 };
 

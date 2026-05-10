@@ -31,7 +31,7 @@ export function taglistVonBis(vonISO: string, bisISO: string): string[] {
 }
 
 /**
- * Wochentag-Kurz (Mo/Di/Mi/...) fuer ein ISO-Date. Nutzt UTC damit
+ * Wochentag-Kurz (Mo/Di/Mi/...) für ein ISO-Date. Nutzt UTC damit
  * keine TZ-Surprises beim Berechnen entstehen.
  */
 export function wochentagKurz(iso: string): string {

@@ -31,7 +31,7 @@ export default async function EingaengePage({
     : erledigtAlle;
   const erledigtAnzahl = erledigt.filter((e) => e.status === "erledigt").length;
 
-  // Filter-Optionen aus tatsaechlich vorhandenen Templates ableiten
+  // Filter-Optionen aus tatsächlich vorhandenen Templates ableiten
   const templateZaehlung = new Map<string, number>();
   for (const s of [...offenAlle, ...erledigtAlle]) {
     const k = s.template_title ?? "Sonstige";

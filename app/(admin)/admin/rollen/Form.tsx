@@ -126,7 +126,7 @@ export function RollenForm(props: FormProps) {
         </div>
 
         {/* Basis-Level: Bei Mitarbeiter-Typ fix; bei Verwaltungs-Typ
-            wählbar zwischen Fuehrungskraft und Admin. Mitarbeiter und
+            wählbar zwischen Führungskraft und Admin. Mitarbeiter und
             Superadmin werden bewusst nicht als Custom-Rolle exponiert. */}
         <div>
           <label

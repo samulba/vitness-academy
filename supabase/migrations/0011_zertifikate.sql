@@ -43,7 +43,7 @@ create policy "certs_insert_own"
   on public.user_path_certificates for insert
   with check (auth.uid() = user_id);
 
--- Admins koennen alle Zertifikate sehen (z.B. fuer Fortschritts-Export)
+-- Admins koennen alle Zertifikate sehen (z.B. für Fortschritts-Export)
 drop policy if exists "certs_admin_select_all" on public.user_path_certificates;
 create policy "certs_admin_select_all"
   on public.user_path_certificates for select

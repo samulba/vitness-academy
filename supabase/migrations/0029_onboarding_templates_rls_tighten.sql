@@ -2,7 +2,7 @@
 -- 0029_onboarding_templates_rls_tighten.sql
 -- Verschaerft die SELECT-Policy auf onboarding_templates: nur Admins
 -- duerfen lesen. Vorher konnten alle authentifizierten User die
--- Templates ueber direkte Supabase-API lesen (UI-Schutz reicht nicht).
+-- Templates über direkte Supabase-API lesen (UI-Schutz reicht nicht).
 -- Templates haben nichts mit normalen Mitarbeiter-Workflows zu tun.
 -- =============================================================
 

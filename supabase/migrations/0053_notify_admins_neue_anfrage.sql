@@ -9,7 +9,7 @@
 -- Verwaltung musste aktiv in /admin/formulare/eingaenge schauen.
 --
 -- Neue Funktion + Trigger fuegen jetzt auch eine "submission_neu"-
--- Notification fuer alle Staff-User am gleichen Standort hinzu,
+-- Notification für alle Staff-User am gleichen Standort hinzu,
 -- sobald ein Mitarbeiter etwas einreicht.
 -- =============================================================
 

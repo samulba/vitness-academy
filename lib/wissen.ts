@@ -114,7 +114,7 @@ export async function ladeArtikel(opts: {
 
 /**
  * IDs aller Artikel, die der angegebene User als Favorit markiert hat.
- * Nutzt RLS — daher reicht die uebergebene userId für die Filterung.
+ * Nutzt RLS — daher reicht die übergebene userId für die Filterung.
  */
 export async function ladeBookmarkIds(userId: string): Promise<Set<string>> {
   const supabase = await createClient();

@@ -38,7 +38,7 @@ function bestimmeStatus(user: {
 }
 
 /**
- * Laedt den Auth-Status fuer eine Liste von User-IDs aus auth.users.
+ * Laedt den Auth-Status für eine Liste von User-IDs aus auth.users.
  * Nutzt den Admin-Client (Service-Role-Key noetig). Gibt eine Map
  * userId -> AuthStatusInfo zurueck. Bei Fehler: leere Map (defensiv).
  */
@@ -49,15 +49,15 @@ export async function ladeAuthStatusBatch(
   try {
     const admin = createAdminClient();
     // Auth Admin API hat kein direktes "select where id IN (...)" —
-    // aber listUsers paginiert ueber alle. Bei kleineren Teams (<200)
+    // aber listUsers paginiert über alle. Bei kleineren Teams (<200)
     // reicht eine Page mit perPage=200.
     const wanted = new Set(userIds);
     const map = new Map<string, AuthStatusInfo>();
 
     let page = 1;
     const perPage = 200;
-    // Max 5 Pages (1000 User) — sollte fuer alle realistischen Studio-
-    // Teams ausreichen. Wenn doch groesser, sehen wir das im Log.
+    // Max 5 Pages (1000 User) — sollte für alle realistischen Studio-
+    // Teams ausreichen. Wenn doch größer, sehen wir das im Log.
     for (let i = 0; i < 5; i++) {
       const { data, error } = await admin.auth.admin.listUsers({
         page,
@@ -84,7 +84,7 @@ export async function ladeAuthStatusBatch(
       page++;
     }
 
-    // Fuer User die nicht in auth.users gefunden wurden: Default "aktiv"
+    // Für User die nicht in auth.users gefunden wurden: Default "aktiv"
     // (Profile existiert, daher gibt's einen Auth-User — aber Listing
     // hat ihn nicht ausgeliefert, z.B. archiviert oder Pagination)
     for (const id of userIds) {
@@ -106,7 +106,7 @@ export async function ladeAuthStatusBatch(
 }
 
 /**
- * Laedt den Auth-Status eines einzelnen Users (fuer Detail-Pages).
+ * Laedt den Auth-Status eines einzelnen Users (für Detail-Pages).
  */
 export async function ladeAuthStatus(
   userId: string,

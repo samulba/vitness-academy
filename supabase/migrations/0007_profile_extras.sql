@@ -6,7 +6,7 @@
 -- full_name bleibt bestehen (wird in vielen Stellen genutzt:
 -- Topbar, Sidebar, Dashboard, Admin). Die Server-Action setzt
 -- full_name automatisch aus first_name + last_name zusammen,
--- sobald einer der beiden Werte geaendert wird.
+-- sobald einer der beiden Werte geändert wird.
 -- =============================================================
 
 alter table public.profiles
@@ -14,7 +14,7 @@ alter table public.profiles
   add column if not exists last_name  text,
   add column if not exists phone      text;
 
--- Optional: Constraints fuer sinnvolle Maximallaengen
+-- Optional: Constraints für sinnvolle Maximallaengen
 alter table public.profiles
   drop constraint if exists profiles_first_name_length;
 alter table public.profiles

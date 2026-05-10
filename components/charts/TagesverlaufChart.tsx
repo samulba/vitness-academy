@@ -15,7 +15,7 @@ import type { TagesPunkt } from "@/lib/putzprotokoll_stats";
 /**
  * Tagesverlauf der Aufgaben-Quote als Magenta-Area-Chart.
  * Tage ohne Protokoll (quote === null) werden NICHT gerendert
- * (Recharts zeichnet keine Linie ueber null-Werte).
+ * (Recharts zeichnet keine Linie über null-Werte).
  */
 export function TagesverlaufChart({ data }: { data: TagesPunkt[] }) {
   const chartData = data.map((d) => ({

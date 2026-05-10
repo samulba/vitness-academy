@@ -1,9 +1,9 @@
 -- =============================================================
 -- 0056_putzprotokoll_seed_poing.sql
--- Default-Putzprotokoll-Template fuer JEDE existierende Location.
+-- Default-Putzprotokoll-Template für JEDE existierende Location.
 -- Sections sind die 4 Bereiche aus dem Vitness-Poing Papier-Protokoll
 -- (Empfangsbereich, Trainingsbereiche, Umkleide, Sanitaer+Sauna).
--- Studioleitung kann pro Standort die Aufgaben spaeter anpassen.
+-- Studioleitung kann pro Standort die Aufgaben später anpassen.
 --
 -- Idempotent via ON CONFLICT DO NOTHING (cleaning_protocol_templates
 -- hat unique-Constraint auf location_id).
@@ -15,7 +15,7 @@ insert into public.cleaning_protocol_templates (location_id, active)
   from public.locations
   on conflict (location_id) do nothing;
 
--- Sections seeden — nur fuer Templates die noch KEINE Sections haben.
+-- Sections seeden — nur für Templates die noch KEINE Sections haben.
 -- (Verhindert doppeltes Seeding bei Re-Run.)
 do $$
 declare

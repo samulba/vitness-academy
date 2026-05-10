@@ -16,7 +16,7 @@ import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { vollerName, type Kontakt } from "@/lib/kontakte-types";
 
 /**
- * Tags die als "interne Mitarbeiter-Rolle" zaehlen. Alles andere wird
+ * Tags die als "interne Mitarbeiter-Rolle" zählen. Alles andere wird
  * als "Externe" klassifiziert. Bei Mehrfach-Tags reicht EIN Match
  * mit dieser Liste, damit der Kontakt unter "Team" einsortiert wird.
  */
@@ -46,13 +46,13 @@ function istTeam(k: Kontakt): boolean {
  * Kontaktliste mit sticky Toolbar (Tabs · Suche · Filter-Pills) und
  * Card-basierter Liste. Wird sowohl von Admin- als auch User-Sicht
  * verwendet -- der Admin-Modus zeigt zusaetzlich einen ChevronRight
- * und ein klickbares Wrapper-Layer ueber die Card, das auf die
+ * und ein klickbares Wrapper-Layer über die Card, das auf die
  * Detail-Page navigiert. Im Mitarbeiter-Modus ist die Card nicht
  * klickbar; nur Phone- und Email-Chips bleiben aktive Aktionen.
  *
  * WICHTIG: detailBasePath ist ein STRING, keine Funktion. Server-
  * Komponenten duerfen keine Funktionen an Client-Komponenten
- * uebergeben (siehe CLAUDE.md). Die Page baut den Pfad als
+ * übergeben (siehe CLAUDE.md). Die Page baut den Pfad als
  * "${detailBasePath}/${k.id}".
  */
 export function KontakteListe({
@@ -82,7 +82,7 @@ export function KontakteListe({
     .length;
 
   // Welche Tags sind in der aktuellen Tab-Auswahl ueberhaupt vorhanden?
-  // Sortiert nach Haeufigkeit absteigend, damit die wichtigsten Pills vorne.
+  // Sortiert nach Häufigkeit absteigend, damit die wichtigsten Pills vorne.
   const verfuegbareTags = useMemo(() => {
     const basis =
       tab === "alle"
@@ -357,7 +357,7 @@ function KontaktZeile({
 
   return (
     <div className="group relative flex items-start gap-3 px-4 py-3 transition-colors hover:bg-[hsl(var(--brand-pink)/0.04)] sm:items-center sm:gap-4 sm:px-5 sm:py-4">
-      {/* Optionaler Card-Klick-Layer (oeffnet Detail). Liegt UNTER
+      {/* Optionaler Card-Klick-Layer (öffnet Detail). Liegt UNTER
           den Phone/Mail-Links damit tel:/mailto: den Vorrang haben. */}
       {detailHref && (
         <Link

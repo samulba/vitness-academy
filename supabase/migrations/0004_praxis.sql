@@ -58,7 +58,7 @@ create trigger user_practical_signoffs_set_updated_at
 alter table public.practical_tasks         enable row level security;
 alter table public.user_practical_signoffs enable row level security;
 
--- practical_tasks: lesbar fuer Auth, Admin schreibt
+-- practical_tasks: lesbar für Auth, Admin schreibt
 create policy "practical_tasks Auth lesen"
   on public.practical_tasks for select to authenticated using (true);
 create policy "practical_tasks Admin schreiben"
@@ -68,7 +68,7 @@ create policy "practical_tasks Admin schreiben"
 -- user_practical_signoffs:
 --   - Mitarbeiter darf eigene Eintraege lesen + anlegen + auf "bereit" setzen
 --   - Fuehrungskraft+ darf alle lesen
---   - Fuehrungskraft+ darf den Status ueber Update auf freigegeben/abgelehnt setzen
+--   - Fuehrungskraft+ darf den Status über Update auf freigegeben/abgelehnt setzen
 --   - Admin verwaltet alles
 create policy "signoffs eigene lesen"
   on public.user_practical_signoffs for select to authenticated

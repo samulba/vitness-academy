@@ -65,7 +65,7 @@ const VERKAUF: HubLink = {
 };
 
 // Admin-Hub: 5 Sektionen analog zur Sidebar — Operations zuerst.
-// Pro Eintrag das Permission-Modul fuer Filterung.
+// Pro Eintrag das Permission-Modul für Filterung.
 const ADMIN_OPERATIONS: HubLink[] = [
   { href: "/admin/aufgaben", label: "Aufgaben", icon: ListTodo, modul: "aufgaben" },
   { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle, modul: "maengel" },

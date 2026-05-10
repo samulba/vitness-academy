@@ -113,7 +113,7 @@ export function buildBulkRows(
     }
 
     return {
-      zeile: idx + 2, // +1 fuer 1-index, +1 fuer Header
+      zeile: idx + 2, // +1 für 1-index, +1 für Header
       vorname,
       nachname,
       email,

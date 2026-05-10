@@ -10,13 +10,13 @@ const OPTIONEN = [
     value: "entwurf",
     label: "Entwurf",
     icon: FileEdit,
-    beschreibung: "Nur fuer Admins sichtbar",
+    beschreibung: "Nur für Admins sichtbar",
   },
   {
     value: "aktiv",
     label: "Aktiv",
     icon: Sparkles,
-    beschreibung: "Live fuer Mitarbeiter",
+    beschreibung: "Live für Mitarbeiter",
   },
   {
     value: "archiviert",
@@ -27,7 +27,7 @@ const OPTIONEN = [
 ] as const;
 
 /**
- * iOS-Segmented-Control Pattern fuer Lernpfad-Status. Native Radio-
+ * iOS-Segmented-Control Pattern für Lernpfad-Status. Native Radio-
  * Inputs (sr-only) damit Form-Submit funktioniert; Visualisierung
  * via React-State, damit der Klick sofort sichtbar wird.
  */

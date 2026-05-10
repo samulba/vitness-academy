@@ -1,7 +1,7 @@
 -- =============================================================
 -- 0037_contact_roles.sql
--- Admin-gepflegter Rollen-Katalog fuer studio_contacts.role_tags.
--- Statt freiem Text-Feld waehlt der Admin aus dieser Liste.
+-- Admin-gepflegter Rollen-Katalog für studio_contacts.role_tags.
+-- Statt freiem Text-Feld wählt der Admin aus dieser Liste.
 -- =============================================================
 
 create table if not exists public.studio_contact_roles (

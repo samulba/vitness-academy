@@ -51,7 +51,7 @@ export function SkeletonTableRow({ avatar = true }: { avatar?: boolean }) {
 }
 
 /**
- * Vorgebauter Skeleton fuer den PageHeader (eyebrow + title + description).
+ * Vorgebauter Skeleton für den PageHeader (eyebrow + title + description).
  * Mobile-tauglich: alle Skeletons sind max-w-full damit nichts ausreisst.
  */
 export function SkeletonPageHeader() {

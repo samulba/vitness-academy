@@ -1,7 +1,7 @@
 -- =============================================================
 -- 0031_member_feedback.sql
 -- Mitarbeiter erfassen Feedback von Mitgliedern (Lob, Beschwerde,
--- Anregung) -- Stimmungsbild fuer Studioleitung. Magicline behaelt
+-- Anregung) -- Stimmungsbild für Studioleitung. Magicline behaelt
 -- die Mitglieder selbst, hier sind nur Notes.
 -- =============================================================
 
@@ -33,7 +33,7 @@ create index if not exists member_feedback_location_idx
 alter table public.member_feedback enable row level security;
 
 -- Alle authentifizierten Mitarbeiter koennen lesen + selbst erfassen.
--- Loeschen darf der Eigentuemer (eigenes Eingetragenes) ODER Admin.
+-- Löschen darf der Eigentuemer (eigenes Eingetragenes) ODER Admin.
 drop policy if exists "member_feedback_select" on public.member_feedback;
 create policy "member_feedback_select"
   on public.member_feedback for select

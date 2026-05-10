@@ -13,7 +13,7 @@ import { createClient } from "@/lib/supabase/client";
  * einfach refresh wenn was passiert. Reicht für das Use-Case
  * "Admin sieht neuen Mangel ohne Reload".
  *
- * Channel-Name enthaelt useId(), damit mehrere Instances derselben
+ * Channel-Name enthält useId(), damit mehrere Instances derselben
  * Subscription nebeneinander leben können (z.B. Bell in Topbar + Sidebar).
  *
  * @example
@@ -56,7 +56,7 @@ export function useRealtimeRefresh(
  * eigentliche Page Server-Component.
  *
  * @example
- *   export default async function MaengelPage() {
+ *   export default async function MängelPage() {
  *     const data = await ladeMaengel(...);
  *     return (
  *       <>

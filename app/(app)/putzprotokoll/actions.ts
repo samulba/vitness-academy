@@ -15,7 +15,7 @@ export type Ergebnis =
   | { ok: false; message: string };
 
 /**
- * Frühschicht reicht das Putzprotokoll fuer heute ein.
+ * Frühschicht reicht das Putzprotokoll für heute ein.
  *
  * FormData-Format (Photos werden direkt vom Browser zu Storage
  * hochgeladen, hier kommen nur die Pfade):

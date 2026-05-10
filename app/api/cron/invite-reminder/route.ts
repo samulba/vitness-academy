@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
  *
  * Mehrfach-Versendungs-Schutz: nach jeder Reminder-Mail wird in
  * auth.users.user_metadata.last_invite_reminder_at die ISO-Zeit
- * gespeichert. Beim naechsten Cron-Run werden User mit Reminder
+ * gespeichert. Beim nächsten Cron-Run werden User mit Reminder
  * < 7 Tage her ausgeschlossen.
  */
 export async function GET(request: Request) {

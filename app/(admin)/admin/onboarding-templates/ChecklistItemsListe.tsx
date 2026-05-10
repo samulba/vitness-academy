@@ -23,8 +23,8 @@ export type ChecklistItem = {
 };
 
 /**
- * Generische Liste fuer Checklist-Items. Wird sowohl auf der
- * Onboarding-Templates-Uebersicht (templateId=null = Standard-Items)
+ * Generische Liste für Checklist-Items. Wird sowohl auf der
+ * Onboarding-Templates-Übersicht (templateId=null = Standard-Items)
  * als auch auf der Template-Detail-Page (templateId=string) eingesetzt.
  */
 export function ChecklistItemsListe({

@@ -14,7 +14,7 @@ import { InstancesTable, TemplatesTable } from "./AufgabenTables";
 
 export default async function AufgabenAdminPage() {
   await requirePermission("aufgaben", "view");
-  // Admin sieht Aufgaben ueber alle Standorte.
+  // Admin sieht Aufgaben über alle Standorte.
   const alle = await ladeAlleAufgabenAdmin(null);
   const templates = alle.filter((a) => a.recurrence !== "none");
   const instances = alle.filter((a) => a.recurrence === "none");

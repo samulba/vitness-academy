@@ -69,7 +69,7 @@ export async function mitarbeiterAnlegen(
   const fullName = [firstName, lastName].filter(Boolean).join(" ") || null;
 
   // 1) Invite via Auth Admin API — sendet die branded Magic-Link-Mail
-  // ueber Supabase-Auth-SMTP (Resend). Template wird im Supabase
+  // über Supabase-Auth-SMTP (Resend). Template wird im Supabase
   // Dashboard gepflegt, kein zweiter Mail-Versand vom Code aus.
   const { data: inviteData, error: inviteError } =
     await admin.auth.admin.inviteUserByEmail(email, {

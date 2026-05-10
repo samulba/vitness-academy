@@ -18,7 +18,7 @@ import {
 type Permission = { modul: Modul; aktion: Aktion };
 
 /**
- * Tabelle Module x Aktionen mit Checkboxen fuer die Rollen-Form.
+ * Tabelle Module x Aktionen mit Checkboxen für die Rollen-Form.
  * Form-Fields heissen `permission_<modul>_<aktion>` (Werte = "on").
  *
  * Zwei Sektionen:
@@ -45,7 +45,7 @@ export function PermissionsMatrix({
   vorlageLaden?: (
     baseLevel: "mitarbeiter" | "fuehrungskraft" | "admin" | "superadmin",
   ) => Promise<Permission[]>;
-  /** Welche Sektion gerendert wird. Default: beide (z.B. fuer Edit-
+  /** Welche Sektion gerendert wird. Default: beide (z.B. für Edit-
    *  Pages, die nicht typgebunden sind). "mitarbeiter": nur Mitarbeiter-
    *  Bereich (Tab-Sichtbarkeit). "verwaltung": nur Verwaltungs-Bereich. */
   bereich?: "mitarbeiter" | "verwaltung";
@@ -144,7 +144,7 @@ export function PermissionsMatrix({
 
   return (
     <div className="space-y-6">
-      {/* Hidden-Inputs fuer alle aktiven Permissions -- damit FormData
+      {/* Hidden-Inputs für alle aktiven Permissions -- damit FormData
           die ankreuzten Checkboxen mitsendet auch wenn die echten
           Inputs ausserhalb des Forms haetten sein koennen. */}
       {[...aktiveKeys].map((k) => {
@@ -178,7 +178,7 @@ export function PermissionsMatrix({
         >
           Alle entfernen
         </button>
-        {/* Vorlage nur fuer Verwaltungs-Rollen sinnvoll -- System-
+        {/* Vorlage nur für Verwaltungs-Rollen sinnvoll -- System-
             Mitarbeiter-Rolle hat keine geseedeten Permissions. */}
         {vorlageLaden && bereich !== "mitarbeiter" && (
           <>
@@ -274,7 +274,7 @@ function BereichTabelle({
       )
     );
   }, 0);
-  const moeglichInBereich = module.reduce(
+  const möglichInBereich = module.reduce(
     (sum, m) => sum + aktionenFuerModul(m).length,
     0,
   );
@@ -292,7 +292,7 @@ function BereichTabelle({
         </div>
         <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
           <span>
-            {aktivInBereich}/{moeglichInBereich}
+            {aktivInBereich}/{möglichInBereich}
           </span>
           <button
             type="button"

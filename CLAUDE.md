@@ -107,6 +107,12 @@ Das ist Absicht — Auth-/Cookie-/RLS-basierte Pages **dürfen nicht statisch pr
 ## Projekt-Konventionen
 
 - **Sprache überall**: Deutsch (UI, Variablennamen wie `ladeKontakte`, `vollerName`).
+- **Umlaute IMMER als ä/ö/ü/ß schreiben — NIE umschreiben** zu ae/oe/ue/ss. Gilt für:
+  - **UI-Text** (JSX-Strings, Labels, Toast-Messages, Page-Header, Form-Placeholder)
+  - **DB-Seed-Werte** für Display-Felder (z.B. `roles.name`, `roles.beschreibung`)
+  - **Kommentare** im Code (z.B. `// Lädt die Daten …` statt `// Laedt die Daten …`)
+  - **Commit-Messages** ("Berechtigungssystem", "Führungskraft", nicht "Berechtigungssystem", "Fuehrungskraft")
+  - Einzige Ausnahme: **Code-Identifier** (Variablen, Funktionen, DB-Spalten, Enum-Werte). Dort bleibt `fuehrungskraft`, `oeffnen`, `ueberschrift` etc. — JS/SQL-Identifier können keine Umlaute haben.
 - **Brand-Farbe**: `#b50f5f` Magenta, via CSS-Var `--primary`. Kein Grün, kein Lime.
 - **Icons**: lucide-react.
 - **Tabellen**: `components/ui/data-table.tsx`. Wegen RSC immer per Client-Wrapper (siehe oben).

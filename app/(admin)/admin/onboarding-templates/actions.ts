@@ -92,7 +92,7 @@ export async function templateLoeschen(id: string): Promise<void> {
 // =============================================================
 
 /**
- * Anlegen eines Checklist-Items fuer ein bestimmtes Template ODER
+ * Anlegen eines Checklist-Items für ein bestimmtes Template ODER
  * Standard (template_id null). Sort-Order wird automatisch ans
  * Ende gesetzt.
  */
@@ -113,7 +113,7 @@ export async function checklistItemAnlegenFuer(
   }
 
   const supabase = await createClient();
-  // sort_order = max + 10 (10er-Schritte fuer Drag-and-Drop-Spielraum)
+  // sort_order = max + 10 (10er-Schritte für Drag-and-Drop-Spielraum)
   let q = supabase
     .from("onboarding_checklist_items")
     .select("sort_order")
@@ -205,7 +205,7 @@ export async function checklistItemLoeschenFuer(
 }
 
 /**
- * Bulk-Reorder fuer Drag-and-Drop. Kein revalidatePath (wie bei
+ * Bulk-Reorder für Drag-and-Drop. Kein revalidatePath (wie bei
  * Modulen/Lektionen) -- lokaler Client-State zeigt schon korrekt.
  * Items haben eindeutige UUIDs, der Scope (templateId) wird nicht
  * im Update gebraucht -- nur beim Filtern in der UI.

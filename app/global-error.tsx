@@ -59,8 +59,8 @@ export default function GlobalError({
           </div>
 
           {/* ErrorDetails nutzt Tailwind-Klassen -- in global-error wird
-              globals.css meist mitgeladen, fuer den seltenen Fall dass
-              nicht: die Inline-Styles oben sorgen fuer minimum Layout. */}
+              globals.css meist mitgeladen, für den seltenen Fall dass
+              nicht: die Inline-Styles oben sorgen für minimum Layout. */}
           <ErrorDetails error={error} />
 
           <div

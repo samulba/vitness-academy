@@ -7,7 +7,7 @@ import { KontakteListe } from "@/components/kontakte/KontakteListe";
 
 export default async function KontakteAdminPage() {
   await requirePermission("kontakte", "view");
-  // Admin sieht alle Kontakte ueber alle Standorte.
+  // Admin sieht alle Kontakte über alle Standorte.
   const kontakte = await ladeKontakte(null);
 
   return (

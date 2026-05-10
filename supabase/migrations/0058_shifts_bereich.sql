@@ -1,7 +1,7 @@
 -- ====================================================================
--- 0058 — Schichten: optionales Bereich-Feld fuer "Sonstiges"
+-- 0058 — Schichten: optionales Bereich-Feld für "Sonstiges"
 -- ====================================================================
--- Ergaenzt eine freie Bereich-Beschreibung fuer Schichten ohne festen
+-- Ergaenzt eine freie Bereich-Beschreibung für Schichten ohne festen
 -- Studio-Standort (z.B. "Meeting", "Homeoffice", "Schulung").
 --
 -- Logik im Form:

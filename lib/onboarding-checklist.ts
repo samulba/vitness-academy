@@ -164,7 +164,7 @@ export async function ladeChecklistStatusBatch(
       itemsProTemplate.get(i.template_id)!.add(i.id);
     }
 
-    // Profile-Templates fuer alle Mitarbeiter laden (defensive bei
+    // Profile-Templates für alle Mitarbeiter laden (defensive bei
     // fehlender Spalte: behandeln als "kein Template" -> globale Items)
     const profileTemplate = new Map<string, string | null>();
     const profRes = await supabase
@@ -208,7 +208,7 @@ export async function ladeChecklistStatusBatch(
       relevantPerMa.set(id, ids);
       map.set(id, { erledigt: 0, gesamt: count });
     }
-    // Erledigt-Zaehler nur fuer Items die fuer den Mitarbeiter relevant sind
+    // Erledigt-Zähler nur für Items die für den Mitarbeiter relevant sind
     for (const p of (progress ?? []) as ProgRoh[]) {
       const cur = map.get(p.mitarbeiter_id);
       const rel = relevantPerMa.get(p.mitarbeiter_id);

@@ -5,14 +5,14 @@
 -- 
 -- ACHTUNG: Loescht alle bestehenden knowledge_articles + 
 -- knowledge_categories und legt sie aus den Notion-MD frisch an.
--- Beim Re-Run gehen Admin-UI-Aenderungen an diesen Artikeln
--- verloren. Nicht regelmaessig laufen lassen -- nach Initial-
--- Import wird alles ueber das Admin-UI gepflegt.
+-- Beim Re-Run gehen Admin-UI-Änderungen an diesen Artikeln
+-- verloren. Nicht regelmäßig laufen lassen -- nach Initial-
+-- Import wird alles über das Admin-UI gepflegt.
 -- =========================================================
 
 begin;
 
--- 1) Bestehende Inhalte loeschen
+-- 1) Bestehende Inhalte löschen
 delete from public.knowledge_articles;
 delete from public.knowledge_categories;
 
@@ -395,7 +395,7 @@ Falls ein Wellhub-Mitglied ein eigenes Band (z. B. für E-Gym oder Flexx Circle)
 Dieses persönliche Band kann ausschließlich für E-Gym und Flexx Circle genutzt werden – nicht jedoch für den Check-in oder die Nutzung der Spinde. Für diese Funktionen benötigen Wellhub-Mitglieder weiterhin ein Tagesgastband und müssen sich zusätzlich jedes Mal manuell mit ihrem Handy einchecken.
 $body$, 'aktiv', 10013);
 insert into public.knowledge_articles (id, category_id, title, slug, summary, body, status, sort_order)
-values ('4aaf8828-9be4-5050-ae56-cbe8c1790672', 'dd921f9c-e59a-5c37-96cf-2016317b7660', 'Einführung in die Aufgaben als Service-Mitarbeiter', 'theke-01-grundlagen-01-einfuehrung-aufgaben-service-mitarbeiter-md', '', $body$# Einführung in die Aufgaben als Service-Mitarbeiter
+values ('4aaf8828-9be4-5050-ae56-cbe8c1790672', 'dd921f9c-e59a-5c37-96cf-2016317b7660', 'Einführung in die Aufgaben als Service-Mitarbeiter', 'theke-01-grundlagen-01-einführung-aufgaben-service-mitarbeiter-md', '', $body$# Einführung in die Aufgaben als Service-Mitarbeiter
 
 ## Deine Rolle und Aufgaben im Überblick
 

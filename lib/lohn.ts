@@ -73,7 +73,7 @@ export function summeStunden(shifts: Shift[]): number {
 }
 
 /**
- * Lade Lohnabrechnung eines Users fuer einen Monat (oder null).
+ * Lade Lohnabrechnung eines Users für einen Monat (oder null).
  */
 export async function ladeLohnabrechnung(
   userId: string,
@@ -175,9 +175,9 @@ export async function ladeAlleLohnabrechnungen(
 }
 
 /**
- * Erzeuge eine Signed-URL fuer einen Lohnabrechnung-PDF-Pfad.
+ * Erzeuge eine Signed-URL für einen Lohnabrechnung-PDF-Pfad.
  * Bucket ist privat — Signed-URLs laufen nach 1h ab. Server-Side
- * aufgerufen, RLS prueft Lese-Berechtigung.
+ * aufgerufen, RLS prüft Lese-Berechtigung.
  */
 export async function lohnabrechnungSignedUrl(
   pdfPath: string,

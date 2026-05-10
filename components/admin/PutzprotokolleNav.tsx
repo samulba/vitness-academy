@@ -38,7 +38,7 @@ const TABS = [
 ] as const;
 
 /**
- * Tab-Nav fuer den Putzprotokoll-Admin-Bereich. Drei Sub-Routes:
+ * Tab-Nav für den Putzprotokoll-Admin-Bereich. Drei Sub-Routes:
  * Übersicht (Liste der Tage) · Auswertung (Charts) · Templates (Editor).
  * Underline-Style: aktiver Tab bekommt Magenta-Border am unteren Rand,
  * dezenter als der vorherige gefuellte Pill-Container — fuegt sich

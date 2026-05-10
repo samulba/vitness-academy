@@ -1,7 +1,7 @@
 -- =============================================================
 -- 0026_infos_mitarbeiter_kategorie.sql
 -- Erweiterung Wichtige Infos:
---   - category-Spalte (5 fixe Werte) fuer bessere Filterung
+--   - category-Spalte (5 fixe Werte) für bessere Filterung
 --   - Mitarbeiter duerfen eigene Infos posten (importance info+warning,
 --     pinned=false). Critical + Pin bleibt Admin/Studioleitung.
 --   - notify_info_neu: nur bei warning/critical Notification raushauen,
@@ -22,9 +22,9 @@ alter table public.studio_announcements
 create index if not exists studio_announcements_category_idx
   on public.studio_announcements (category);
 
--- 2) RLS umbauen -- Mitarbeiter darf eigene posten/aendern/loeschen
+-- 2) RLS umbauen -- Mitarbeiter darf eigene posten/ändern/löschen
 --    SELECT bleibt unveraendert (announcements_select_authed)
---    Bestehende Admin-Write-Policy umbenennen fuer Klarheit
+--    Bestehende Admin-Write-Policy umbenennen für Klarheit
 drop policy if exists "announcements_admin_write" on public.studio_announcements;
 create policy "infos_admin_all"
   on public.studio_announcements for all
@@ -56,7 +56,7 @@ create policy "infos_user_update_own"
     and pinned = false
   );
 
--- DELETE: Mitarbeiter darf eigene loeschen
+-- DELETE: Mitarbeiter darf eigene löschen
 drop policy if exists "infos_user_delete_own" on public.studio_announcements;
 create policy "infos_user_delete_own"
   on public.studio_announcements for delete
@@ -64,7 +64,7 @@ create policy "infos_user_delete_own"
   using (auth.uid() = author_id);
 
 -- 3) notify_info_neu -- nur bei warning/critical broadcasten
---    Fuer 'info' KEINE Notification, sonst spammt jeder Mitarbeiter-Tipp
+--    Für 'info' KEINE Notification, sonst spammt jeder Mitarbeiter-Tipp
 --    die Bell aller Kollegen.
 create or replace function public.notify_info_neu()
 returns trigger

@@ -72,8 +72,8 @@ export function PageHeader({
   secondaryActions?: SecondaryAction[];
   /**
    * Beliebiger JSX-Slot rechts vor den Action-Buttons. Gedacht
-   * fuer Client-Components mit eigenem State (z.B. VorschauButton),
-   * die nicht ueber das href/onClick-API von SecondaryAction passen.
+   * für Client-Components mit eigenem State (z.B. VorschauButton),
+   * die nicht über das href/onClick-API von SecondaryAction passen.
    */
   extras?: React.ReactNode;
   /** Optional rechts vom Title (z.B. Live-Pille, Counter) */

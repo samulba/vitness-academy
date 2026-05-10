@@ -391,7 +391,7 @@ function FeldWert({ field, wert }: { field: FormField; wert: unknown }) {
   if (typeof wert === "string" || typeof wert === "number") {
     return <span>{wert}</span>;
   }
-  // Fallback fuer unerwartete Shapes
+  // Fallback für unerwartete Shapes
   return (
     <span className="text-muted-foreground">{JSON.stringify(wert)}</span>
   );

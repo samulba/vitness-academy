@@ -5,11 +5,11 @@
 -- Ursache: 0014_announcements.sql hatte nur eine SELECT-Policy
 --   "announcement_reads_select_own"  using (auth.uid() = user_id)
 -- Damit konnte jeder User NUR seine eigenen Read-Records sehen.
--- ladeReadCounts() hat fuer Admins/Fuehrungskraefte deshalb nur
+-- ladeReadCounts() hat für Admins/Fuehrungskraefte deshalb nur
 -- eigene Reads gezaehlt -- nicht alle.
 --
--- Fix: Zusaetzliche SELECT-Policy fuer fuehrungskraft+, damit die
--- Admin-Sicht alle Read-Records zaehlen kann.
+-- Fix: Zusaetzliche SELECT-Policy für fuehrungskraft+, damit die
+-- Admin-Sicht alle Read-Records zählen kann.
 -- =============================================================
 
 drop policy if exists "announcement_reads_select_admin"

@@ -89,7 +89,7 @@ export async function ladeAktivitaetsMap(
 
 /**
  * Aktivitaets-Stats für das Mitarbeiter-Dashboard.
- * Zaehlt die Anzahl distinkter Tage in den letzten 30 Tagen,
+ * Zählt die Anzahl distinkter Tage in den letzten 30 Tagen,
  * an denen mindestens eine Lektion gesehen oder abgeschlossen
  * wurde.
  */
@@ -253,7 +253,7 @@ export async function ladeLektionFuerUser(
   const status = (progressRow?.status as LektionStatus | undefined) ??
     "nicht_gestartet";
 
-  // Vorherige/Naechste Lektion innerhalb des gleichen Lernpfads
+  // Vorherige/Nächste Lektion innerhalb des gleichen Lernpfads
   const { data: gesch } = await supabase
     .from("lessons")
     .select(
