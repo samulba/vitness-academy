@@ -204,7 +204,7 @@ export default async function DashboardPage() {
           </p>
 
           {/* Stats: sauber als 2-Spalten-Grid auf Mobile,
-              flex-wrap auf Desktop (mehr Items moeglich). */}
+              flex-wrap auf Desktop (mehr Items möglich). */}
           <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-8 sm:flex sm:flex-wrap">
             <HeroStat
               icon={<ClipboardList className="h-3.5 w-3.5" />}
@@ -583,7 +583,7 @@ function HeroStat({
         : "border-border bg-background text-foreground";
 
   // Mobile: Card-Style mit Label+Icon links + Wert rechts (volle Grid-
-  // Cell-Breite). Desktop: Pill-Style fuer Inline-Wrap.
+  // Cell-Breite). Desktop: Pill-Style für Inline-Wrap.
   const inhalt = (
     <span
       className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-colors sm:w-auto sm:rounded-full sm:py-1.5 ${akzentBg} ${

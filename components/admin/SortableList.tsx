@@ -46,8 +46,8 @@ export function SortableList<T extends Item>({
 }) {
   const [lokal, setLokal] = useState(items);
 
-  // Externe Items-Aenderung uebernehmen (z.B. nach revalidate).
-  // Synchron auf Items-Identitaet pruefen waere Render-Loop;
+  // Externe Items-Änderung uebernehmen (z.B. nach revalidate).
+  // Synchron auf Items-Identitaet prüfen waere Render-Loop;
   // useEffect mit ID-Liste als Key verhindert das.
   const idsKey = items.map((it) => it.id).join("|");
   useEffect(() => {

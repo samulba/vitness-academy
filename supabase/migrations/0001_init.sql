@@ -5,8 +5,8 @@
 -- Konventionen:
 --   - alle ids sind uuid (Default gen_random_uuid)
 --   - timestamps sind timestamptz (Default now())
---   - Enum-aehnliche Felder als text + Check-Constraint, damit spaeter erweiterbar
---   - sort_order als int4 fuer Reihenfolgen
+--   - Enum-ähnliche Felder als text + Check-Constraint, damit später erweiterbar
+--   - sort_order als int4 für Reihenfolgen
 
 create extension if not exists "pgcrypto";
 
@@ -51,7 +51,7 @@ create table public.learning_paths (
 create index learning_paths_status_idx on public.learning_paths(status);
 
 -- =========================================================
--- Module (gehoeren zu einem Lernpfad)
+-- Module (gehören zu einem Lernpfad)
 -- =========================================================
 create table public.modules (
   id                uuid primary key default gen_random_uuid(),
@@ -65,7 +65,7 @@ create table public.modules (
 create index modules_learning_path_idx on public.modules(learning_path_id);
 
 -- =========================================================
--- Lektionen (gehoeren zu einem Modul)
+-- Lektionen (gehören zu einem Modul)
 -- =========================================================
 create table public.lessons (
   id          uuid primary key default gen_random_uuid(),
@@ -189,7 +189,7 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- =========================================================
--- Helper-Funktionen fuer RLS
+-- Helper-Funktionen für RLS
 -- =========================================================
 create or replace function public.current_user_role()
 returns text

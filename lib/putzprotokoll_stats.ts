@@ -1,5 +1,5 @@
 /**
- * Aggregator-Loader fuer das Putzprotokoll-Auswertungs-Bundle.
+ * Aggregator-Loader für das Putzprotokoll-Auswertungs-Bundle.
  * Pattern lehnt sich an lib/quiz_stats.ts an: Server-async-Funktion
  * laedt rohe Daten aus DB + cleaning_protocols.sections-jsonb,
  * map/reduce zu mehreren Aggregaten, gibt typisiertes Bundle zurueck.
@@ -71,9 +71,9 @@ function tagesDifferenz(vonISO: string, bisISO: string): number {
 }
 
 /**
- * Hauptloader: alle Aggregate fuer den Zeitraum + Standort in einem
+ * Hauptloader: alle Aggregate für den Zeitraum + Standort in einem
  * Bundle. Liest cleaning_protocols + cleaning_protocol_sections
- * (fuer aktuelle Aufgaben-Listen pro Bereich) + leitet ab.
+ * (für aktuelle Aufgaben-Listen pro Bereich) + leitet ab.
  */
 export async function auswertungZeitraum(opts: {
   locationId: string | null;
@@ -142,24 +142,24 @@ export async function auswertungZeitraum(opts: {
       let dayDone = 0;
 
       for (const s of sections) {
-        // Wir brauchen die Original-Aufgaben-Liste fuer "total".
-        // Snapshot aus dem Protokoll-Eintrag enthaelt nur tasks_done.
+        // Wir brauchen die Original-Aufgaben-Liste für "total".
+        // Snapshot aus dem Protokoll-Eintrag enthält nur tasks_done.
         // Workaround: total = Anzahl der Aufgaben die wir ableiten
         // koennen — wir vereinen tasks_done + Aufgaben aus AKTUELLEM
         // Template (siehe unten). Wenn das nicht klappt (Section
-        // im Template geloescht), faellt total auf tasks_done.length.
-        // Fuer V1 nehmen wir den Snapshot-Done-Count in tasks_done
+        // im Template gelöscht), faellt total auf tasks_done.length.
+        // Für V1 nehmen wir den Snapshot-Done-Count in tasks_done
         // und annehmen, dass die Aufgabenzahl pro Section konstant
         // ist via Template-Snapshot, den wir unten gleich laden.
         const erledigt = (s.tasks_done ?? []).length;
         dayDone += erledigt;
-        // Bereich-Sums vorlaeufig nur fuer "erledigt" — total kommt
+        // Bereich-Sums vorlaeufig nur für "erledigt" — total kommt
         // unten aus aktuellem Template (Heuristik).
         const cur = bereichSums.get(s.titel) ?? { total: 0, erledigt: 0 };
         cur.erledigt += erledigt;
         bereichSums.set(s.titel, cur);
 
-        // Mängel zaehlen
+        // Mängel zählen
         if ((s.maengel ?? "").trim().length > 0) {
           maengelTotal += 1;
           maengelHeatmap[p.datum] = (maengelHeatmap[p.datum] ?? 0) + 1;
@@ -175,7 +175,7 @@ export async function auswertungZeitraum(opts: {
         eintrag.protokollVorhanden = true;
         // quote wird unten gesetzt sobald total bekannt
         eintrag.quote = dayDone === 0 ? 0 : 1; // Placeholder
-        // Wir merken dayDone fuer den 2. Pass via Closure
+        // Wir merken dayDone für den 2. Pass via Closure
         (eintrag as TagesPunkt & { _done?: number; _sections?: ProtocolSectionEntry[] })._done = dayDone;
         (eintrag as TagesPunkt & { _done?: number; _sections?: ProtocolSectionEntry[] })._sections = sections;
       }
@@ -222,7 +222,7 @@ export async function auswertungZeitraum(opts: {
       const eintrag = tagesMap.get(p.datum);
       if (!eintrag) continue;
       const sections = Array.isArray(p.sections) ? p.sections : [];
-      // Total: Sum ueber alle Sections der tplAufgaben.length
+      // Total: Sum über alle Sections der tplAufgaben.length
       let total = 0;
       let done = 0;
       for (const s of sections) {

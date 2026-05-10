@@ -7,7 +7,7 @@
 -- Idempotent: kann mehrfach ausgefuehrt werden.
 
 -- ----------------------------------------------------------
--- Quiz: gehoert zur Lektion "Begrüßung am Empfang"
+-- Quiz: gehört zur Lektion "Begrüßung am Empfang"
 -- ----------------------------------------------------------
 insert into public.quizzes (id, title, description, passing_score, lesson_id, status, sort_order, created_by)
 select

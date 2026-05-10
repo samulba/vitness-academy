@@ -211,8 +211,8 @@ export async function mitarbeiterReaktivieren(benutzerId: string): Promise<void>
 }
 
 /**
- * Endgueltiges Loeschen eines Mitarbeiters (Auth-User + cascadet auf
- * profiles via FK). NUR fuer Test-User die noch nie eingeloggt waren
+ * Endgueltiges Löschen eines Mitarbeiters (Auth-User + cascadet auf
+ * profiles via FK). NUR für Test-User die noch nie eingeloggt waren
  * ODER bereits archiviert sind.
  */
 export async function mitarbeiterEndgueltigLoeschen(

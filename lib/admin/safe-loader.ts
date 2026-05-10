@@ -5,7 +5,7 @@
  */
 
 /**
- * Liest ein Titel-aehnliches Feld aus einer Supabase-Join-Antwort.
+ * Liest ein Titel-ähnliches Feld aus einer Supabase-Join-Antwort.
  * Supabase liefert FK-Joins mal als Objekt, mal als Array (je nach
  * Inferenz). Diese Funktion akzeptiert beides und gibt sonst null.
  */
@@ -61,7 +61,7 @@ export function alsArray<T>(v: unknown): T[] {
  *
  * - redirect() throwt mit digest beginnend mit "NEXT_REDIRECT"
  * - notFound() throwt mit digest beginnend mit "NEXT_NOT_FOUND"
- * - cookies()/headers() in moeglichem Static-Render-Pfad throwen
+ * - cookies()/headers() in möglichem Static-Render-Pfad throwen
  *   mit digest "DYNAMIC_SERVER_USAGE"
  *
  * Wenn ein try/catch in einem Loader diese Errors verschluckt,

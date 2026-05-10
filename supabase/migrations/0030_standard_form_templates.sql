@@ -6,7 +6,7 @@
 --   - Schicht-Tausch (in 0033 archiviert)
 --
 -- Werden mit deterministischen UUIDs angelegt, ON CONFLICT DO NOTHING
--- damit Re-Run idempotent ist und Admin-Edits nicht ueberschrieben
+-- damit Re-Run idempotent ist und Admin-Edits nicht überschrieben
 -- werden.
 -- =============================================================
 

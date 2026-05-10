@@ -1,6 +1,6 @@
 -- =============================================================
 -- 0022_lernpfad_hero.sql
--- Hero-Bild auch fuer Lernpfade (Module + Lektionen haben es seit
+-- Hero-Bild auch für Lernpfade (Module + Lektionen haben es seit
 -- 0012). Bucket "lesson-images" wird wiederverwendet,
 -- Pfad-Konvention: "path/UUID/timestamp.jpg".
 -- =============================================================

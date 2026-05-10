@@ -36,7 +36,7 @@ export default async function ProtokollDetailPage({
   const protokoll = await ladeProtokoll(id);
   if (!protokoll) notFound();
 
-  // Original-Aufgabenliste pro Section fuer "alle Aufgaben"-Anzeige
+  // Original-Aufgabenliste pro Section für "alle Aufgaben"-Anzeige
   const tpl = await ladeTemplateMitSections(protokoll.location_id);
   const aufgabenMap = new Map<string, string[]>();
   if (tpl) {

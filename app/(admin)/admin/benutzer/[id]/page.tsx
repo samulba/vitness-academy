@@ -245,8 +245,8 @@ export default async function BenutzerBearbeitenPage({
     (p) => !zugewieseneIds.has(p.id),
   );
 
-  // Custom-Rollen-Liste fuer Dropdown (Custom-Rollen + System als
-  // Option). Aktuelle Custom-Rolle des Users vorab finden fuer
+  // Custom-Rollen-Liste für Dropdown (Custom-Rollen + System als
+  // Option). Aktuelle Custom-Rolle des Users vorab finden für
   // Effective-Permissions-Preview.
   const aktuelleCustomRolle = profil.custom_role_id
     ? alleRollen.find((r) => r.id === profil.custom_role_id) ?? null
@@ -400,7 +400,7 @@ export default async function BenutzerBearbeitenPage({
                 </span>
               </label>
 
-              {/* Custom-Rolle (optional). Wenn gesetzt, ueberschreiben
+              {/* Custom-Rolle (optional). Wenn gesetzt, überschreiben
                   deren Permissions die Defaults der Basis-Rolle.
                   Custom-Rollen werden unter /admin/rollen angelegt. */}
               <div className="space-y-2">
@@ -437,7 +437,7 @@ export default async function BenutzerBearbeitenPage({
                 )}
 
                 {/* Effective-Permissions-Preview: zeigt was der User
-                    DURCH die Custom-Rolle tatsaechlich darf. Klare
+                    DURCH die Custom-Rolle tatsächlich darf. Klare
                     Visualisierung damit man nicht im Dunkeln rumtappt. */}
                 {aktuelleCustomRolle && (
                   <div className="mt-2 rounded-lg border border-[hsl(var(--brand-pink)/0.3)] bg-[hsl(var(--brand-pink)/0.05)] p-3">

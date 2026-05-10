@@ -64,7 +64,7 @@ export function NeuerBenutzerForm({
       if (next.has(id)) {
         next.delete(id);
         if (primaryStandort === id) {
-          // Heim auf naechstes ausgewaehltes setzen oder leer
+          // Heim auf nächstes ausgewähltes setzen oder leer
           const ersatz = Array.from(next)[0] ?? "";
           setPrimaryStandort(ersatz);
         }
@@ -164,8 +164,8 @@ export function NeuerBenutzerForm({
         beschreibung="Vor- und Nachname, dienstliche E-Mail."
       >
         {/* Hidden -- template_id wird beim Anlegen ins Profil persistiert
-            damit spaeter Template-spezifische Checklist-Items gefiltert
-            werden koennen. "__leer" = kein Template gewaehlt. */}
+            damit später Template-spezifische Checklist-Items gefiltert
+            werden koennen. "__leer" = kein Template gewählt. */}
         <input
           type="hidden"
           name="template_id"

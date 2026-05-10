@@ -29,7 +29,7 @@ create policy "iqa_insert_own"
   on public.user_inline_quiz_attempts for insert
   with check (auth.uid() = user_id);
 
--- Admins koennen Versuche aller User sehen (fuer Fortschritts-UI)
+-- Admins koennen Versuche aller User sehen (für Fortschritts-UI)
 drop policy if exists "iqa_admin_select_all" on public.user_inline_quiz_attempts;
 create policy "iqa_admin_select_all"
   on public.user_inline_quiz_attempts for select

@@ -7,14 +7,14 @@ import {
 } from "@/lib/putzprotokoll";
 
 /**
- * Virtuelle "Heute noch offen"-Aufgabe fuer das Putzprotokoll.
+ * Virtuelle "Heute noch offen"-Aufgabe für das Putzprotokoll.
  * Rendert NUR dann eine Card, wenn:
  *   - der Standort ein aktives Template hat
  *   - heute noch kein Protokoll eingereicht wurde
  * Sonst null (= verschwindet automatisch wenn die Fruehschicht
  * eingereicht hat).
  *
- * Wird auf Dashboard und /aufgaben oben ueber die normalen Tasks
+ * Wird auf Dashboard und /aufgaben oben über die normalen Tasks
  * gerendert.
  */
 export async function PutzprotokollHeuteCard({

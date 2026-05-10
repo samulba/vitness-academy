@@ -74,7 +74,7 @@ export function Composer({
   const erfolgreich = state?.ok === true;
   const submitDisabled = pending || totalUploading > 0 || erfolgreich;
 
-  // Submit-Click oeffnet zuerst den Bestaetigungs-Modal — Form wird
+  // Submit-Click öffnet zuerst den Bestätigungs-Modal — Form wird
   // erst nach Confirm via formRef.requestSubmit() abgeschickt.
   function oeffneBestaetigung() {
     if (submitDisabled) return;
@@ -85,7 +85,7 @@ export function Composer({
     formRef.current?.requestSubmit();
   }
 
-  // Stats fuer den Modal: Anzahl gehakte Aufgaben + Mängel-Notizen + Photos
+  // Stats für den Modal: Anzahl gehakte Aufgaben + Mängel-Notizen + Photos
   const summary = () => {
     if (typeof document === "undefined") {
       return { tasks: 0, maengel: 0, fotos: 0 };
@@ -538,13 +538,13 @@ function SectionPhotoUploader({
     }
 
     // Input-File-List zuruecksetzen damit gleicher Dateiname erneut
-    // ausgewaehlt werden kann
+    // ausgewählt werden kann
     if (inputRef.current) inputRef.current.value = "";
   }
 
   function entfernen(idx: number) {
     // Hinweis: orphan-File bleibt im Bucket. Beim Submit-Abbruch okay,
-    // bei "manchmal entfernt" akzeptabel — Cleanup-Job spaeter moeglich.
+    // bei "manchmal entfernt" akzeptabel — Cleanup-Job später möglich.
     setPhotos((prev) => prev.filter((_, i) => i !== idx));
   }
 

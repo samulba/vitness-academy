@@ -19,13 +19,13 @@ export type StandortOption = {
 };
 
 /**
- * Standort-Auswahl fuer Schichten:
+ * Standort-Auswahl für Schichten:
  *   - Dropdown: alle Studios + "Sonstiges"
  *   - Bei "Sonstiges": Freitext-Feld erscheint
  *
  * Form-Felder die diese Component setzt:
  *   - "wo"      : UUID des Studios oder "sonstiges"
- *   - "bereich" : Freitext (nur wenn "sonstiges" ausgewaehlt)
+ *   - "bereich" : Freitext (nur wenn "sonstiges" ausgewählt)
  *
  * Default-Auswahl:
  *   - Wenn defaultLocationId gesetzt + ist in standorte → dieses Studio
@@ -62,7 +62,7 @@ export function StandortPicker({
   const istSonstiges = wo === SONSTIGES_KEY;
   const labelKlass =
     "text-[10px] font-semibold uppercase tracking-wider text-muted-foreground";
-  // Mobile: groesser fuer bessere Touch-Targets, Desktop kompakter
+  // Mobile: größer für bessere Touch-Targets, Desktop kompakter
   const inputHeight = size === "sm" ? "h-10 sm:h-9" : "h-11 sm:h-10";
 
   return (

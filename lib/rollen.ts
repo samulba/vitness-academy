@@ -14,12 +14,12 @@ export type Profil = {
   kann_provisionen: boolean;
   template_id: string | null;
   /** UUID der Custom-Rolle (FK auf public.roles), oder null wenn der
-   *  User nur die Basis-Rolle hat. Wenn gesetzt, ueberschreiben die
+   *  User nur die Basis-Rolle hat. Wenn gesetzt, überschreiben die
    *  Permissions der Custom-Rolle die System-Defaults. */
   custom_role_id: string | null;
   /** Permissions als "modul:aktion"-Strings. Wird in getCurrentProfile()
    *  einmal pro Request via JOIN auf role_permissions geladen.
-   *  Leer fuer User ohne Permission-Eintraege. */
+   *  Leer für User ohne Permission-Eintraege. */
   permissions: ReadonlySet<string>;
 };
 

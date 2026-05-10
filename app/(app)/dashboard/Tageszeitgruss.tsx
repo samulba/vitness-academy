@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 /**
- * Client-side Begruessung -- new Date().getHours() laeuft im Browser
+ * Client-side Begrüßung -- new Date().getHours() laeuft im Browser
  * mit der User-Timezone, nicht mit Server-TZ. Verhindert "Guten Morgen
  * um 04:00 Lokalzeit" weil Server in UTC laeuft.
  *

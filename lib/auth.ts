@@ -35,7 +35,7 @@ export async function getCurrentProfile(): Promise<Profil | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Vier-Stufen-Fallback fuer Migrations-Lag (jeweils ein Step
+  // Vier-Stufen-Fallback für Migrations-Lag (jeweils ein Step
   // weniger Spalten falls neuere Migration noch nicht ausgefuehrt):
   //   Plus  = mit custom_role_id (Migration 0025)
   //   Voll  = mit template_id (Migration 0050) ohne custom_role_id
@@ -107,14 +107,14 @@ export async function getCurrentProfile(): Promise<Profil | null> {
     }
   }
 
-  // Permissive Default fuer den Mitarbeiter-Bereich:
+  // Permissive Default für den Mitarbeiter-Bereich:
   // System-Rollen ohne Custom-Rolle (Standard-Mitarbeiter, Fuehrungs-
   // kraft+, etc.) sehen alle Mitarbeiter-Tabs wie bisher. Nur Custom-
-  // Rollen muessen Mitarbeiter-Module explizit gesetzt bekommen, sonst
+  // Rollen müssen Mitarbeiter-Module explizit gesetzt bekommen, sonst
   // sieht der User die jeweiligen Tabs nicht.
   // Spezialfall Provisionen: zusaetzlich an profiles.kann_provisionen
-  // gekoppelt -- der Boolean bleibt die Quelle der Wahrheit fuer
-  // "darf Provisionen eintragen" (RLS-Policies pruefen darauf).
+  // gekoppelt -- der Boolean bleibt die Quelle der Wahrheit für
+  // "darf Provisionen eintragen" (RLS-Policies prüfen darauf).
   const istCustomRolle = customRoleId !== null;
   const kannProvisionen = Boolean(row.kann_provisionen);
   if (!istCustomRolle) {
@@ -160,7 +160,7 @@ export async function requireRole(roles: Rolle[]): Promise<Profil> {
   const profile = await requireProfile();
   if (!roles.includes(profile.role)) {
     // Smart-Fallback: Fuehrungskraft+ bleibt im Admin-Bereich (nur diese
-    // Action war zu strikt fuer ihre Rolle). Echter Mitarbeiter ohne
+    // Action war zu strikt für ihre Rolle). Echter Mitarbeiter ohne
     // Admin-Zugang wird zur Mitarbeiter-Startseite geschickt.
     redirect(istFuehrungskraftOderHoeher(profile.role) ? "/admin" : "/dashboard");
   }
@@ -168,7 +168,7 @@ export async function requireRole(roles: Rolle[]): Promise<Profil> {
 }
 
 /**
- * Permission-basierter Auth-Check fuer Verwaltungs-Pages und Server-
+ * Permission-basierter Auth-Check für Verwaltungs-Pages und Server-
  * Actions. Loest custom_role_id auf, sonst System-Role.
  *
  * Nutzung in Pages:    await requirePermission("maengel", "view")

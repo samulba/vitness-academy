@@ -8,7 +8,7 @@ import { FeedbackTable } from "./FeedbackTable";
 
 export default async function FeedbackAdminPage() {
   await requirePermission("feedback", "view");
-  // Admin sieht Feedback ueber alle Standorte.
+  // Admin sieht Feedback über alle Standorte.
   const [feedback, stats] = await Promise.all([
     ladeFeedback({ locationId: null, limit: 200 }),
     feedbackStats({ locationId: null }),

@@ -89,7 +89,7 @@ alter table public.quiz_options         enable row level security;
 alter table public.quiz_attempts        enable row level security;
 alter table public.quiz_attempt_answers enable row level security;
 
--- Quizze + Fragen + Optionen: lesbar fuer Auth, schreibbar nur Admin
+-- Quizze + Fragen + Optionen: lesbar für Auth, schreibbar nur Admin
 create policy "quizzes Auth lesen"
   on public.quizzes for select to authenticated using (true);
 create policy "quizzes Admin schreiben"
@@ -125,7 +125,7 @@ create policy "quiz_attempts Admin verwalten"
   on public.quiz_attempts for all to authenticated
   using (public.is_admin()) with check (public.is_admin());
 
--- Versuchs-Antworten: Sichtbarkeit ueber zugehoerigen Versuch
+-- Versuchs-Antworten: Sichtbarkeit über zugehoerigen Versuch
 create policy "quiz_attempt_answers eigene lesen"
   on public.quiz_attempt_answers for select to authenticated
   using (

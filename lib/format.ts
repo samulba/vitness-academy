@@ -4,8 +4,8 @@ export function formatProzent(value: number): string {
 }
 
 /**
- * Liefert deterministisches "DD.MM.YYYY"-Format unabhaengig von ICU/
- * Locale-Verfuegbarkeit. Vermeidet Hydration-Mismatches zwischen Node
+ * Liefert deterministisches "DD.MM.YYYY"-Format unabhängig von ICU/
+ * Locale-Verfügbarkeit. Vermeidet Hydration-Mismatches zwischen Node
  * (Server) und Browser bei minimalen Builds ohne Intl-Locales.
  */
 export function formatDatum(date: string | Date | null | undefined): string {

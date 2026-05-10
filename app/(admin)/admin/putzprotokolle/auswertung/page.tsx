@@ -43,7 +43,7 @@ export default async function AuswertungPage({
   const standorte = await ladeStandorte();
   const sp = await searchParams;
 
-  // Aktiv-Standort: aus URL-Param oder erster verfuegbarer Standort.
+  // Aktiv-Standort: aus URL-Param oder erster verfügbarer Standort.
   // KEIN Fallback auf Topbar-Switcher — Admin soll immer alle Studios
   // sehen koennen, der Switcher hat hier keine Bedeutung.
   const aktiv =
@@ -86,7 +86,7 @@ export default async function AuswertungPage({
       <PutzprotokolleNav />
 
       {/* Standort-Picker — nur wenn mehrere Standorte existieren.
-       *  URL-Param ?locationId=, default: erster verfuegbarer Standort. */}
+       *  URL-Param ?locationId=, default: erster verfügbarer Standort. */}
       {standorte.length > 1 && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3">
           <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">

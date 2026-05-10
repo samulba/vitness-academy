@@ -40,7 +40,7 @@ export function RenderForm({
   const message = state && !state.ok ? state.message : null;
 
   // Sammle alle Date-Field-Namen die von einem vertretungs_plan via
-  // linked_dates referenziert werden — fuer DIE muessen wir
+  // linked_dates referenziert werden — für DIE müssen wir
   // controlled-state fuehren, damit der Plan-Renderer die aktuellen
   // Werte direkt aus React bekommt (statt unzuverlaessigem DOM-Polling).
   const trackedDateNames = useMemo(() => {
@@ -430,7 +430,7 @@ function OptionalesDatum({ field }: { field: FormField }) {
 
   function aktivieren() {
     setAktiviert(true);
-    // Nach Render Focus + nativen Picker oeffnen (mobile-friendly)
+    // Nach Render Focus + nativen Picker öffnen (mobile-friendly)
     setTimeout(() => {
       const el = ref.current;
       if (!el) return;

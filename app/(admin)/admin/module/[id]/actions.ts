@@ -25,7 +25,7 @@ export async function modulAktualisieren(
 
   const supabase = await createClient();
 
-  // Pfad-ID separat holen (fuer saubere Revalidierung). NICHT chained mit
+  // Pfad-ID separat holen (für saubere Revalidierung). NICHT chained mit
   // dem Update -- das war fehleranfaellig wenn RLS den SELECT nach UPDATE
   // blockt: data wurde null und der TypeScript-Cast `data.learning_path_id`
   // crashte mit Cannot read properties of null.
@@ -160,7 +160,7 @@ export async function lektionReihenfolge(
 }
 
 /**
- * Bulk-Reorder fuer Drag-and-Drop. Kein revalidatePath -- lokaler
+ * Bulk-Reorder für Drag-and-Drop. Kein revalidatePath -- lokaler
  * State im Client zeigt schon korrekt, DB-Persistierung im Hintergrund.
  */
 export async function lektionReihenfolgeBulk(

@@ -34,7 +34,7 @@ create policy "kudos_insert_own"
   to authenticated
   with check (auth.uid() = from_user);
 
--- Loeschen: Eigentuemer (Sender) ODER Admin
+-- Löschen: Eigentuemer (Sender) ODER Admin
 drop policy if exists "kudos_delete_own_or_admin" on public.kudos;
 create policy "kudos_delete_own_or_admin"
   on public.kudos for delete
@@ -42,7 +42,7 @@ create policy "kudos_delete_own_or_admin"
   using (auth.uid() = from_user or public.is_admin());
 
 -- =============================================================
--- Notifications-Type-Enum erweitern: 'kudos' hinzufuegen
+-- Notifications-Type-Enum erweitern: 'kudos' hinzufügen
 -- =============================================================
 alter table public.notifications
   drop constraint if exists notifications_type_check;

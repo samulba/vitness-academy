@@ -1,6 +1,6 @@
 -- =============================================================
 -- 0035_mangel_multi_photos.sql
--- Maengel: photo_path (single) wird zu photo_paths text[] (multi).
+-- Mängel: photo_path (single) wird zu photo_paths text[] (multi).
 -- Backfill bestehender Eintraege, danach alte Spalte entfernen.
 -- =============================================================
 

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 /**
  * Erkennt einen ChunkLoadError -- der tritt klassisch nach einem
  * Vercel-Deploy auf, wenn der Browser eine alte Version der App
- * geoeffnet hat und ein neuer Chunk-Hash nicht mehr existiert.
+ * geöffnet hat und ein neuer Chunk-Hash nicht mehr existiert.
  * In dem Fall reicht ein Hard-Reload (window.location.reload mit
  * cache-busting), um die neueste Version zu laden.
  */
@@ -33,7 +33,7 @@ const RELOAD_FLAG = "__vitness_chunk_reload__";
  *     einfach an mich (Entwickler) schicken.
  *
  * SPECIAL CASE: ChunkLoadError. Tritt auf wenn der Browser eine alte
- * App-Version offen hat und nach einem Vercel-Deploy einen geloeschten
+ * App-Version offen hat und nach einem Vercel-Deploy einen gelöschten
  * Chunk laedt. Wir reloaden dann automatisch (1x pro Session via
  * sessionStorage-Flag, sonst Reload-Loop).
  *
@@ -65,7 +65,7 @@ export function ErrorDetails({
     sessionStorage.setItem(RELOAD_FLAG, "1");
     setAutoReload(true);
     const t = setTimeout(() => {
-      // Reload mit Force-Cache-Bust ueber location.replace
+      // Reload mit Force-Cache-Bust über location.replace
       // (ersetzt History-Eintrag, damit Back-Button nicht zurueck
       // auf die kaputte Page geht).
       window.location.reload();

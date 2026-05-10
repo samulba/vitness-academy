@@ -15,13 +15,13 @@ export type Ergebnis =
   | { ok: false; message: string };
 
 /**
- * Admin laedt eine Lohnabrechnung fuer einen Mitarbeiter hoch.
+ * Admin laedt eine Lohnabrechnung für einen Mitarbeiter hoch.
  * FormData: user_id, monat (YYYY-MM), pdf (File), brutto_euro?, netto_euro?
  *
  * - Storage-Pfad: ${user_id}/${monat}.pdf (überschreibt vorhandene
  *   PDF mit upsert: true bei UPDATE der DB-Row)
- * - Wenn Eintrag fuer (user_id, monat) bereits existiert: UPDATE
- *   statt INSERT, alte PDF wird ueberschrieben.
+ * - Wenn Eintrag für (user_id, monat) bereits existiert: UPDATE
+ *   statt INSERT, alte PDF wird überschrieben.
  * - Bei erfolgreichem Insert (nicht Update): Mail an Mitarbeiter.
  */
 export async function lohnabrechnungHochladen(

@@ -17,7 +17,7 @@ import { LoeschenSubmitButton } from "./LoeschenSubmitButton";
 /**
  * Anzeige des Auth-Status auf der Mitarbeiter-Detail-Page:
  *   - Eingeladen (Magenta): Datum der Einladung, Re-invite-Button +
- *     Endgueltig-Loeschen-Button (nur fuer Test-User die nie
+ *     Endgueltig-Löschen-Button (nur für Test-User die nie
  *     eingeloggt waren)
  *   - Aktiv (Gruen): letzter Login + first-login-Datum
  *   - Inaktiv (Grau): letzter Login (war > 30 Tage)

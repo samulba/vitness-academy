@@ -10,7 +10,7 @@ alter table public.user_lesson_progress
   add column if not exists started_at   timestamptz,
   add column if not exists last_seen_at timestamptz;
 
--- Index fuer "letzte Aktivitaet" Queries pro User
+-- Index für "letzte Aktivitaet" Queries pro User
 create index if not exists user_lesson_progress_user_lastseen_idx
   on public.user_lesson_progress (user_id, last_seen_at desc);
 

@@ -1,7 +1,7 @@
 -- =============================================================
 -- seed_interaktive_demo.sql
--- Drei interaktive Demo-Bloecke fuer die Lektion
--- "Begruessung am Empfang" (lesson 55555555-...-501).
+-- Drei interaktive Demo-Bloecke für die Lektion
+-- "Begrüßung am Empfang" (lesson 55555555-...-501).
 -- Idempotent via on conflict do update.
 --
 -- Vor dem Ausfuehren: Migration 0006_interaktive_bloecke.sql

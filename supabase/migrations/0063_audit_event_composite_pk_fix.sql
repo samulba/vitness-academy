@@ -12,7 +12,7 @@
 -- failed -- damit auch das Permissions-Speichern in der
 -- Rollen-Verwaltung UND die Default-Seeds in Migration 0062.
 --
--- Fix: NEW/OLD ueber to_jsonb() projezieren und 'id' optional
+-- Fix: NEW/OLD über to_jsonb() projezieren und 'id' optional
 -- aus dem JSONB lesen. Wenn die Spalte fehlt, ist row_id
 -- einfach null -- der audit_log-Eintrag selbst wird trotzdem
 -- geschrieben (before/after enthalten den vollen Datensatz).

@@ -16,19 +16,19 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const profile = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
-  // Permissions als string[] fuer Client-Components (Set ist nicht
-  // serialisierbar ueber Server-Boundary).
+  // Permissions als string[] für Client-Components (Set ist nicht
+  // serialisierbar über Server-Boundary).
   const permissionsArr = Array.from(profile.permissions);
 
   // KEIN Standort-Switcher im Admin-Bereich — Verwaltung sieht
   // standardmaessig alle Standorte. Filter pro Page bei Bedarf via
   // URL-Param. Im Mitarbeiter-Mode bleibt der Switcher in der Topbar/
-  // Sidebar weiterhin verfuegbar (eigenes Layout).
+  // Sidebar weiterhin verfügbar (eigenes Layout).
   //
   // Layout-Pattern: Topbar/Sidebar/MobileNav sind alle position:fixed
   // -- keine flex-Container drumherum, weil das auf iOS Safari den
   // fixed-Behavior unzuverlaessig macht. main steuert Padding selbst
-  // (pt fuer mobile Topbar, lg:ml-60 fuer Desktop Sidebar).
+  // (pt für mobile Topbar, lg:ml-60 für Desktop Sidebar).
   return (
     <>
       <Topbar

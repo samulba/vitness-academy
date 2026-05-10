@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // /auth/* sind alle public:
 //  - /auth/confirm: verifiziert Magic-Link-Tokens (vor Session-Setup)
-//  - /auth/set-password: prueft Session selbst und redirected wenn keine
+//  - /auth/set-password: prüft Session selbst und redirected wenn keine
 const PUBLIC_PATHS = [
   "/",
   "/login",

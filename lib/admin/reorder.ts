@@ -14,9 +14,9 @@ type ReorderTabelle =
   | "onboarding_checklist_items";
 
 /**
- * Bulk-Reorder: setzt die sort_order der uebergebenen IDs auf ihren
- * Index×10 (10, 20, 30 …). 10er-Schritte lassen Spielraum fuer
- * spaetere Inserts ohne Komplett-Resort. Bricht bei DB-Fehler nicht
+ * Bulk-Reorder: setzt die sort_order der übergebenen IDs auf ihren
+ * Index×10 (10, 20, 30 …). 10er-Schritte lassen Spielraum für
+ * spätere Inserts ohne Komplett-Resort. Bricht bei DB-Fehler nicht
  * ab, sondern returnt das Resultat.
  */
 export async function reorderBulk(opts: {
@@ -46,7 +46,7 @@ export async function reorderBulk(opts: {
 
 /**
  * Tauscht die sort_order zweier Datensaetze in einer Tabelle.
- * Die Tabellen muessen ein numerisches Feld "sort_order" haben.
+ * Die Tabellen müssen ein numerisches Feld "sort_order" haben.
  *
  * Hinweis: keine echte Transaktion, aber idempotent genug für Admin-Reorder.
  */

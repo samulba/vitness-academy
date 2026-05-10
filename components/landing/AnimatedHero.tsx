@@ -39,7 +39,7 @@ export function AnimatedHero() {
     let raf = 0;
 
     function tick() {
-      // Lerp fuer smoothes Folgen (15% Schritt pro Frame)
+      // Lerp für smoothes Folgen (15% Schritt pro Frame)
       currentX += (targetX - currentX) * 0.15;
       currentY += (targetY - currentY) * 0.15;
       spotlight!.style.setProperty("--mx", `${currentX}%`);
@@ -135,7 +135,7 @@ export function AnimatedHero() {
 
         {/* Mittlerer Block: nimmt den Rest des Hero und zentriert vertikal,
             damit Headline + Card NICHT oben kleben mit riesiger Luecke
-            zur Bottom-Bar (Desktop). Auf Mobile reicht natuerliches
+            zur Bottom-Bar (Desktop). Auf Mobile reicht natürliches
             Stacking -- kein flex-1 noetig. */}
         <div className="flex flex-1 flex-col justify-center pt-8 sm:pt-12 lg:pt-0">
           {/* Zwei-Spalten-Layout auf lg+: Headline links, Preview-Card rechts.
@@ -319,7 +319,7 @@ function HeroPreviewCard() {
 
   // Cursor-Tilt: berechnet rotateX/rotateY basierend auf Mausposition
   // relativ zur Card. Geclampt damit kein extreme-Tilt wenn der
-  // Cursor weit weg ist (z.B. ueber der Headline links).
+  // Cursor weit weg ist (z.B. über der Headline links).
   useEffect(() => {
     const card = cardRef.current;
     if (!card) return;
@@ -375,7 +375,7 @@ function HeroPreviewCard() {
     }
 
     // Auf das Section-Element hoeren damit Card auch bei
-    // Cursor-Bewegung "ueber Hero" reagiert.
+    // Cursor-Bewegung "über Hero" reagiert.
     const section = card.closest("section");
     if (!section) return;
 
@@ -420,7 +420,7 @@ function HeroPreviewCard() {
           }}
         />
 
-        {/* Floating Notification-Pill -- schwebt rechts oben ueber der
+        {/* Floating Notification-Pill -- schwebt rechts oben über der
             Card, klar erkennbar dass hier "etwas passiert". */}
         <div
           aria-hidden

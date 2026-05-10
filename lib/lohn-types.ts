@@ -1,5 +1,5 @@
 /**
- * Client-safe Types fuer Schichten + Lohnabrechnungen.
+ * Client-safe Types für Schichten + Lohnabrechnungen.
  * KEINE Supabase-Imports — duerfen aus Client-Components importiert
  * werden.
  */
@@ -110,7 +110,7 @@ export function aktuellerMonat(): string {
 }
 
 /**
- * Vorheriger / naechster Monat (YYYY-MM)
+ * Vorheriger / nächster Monat (YYYY-MM)
  */
 export function monatPlus(monat: string, delta: number): string {
   const [y, m] = monat.split("-").map(Number);

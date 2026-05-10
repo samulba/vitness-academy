@@ -1,4 +1,4 @@
--- Migration 0048: get_studio_pulse() RPC fuer schnelles Admin-Dashboard
+-- Migration 0048: get_studio_pulse() RPC für schnelles Admin-Dashboard
 -- ====================================================================
 -- Vorher: Admin-Dashboard machte 9 separate count-Queries via PostgREST
 -- (Promise.all). Jeder Roundtrip ~50-100ms => 300-500ms zusaetzliche
@@ -28,7 +28,7 @@ set search_path = public
 as $$
 begin
   -- Defense-in-Depth: nur Fuehrungskraft+ darf den Studio-Puls sehen.
-  -- Page-Layer hat schon requireRole, hier zusaetzlicher Schutz fuer
+  -- Page-Layer hat schon requireRole, hier zusaetzlicher Schutz für
   -- den Fall direkter RPC-Calls.
   if not (public.is_admin() or public.is_staff_or_higher()) then
     raise exception 'Nicht autorisiert';

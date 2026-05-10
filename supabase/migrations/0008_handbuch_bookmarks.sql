@@ -2,7 +2,7 @@
 -- 0008_handbuch_bookmarks.sql
 -- Persönliche Favoriten (Bookmarks) im Handbuch.
 -- Mitarbeiter markieren Artikel mit einem Stern; eigene
--- Favoriten erscheinen oben im Handbuch fuer Quick-Access.
+-- Favoriten erscheinen oben im Handbuch für Quick-Access.
 -- =============================================================
 
 create table if not exists public.user_article_bookmarks (

@@ -3,7 +3,7 @@ import { istNextJsControlFlow } from "@/lib/admin/safe-loader";
 
 // Generischer Filter-Callback. Wir nutzen any-Typen, weil PostgREST-
 // Builder unzaehlige Generics tragen die hier nicht ausgedrueckt werden
-// muessen -- der Caller bekommt den FilterBuilder und kann frei .eq()
+// müssen -- der Caller bekommt den FilterBuilder und kann frei .eq()
 // .in() etc. aufrufen.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FilterFn = (q: any) => any;
@@ -64,7 +64,7 @@ export async function tagesCounts(
 
 /**
  * Errechnet einen einfachen Trend-Wert (Prozent) zwischen
- * der ersten und der zweiten Haelfte des Verlaufs. Praktisch fuer
+ * der ersten und der zweiten Haelfte des Verlaufs. Praktisch für
  * StatCard-Trend-Badges.
  */
 export function trendAusVerlauf(verlauf: number[]): {

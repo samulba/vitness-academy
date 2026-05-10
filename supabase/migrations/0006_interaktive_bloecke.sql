@@ -1,10 +1,10 @@
 -- =============================================================
 -- 0006_interaktive_bloecke.sql
--- Erweitert die zulaessigen block_type-Werte fuer
+-- Erweitert die zulaessigen block_type-Werte für
 -- lesson_content_blocks um sechs interaktive Typen.
 --
 -- Phase 1 (Aufdeck-Karten, Inline-Quiz, Akkordeon)
--- Phase 2 (Sortier-Aufgabe, Szenario, Schritt-fuer-Schritt)
+-- Phase 2 (Sortier-Aufgabe, Szenario, Schritt-für-Schritt)
 --
 -- Die Spalte content (jsonb) bleibt unveraendert, jeder neue
 -- Typ hat seinen eigenen JSON-Shape (siehe lib/lektion.ts).

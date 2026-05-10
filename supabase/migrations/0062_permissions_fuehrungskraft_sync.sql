@@ -1,7 +1,7 @@
 -- =========================================================
 -- 0062_permissions_fuehrungskraft_sync.sql
 --
--- Vorbereitung fuer den Wechsel von requireRole() auf
+-- Vorbereitung für den Wechsel von requireRole() auf
 -- requirePermission() in Pages und Actions: die System-Rolle
 -- Fuehrungskraft hatte bisher implizit (via requireRole) Zugriff
 -- auf Standorte (Lesen + Bearbeiten) und das Audit-Log (Lesen).
@@ -12,13 +12,13 @@
 --
 -- Standorte: Studioleiter koennen ihren Standort verwalten
 --   -> view + create + edit  (kein delete, das bleibt admin-only)
--- Audit-Log: Studioleiter koennen Aenderungen ihres Bereichs einsehen
+-- Audit-Log: Studioleiter koennen Änderungen ihres Bereichs einsehen
 --   -> view  (Audit-Log ist sowieso nur lesbar; create/edit/delete
---             werden vom System ueber den audit_event-Trigger
+--             werden vom System über den audit_event-Trigger
 --             vergeben und sind nicht UI-relevant)
 -- Benutzer: Studioleiter koennen Notizen anlegen + Checklist toggeln
 --   -> edit hinzu  (view war schon da; ohne edit bleibt das
---                   Mitarbeiterprofil read-only fuer Fuehrungskraefte,
+--                   Mitarbeiterprofil read-only für Fuehrungskraefte,
 --                   was Notizen + Onboarding-Haken blockiert)
 -- =========================================================
 

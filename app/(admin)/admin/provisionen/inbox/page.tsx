@@ -8,7 +8,7 @@ import { InboxItem } from "./InboxItem";
 
 export default async function ProvisionenInboxPage() {
   await requirePermission("provisionen", "view");
-  // Admin sieht Inbox ueber alle Standorte.
+  // Admin sieht Inbox über alle Standorte.
   const eintraege = await ladeAusstehend({ locationId: null });
 
   return (

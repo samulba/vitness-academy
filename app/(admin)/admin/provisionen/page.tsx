@@ -82,7 +82,7 @@ export default async function ProvisionenAdminPage({
       ? sp.status
       : null
   ) as EntryStatus | null;
-  // Admin sieht Provisionen ueber alle Standorte.
+  // Admin sieht Provisionen über alle Standorte.
   const [vertriebler, entries, ausstehend] = await Promise.all([
     ladeVertriebler(),
     ladeEntries({
@@ -95,7 +95,7 @@ export default async function ProvisionenAdminPage({
   ]);
   const stats = aggregiere(entries);
 
-  // Provision pro Vertriebler -- nur 'genehmigt'-Einträge zaehlen
+  // Provision pro Vertriebler -- nur 'genehmigt'-Einträge zählen
   const proVertriebler = new Map<
     string,
     { name: string | null; abschluesse: number; provision: number }

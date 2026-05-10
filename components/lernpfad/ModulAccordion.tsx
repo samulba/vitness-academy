@@ -29,9 +29,9 @@ export function ModulAccordion({
     );
   }
 
-  // Sequenzielle Freigabe: alle Lektionen ueber alle Module flatten,
+  // Sequenzielle Freigabe: alle Lektionen über alle Module flatten,
   // finde die ID der ersten nicht-abgeschlossenen Lektion. Diese ist
-  // die "naechste" -- alle danach werden gesperrt, alle abgeschlossenen
+  // die "nächste" -- alle danach werden gesperrt, alle abgeschlossenen
   // bleiben klickbar.
   const alleLessons = moduleListe.flatMap((m) => m.lessons);
   const naechsteId =
@@ -185,7 +185,7 @@ function LektionZeile({
 /**
  * Kleiner kreisförmiger Status-Indicator links der Lektion.
  * - gesperrt: graue Border + Lock-Icon
- * - nicht_gestartet (= naechste freigeschaltete): leerer Kreis mit Zahl
+ * - nicht_gestartet (= nächste freigeschaltete): leerer Kreis mit Zahl
  * - in_bearbeitung: Magenta-Pulse-Border
  * - abgeschlossen: Magenta-gefüllt mit Check
  */

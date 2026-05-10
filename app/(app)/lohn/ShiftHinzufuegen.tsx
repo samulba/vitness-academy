@@ -10,11 +10,11 @@ import { shiftAnlegen } from "./actions";
 import { StandortPicker, type StandortOption } from "./StandortPicker";
 
 /**
- * Quick-Add-Form fuer Schichten. Kollabiert standardmaessig zu einem
- * "+ Schicht hinzufuegen"-Button. Aufgeklappt zeigt es die 5 Felder
+ * Quick-Add-Form für Schichten. Kollabiert standardmaessig zu einem
+ * "+ Schicht hinzufügen"-Button. Aufgeklappt zeigt es die 5 Felder
  * in einer kompakten Reihe (Mobile: gestapelt).
  *
- * Datum-Default = letztes manuell gewaehltes Datum oder heute.
+ * Datum-Default = letztes manuell gewähltes Datum oder heute.
  */
 export function ShiftHinzufuegen({
   monat,

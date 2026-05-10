@@ -9,7 +9,7 @@ import {
  * Render der Sections eines eingereichten Protokolls. Wird sowohl
  * auf der Mitarbeiter-Detail-Page als auch auf der Admin-Detail-
  * Page verwendet (read-only). Photos werden als Klick-bare Thumbs
- * gerendert (oeffnen in neuem Tab via Public-URL).
+ * gerendert (öffnen in neuem Tab via Public-URL).
  */
 export function ProtokollSectionsAnzeige({
   protokoll,
@@ -59,7 +59,7 @@ function SectionCard({
   alleAufgaben: string[] | null;
   supabaseUrl: string;
 }) {
-  // Wenn die original Liste verfuegbar ist, alle Aufgaben mit
+  // Wenn die original Liste verfügbar ist, alle Aufgaben mit
   // Haken/Kreis anzeigen. Sonst nur die abgehakten.
   const aufgabenZuZeigen = alleAufgaben ?? sec.tasks_done;
   const istErledigt = (a: string) => sec.tasks_done.includes(a);

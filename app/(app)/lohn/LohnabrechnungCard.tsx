@@ -9,7 +9,7 @@ import { lohnabrechnungSignedUrl } from "@/lib/lohn";
 import { formatDatumUhrzeitBerlin } from "@/lib/format";
 
 /**
- * Anzeige der Lohnabrechnung fuer den aktuellen Monat. Wenn vorhanden:
+ * Anzeige der Lohnabrechnung für den aktuellen Monat. Wenn vorhanden:
  * Card mit Download-Link (Signed-URL aus Storage) + Brutto/Netto-Box.
  * Wenn nicht: dezenter Empty-State.
  */

@@ -7,9 +7,9 @@
 --   2. 5 neue Module ergaenzen, die in 0025 noch fehlten:
 --      putzprotokolle, onboarding-templates, feedback, lohn,
 --      provisionen
---   3. Default-Permissions fuer System-Rollen seeden.
+--   3. Default-Permissions für System-Rollen seeden.
 --   4. Audit-Trigger auf roles + role_permissions, damit
---      Aenderungen im audit_log auftauchen.
+--      Änderungen im audit_log auftauchen.
 --
 -- Module-Liste vollstaendig (20):
 --   lernpfade, quizze, praxisaufgaben, praxisfreigaben, wissen,
@@ -58,7 +58,7 @@ create policy "role_permissions_admin_write"
   );
 
 -- =========================================================
--- 2) Default-Permissions fuer die 5 neuen Module seeden
+-- 2) Default-Permissions für die 5 neuen Module seeden
 --    sowie alle weiterhin gueltigen
 -- =========================================================
 do $$
@@ -108,7 +108,7 @@ begin
 
   -- Mitarbeiter: keine Permissions auf neue Module
   -- (Mitarbeiter-Bereich ist nicht permission-gated; eingeloggt
-  -- reicht. Permissions wirken nur fuer /admin/*-Sichtbarkeit.)
+  -- reicht. Permissions wirken nur für /admin/*-Sichtbarkeit.)
   null;
 end $$;
 

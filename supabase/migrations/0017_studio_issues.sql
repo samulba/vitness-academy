@@ -1,6 +1,6 @@
 -- =============================================================
 -- 0017_studio_issues.sql
--- Maengel im Studio: defekte Geraete, Probleme melden mit Foto.
+-- Mängel im Studio: defekte Geraete, Probleme melden mit Foto.
 -- Mitarbeiter melden, Studioleitung verwaltet Status.
 -- =============================================================
 

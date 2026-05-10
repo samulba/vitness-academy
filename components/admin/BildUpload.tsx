@@ -76,7 +76,7 @@ export function BildUpload({
         setError(`Server-Fehler: ${msg}`);
       } finally {
         // File-Input zuruecksetzen, damit dieselbe Datei nochmal
-        // gewaehlt werden kann.
+        // gewählt werden kann.
         if (inputRef.current) inputRef.current.value = "";
       }
     });

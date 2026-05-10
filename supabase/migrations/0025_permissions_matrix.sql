@@ -1,10 +1,10 @@
 -- =========================================================
 -- 0025_permissions_matrix.sql
--- Permissions-Matrix fuer custom Rollen.
+-- Permissions-Matrix für custom Rollen.
 --
 -- Architektur:
---   - public.roles enthaelt sowohl System-Rollen (is_system=true,
---     dauerhaft, koennen nicht geloescht werden) als auch
+--   - public.roles enthält sowohl System-Rollen (is_system=true,
+--     dauerhaft, koennen nicht gelöscht werden) als auch
 --     selbst gepflegte Custom-Rollen.
 --   - public.role_permissions: composite (role_id, modul, aktion).
 --     Anwesenheit eines Eintrags = Recht erteilt.
@@ -14,7 +14,7 @@
 --     (mitarbeiter/fuehrungskraft/admin/superadmin) -- damit
 --     bestehende RLS-Policies (is_admin() etc.) weiter funktionieren.
 --
--- Das Permission-Set einer Rolle wird im App-Code geprueft;
+-- Das Permission-Set einer Rolle wird im App-Code geprüft;
 -- RLS bleibt vorerst auf der bestehenden enum-Logik. Custom Rollen
 -- mit Basis-Level "admin" erben dadurch automatisch alle DB-Rechte
 -- ihrer Basis-Rolle.
@@ -61,8 +61,8 @@ create index if not exists profiles_custom_role_idx
 -- (damit App-Code referenzieren kann)
 -- =========================================================
 insert into public.roles (id, name, beschreibung, base_level, is_system) values
-  ('00000000-0000-0000-0000-000000000001', 'Mitarbeiter', 'Standardrolle fuer Mitarbeiter im Studio.', 'mitarbeiter', true),
-  ('00000000-0000-0000-0000-000000000002', 'Fuehrungskraft', 'Studioleitung mit Zugriff auf Inbox-Bereiche.', 'fuehrungskraft', true),
+  ('00000000-0000-0000-0000-000000000001', 'Mitarbeiter', 'Standardrolle für Mitarbeiter im Studio.', 'mitarbeiter', true),
+  ('00000000-0000-0000-0000-000000000002', 'Führungskraft', 'Studioleitung mit Zugriff auf Inbox-Bereiche.', 'fuehrungskraft', true),
   ('00000000-0000-0000-0000-000000000003', 'Admin', 'Voller Verwaltungs-Zugriff auf alle Inhalte.', 'admin', true),
   ('00000000-0000-0000-0000-000000000004', 'Superadmin', 'Wie Admin plus Rollen-Verwaltung.', 'superadmin', true)
 on conflict (id) do nothing;
@@ -75,7 +75,7 @@ on conflict (id) do nothing;
 -- Aktionen: view, create, edit, delete
 -- =========================================================
 
--- Helper: alle 4 Aktionen fuer ein Modul + Rolle anlegen
+-- Helper: alle 4 Aktionen für ein Modul + Rolle anlegen
 do $$
 declare
   superadmin_id uuid := '00000000-0000-0000-0000-000000000004';
@@ -134,14 +134,14 @@ begin
   end loop;
 
   -- Mitarbeiter: keine Verwaltungs-Permissions
-  -- (Lernen + Studio-Module werden ueber RLS gesteuert,
+  -- (Lernen + Studio-Module werden über RLS gesteuert,
   --  diese Matrix steuert nur den Admin-Bereich)
   null;
 end $$;
 
 -- =========================================================
 -- SQL-Helper: hat_permission(uid, modul, aktion)
--- Loest custom_role_id auf wenn vorhanden, sonst Mapping ueber
+-- Loest custom_role_id auf wenn vorhanden, sonst Mapping über
 -- profiles.role -> System-Rollen-UUID.
 -- =========================================================
 create or replace function public.hat_permission(
@@ -177,12 +177,12 @@ as $$
 $$;
 
 -- =========================================================
--- RLS fuer roles + role_permissions
+-- RLS für roles + role_permissions
 -- =========================================================
 alter table public.roles enable row level security;
 alter table public.role_permissions enable row level security;
 
--- Alle authentifizierten lesen (UI braucht Liste fuer Dropdowns)
+-- Alle authentifizierten lesen (UI braucht Liste für Dropdowns)
 drop policy if exists "roles_authenticated_read" on public.roles;
 create policy "roles_authenticated_read"
   on public.roles for select

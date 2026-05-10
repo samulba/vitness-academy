@@ -1,7 +1,7 @@
 /**
  * Lohnabrechnung-Hochgeladen-Mail — wird an den Mitarbeiter
  * geschickt nachdem die Studioleitung eine Lohnabrechnung hochgeladen
- * hat. Enthaelt Monat, Brutto/Netto (wenn gesetzt) + Direktlink zur
+ * hat. Enthält Monat, Brutto/Netto (wenn gesetzt) + Direktlink zur
  * App-Lohn-Page (NICHT zum PDF direkt, weil Signed-URLs nach 1h
  * ablaufen).
  */
@@ -66,7 +66,7 @@ export function lohnabrechnungMail(input: LohnabrechnungMailInput): {
 <!--[if mso]><style>table{border-collapse:collapse;} body,td,th{font-family:Arial,sans-serif !important;}</style><![endif]-->
 </head>
 <body style="margin:0;padding:0;background:#f7f5f3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#1a1a1f;line-height:1.5;-webkit-font-smoothing:antialiased;">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Deine Lohnabrechnung fuer ${escape(monatLabel)} ist hochgeladen. Hier ansehen.</div>
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Deine Lohnabrechnung für ${escape(monatLabel)} ist hochgeladen. Hier ansehen.</div>
   <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background:#f7f5f3;">
     <tr><td align="center" style="padding:32px 16px;">
       <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="560" style="width:100%;max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;">
@@ -124,7 +124,7 @@ export function lohnabrechnungMail(input: LohnabrechnungMailInput): {
   const text = [
     `Hey ${vorname},`,
     "",
-    `Deine Lohnabrechnung fuer ${monatLabel} ist hochgeladen.`,
+    `Deine Lohnabrechnung für ${monatLabel} ist hochgeladen.`,
     "",
     bruttoCents !== null ? `Brutto: ${formatEuro(bruttoCents)}` : "",
     nettoCents !== null ? `Netto:  ${formatEuro(nettoCents)}` : "",

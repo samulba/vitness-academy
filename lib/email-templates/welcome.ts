@@ -2,7 +2,7 @@
  * Welcome-Email die der neue Mitarbeiter bekommt nachdem ein Admin
  * den Account angelegt hat. Magenta-Brand, klar, motivierend.
  *
- * Liefert HTML + Plain-Text. Plain-Text ist der Fallback fuer Clients
+ * Liefert HTML + Plain-Text. Plain-Text ist der Fallback für Clients
  * die kein HTML rendern (z.B. enterprise-Mail-Clients).
  */
 
@@ -41,14 +41,14 @@ export function welcomeMail(input: WelcomeMailInput): {
             <tr>
               <td style="padding:28px 32px 24px;">
                 <p style="margin:0 0 16px;font-size:15px;color:#3a3a44;">
-                  Schoen dass Du dabei bist. Dein Account fuer die Vitness-Crew-App
+                  Schön dass Du dabei bist. Dein Account für die Vitness-Crew-App
                   ist eingerichtet — alles was Du im Studio-Alltag brauchst, an einem Ort:
                 </p>
                 <ul style="margin:0 0 24px;padding:0 0 0 20px;font-size:14px;color:#3a3a44;">
                   <li style="margin-bottom:6px;">Aufgaben &amp; Putzprotokolle</li>
-                  <li style="margin-bottom:6px;">Maengel melden, Schichten tracken</li>
+                  <li style="margin-bottom:6px;">Mängel melden, Schichten tracken</li>
                   <li style="margin-bottom:6px;">Krankmeldung &amp; Urlaub einreichen</li>
-                  <li style="margin-bottom:6px;">Lernpfade fuer Dein Onboarding</li>
+                  <li style="margin-bottom:6px;">Lernpfade für Dein Onboarding</li>
                 </ul>
                 <table role="presentation" border="0" cellspacing="0" cellpadding="0" style="margin:8px 0 28px;">
                   <tr>
@@ -89,17 +89,17 @@ export function welcomeMail(input: WelcomeMailInput): {
   const text = [
     `Willkommen bei der Vitness Crew, ${vorname}!`,
     "",
-    "Dein Account fuer die Vitness-Crew-App ist eingerichtet.",
+    "Dein Account für die Vitness-Crew-App ist eingerichtet.",
     "",
     "In der App findest Du:",
     "- Aufgaben & Putzprotokolle",
-    "- Maengel melden, Schichten tracken",
+    "- Mängel melden, Schichten tracken",
     "- Krankmeldung & Urlaub einreichen",
-    "- Lernpfade fuer Dein Onboarding",
+    "- Lernpfade für Dein Onboarding",
     "",
     `Anmelden: ${loginUrl}`,
     "",
-    "Beim ersten Login setzt Du Dein Passwort. Danach fuehrt Dich ein kurzer Onboarding-Assistent durch die wichtigsten Bereiche.",
+    "Beim ersten Login setzt Du Dein Passwort. Danach führt Dich ein kurzer Onboarding-Assistent durch die wichtigsten Bereiche.",
     studioleitung
       ? `\nBei Fragen wende Dich an Deine Studioleitung (${studioleitung}).`
       : "",

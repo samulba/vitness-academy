@@ -69,7 +69,7 @@ on conflict (id) do update set
   sort_order       = excluded.sort_order;
 
 -- ----------------------------------------------------------
--- Initial-Status fuer die Demo-Mitarbeiterin (alles "offen")
+-- Initial-Status für die Demo-Mitarbeiterin (alles "offen")
 -- ----------------------------------------------------------
 insert into public.user_practical_signoffs (user_id, task_id, status)
 select m.id, t.id, 'offen'

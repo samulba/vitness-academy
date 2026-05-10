@@ -1,6 +1,6 @@
 -- =============================================================
 -- 0012_lektion_bilder.sql
--- Hero-Bilder fuer Module und Lektionen.
+-- Hero-Bilder für Module und Lektionen.
 -- Bilder leben in Supabase Storage Bucket "lesson-images",
 -- in der DB wird nur der relative Pfad gespeichert
 -- (z.B. "module/UUID/1730000000.jpg").
@@ -20,13 +20,13 @@ alter table public.lessons
 --      Name: lesson-images
 --      Public bucket: aktiviert (oder false + signed URLs)
 --
---   2. Storage -> Policies fuer Bucket "lesson-images":
+--   2. Storage -> Policies für Bucket "lesson-images":
 --      INSERT/UPDATE/DELETE: bucket_id = 'lesson-images'
 --      AND public.is_admin()
 --      SELECT: bucket_id = 'lesson-images' (alle authentifizierten)
 --
--- Beispiel-SQL fuer die Storage-Policies (Storage-Schema ist
--- bereits da, wir muessen die Policies nur ergaenzen):
+-- Beispiel-SQL für die Storage-Policies (Storage-Schema ist
+-- bereits da, wir müssen die Policies nur ergaenzen):
 -- =============================================================
 
 drop policy if exists "lesson_images_admin_write" on storage.objects;

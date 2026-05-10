@@ -1,9 +1,9 @@
 -- =============================================================
 -- seed_interaktive_demo_phase2.sql
--- Drei Phase-2 Demo-Bloecke fuer die Lektion
+-- Drei Phase-2 Demo-Bloecke für die Lektion
 -- "Standard Check-in" (lesson 55555555-...-503).
 --
--- Sortier-Aufgabe + Szenario + Schritt-fuer-Schritt-Walkthrough.
+-- Sortier-Aufgabe + Szenario + Schritt-für-Schritt-Walkthrough.
 -- Idempotent via on conflict do update.
 --
 -- Voraussetzung: Migration 0006_interaktive_bloecke.sql ist
@@ -53,7 +53,7 @@ values
     }'::jsonb,
    4),
 
-  -- Schritt-fuer-Schritt: Was tun wenn Karte nicht funktioniert
+  -- Schritt-für-Schritt: Was tun wenn Karte nicht funktioniert
   ('66666666-6666-6666-6666-66666666660f',
    '55555555-5555-5555-5555-555555555503',
    'schritte',

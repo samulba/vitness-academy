@@ -7,7 +7,7 @@
 -- Phase 1 (diese Migration): rein additiv. Tabelle anlegen, alle
 -- bestehenden profile.location_id-Werte einmalig in user_locations
 -- spiegeln. profiles.location_id BLEIBT erhalten als "home/primary"
--- fuer Backwards-Compat -- wird in spaeteren Phasen abgeloest oder
+-- für Backwards-Compat -- wird in späteren Phasen abgelöst oder
 -- mit Trigger gespiegelt.
 -- =============================================================
 
@@ -58,7 +58,7 @@ create policy "user_locations_admin_write"
 -- =============================================================
 -- Trigger: profiles.location_id <-> user_locations is_primary
 -- synchron halten. Wenn Admin am Mitarbeiter-Detail die Heim-Location
--- aendert (alte UI), wird der primary-Eintrag aktualisiert. Erst
+-- ändert (alte UI), wird der primary-Eintrag aktualisiert. Erst
 -- wenn die neue UI live ist, wird der Trigger evtl. abgeschaltet.
 -- =============================================================
 create or replace function public.sync_primary_location()

@@ -59,7 +59,7 @@ create policy "lq_insert_own"
   to authenticated
   with check (auth.uid() = asked_by);
 
--- Eigene Fragen darf jeder bearbeiten/loeschen, Admin auch alle
+-- Eigene Fragen darf jeder bearbeiten/löschen, Admin auch alle
 drop policy if exists "lq_update_own_or_admin" on public.lesson_questions;
 create policy "lq_update_own_or_admin"
   on public.lesson_questions for update

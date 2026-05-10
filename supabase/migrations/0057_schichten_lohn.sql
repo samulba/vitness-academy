@@ -4,13 +4,13 @@
 --
 -- Ziel: Mitarbeiter:innen tragen ihre eigenen Schichten ein
 -- (Datum, Von/Bis, Pause, Notiz) und sehen pro Monat die Summe.
--- Verwaltung laedt fuer jeden Mitarbeiter pro Monat eine PDF-Lohn-
+-- Verwaltung laedt für jeden Mitarbeiter pro Monat eine PDF-Lohn-
 -- abrechnung hoch. Mitarbeiter:innen sehen die eigene Abrechnung
 -- direkt in der App und koennen sie mit den eigenen Schicht-Notizen
 -- abgleichen.
 -- =============================================================
 
--- 1) shifts: pro Mitarbeiter pro Tag MEHRERE Schichten moeglich
+-- 1) shifts: pro Mitarbeiter pro Tag MEHRERE Schichten möglich
 --    (z.B. zweigeteilte Schichten Vormittag + Abend)
 create table if not exists public.shifts (
   id              uuid primary key default gen_random_uuid(),
@@ -37,7 +37,7 @@ create table if not exists public.lohnabrechnungen (
   -- Format YYYY-MM (Monat der Abrechnung)
   monat           text not null check (monat ~ '^\d{4}-\d{2}$'),
   pdf_path        text not null,
-  -- Optional fuer Quick-Anzeige im UI
+  -- Optional für Quick-Anzeige im UI
   brutto_cents    integer,
   netto_cents     integer,
   hochgeladen_von uuid references public.profiles(id) on delete set null,
@@ -48,7 +48,7 @@ create table if not exists public.lohnabrechnungen (
 create index if not exists lohnabrechnungen_user_monat_idx
   on public.lohnabrechnungen (user_id, monat desc);
 
--- ----------------------- updated_at-Trigger fuer shifts -------
+-- ----------------------- updated_at-Trigger für shifts -------
 create or replace function public.touch_shifts_updated_at()
 returns trigger
 language plpgsql

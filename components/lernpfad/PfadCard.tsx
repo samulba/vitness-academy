@@ -55,7 +55,7 @@ export function PfadCard({
       {/* === Hero-Image ===
           isolate + rounded-t-[inherit] verhindert den Border-Radius-Glitch
           beim hover-scale: ohne isolate render't der Browser kurz das skalierte
-          Bild ueber die rounded corners drueber, weil das Inner-Div selbst
+          Bild über die rounded corners drueber, weil das Inner-Div selbst
           keinen Radius hatte und die Link-Clip-Mask waehrend der Transition
           flimmert. */}
       <div className="relative aspect-[16/9] w-full isolate overflow-hidden rounded-t-[inherit] bg-[hsl(var(--brand-ink))] [transform:translateZ(0)]">

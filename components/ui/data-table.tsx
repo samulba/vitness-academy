@@ -58,10 +58,10 @@ export type RowAction<T> = {
  *  - Zeilen: Hover bekommt Magenta-Tint, Action-Icons fade rechts ein.
  *  - Eine Zeile kann optional über rowHref komplett zum Link werden
  *    (z.B. Detail-Page).
- *  - Empty: nutzt den uebergebenen <EmptyState/> oder zeigt Default-Text.
+ *  - Empty: nutzt den übergebenen <EmptyState/> oder zeigt Default-Text.
  *
  * Sortierung und Filterung sind clientseitig in dieser Komponente. Wenn
- * Server-Side gewuenscht ist, kann man `controlledSort` und
+ * Server-Side gewünscht ist, kann man `controlledSort` und
  * `controlledFilters` setzen -- siehe Props.
  *
  * @example

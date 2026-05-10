@@ -24,7 +24,7 @@
        Vitness ist konsequent Magenta -- kein Gruen, kein Lime.
        brand-pink: heller Magenta-Akzent (Eyebrow, Hover).
        brand-lime: heller Magenta-Glow (Logo-Hintergrund, Gradients).
-       success: dunklerer Magenta -- "erledigt/bestaetigt", optisch
+       success: dunklerer Magenta -- "erledigt/bestätigt", optisch
        von --primary unterscheidbar durch Saettigung + Icon. */
     --brand-lime: 331 90% 65%;
     --brand-pink: 331 75% 52%;
@@ -93,9 +93,9 @@
   }
 
   /*
-   * Landing-Page-Wrapper: ueberschreibt im hellen App-Mode die
+   * Landing-Page-Wrapper: überschreibt im hellen App-Mode die
    * App-Vars mit den hellen Light-Mode-Werten. Damit ist die Landing
-   * IMMER im selben Look unabhaengig vom App-Theme.
+   * IMMER im selben Look unabhängig vom App-Theme.
    * Aktuell: Landing ist dark-themed. Falls die App im light-mode
    * ist, wuerde die Landing trotzdem die dark-vars erben weil
    * .theme-dark-locked oben definiert ist.
@@ -275,7 +275,7 @@
   }
 
   /* -------------------------------------------------------
-   * Noise-Overlay (Filmkorn ueber Hero)
+   * Noise-Overlay (Filmkorn über Hero)
    * ------------------------------------------------------- */
   .noise-overlay {
     position: relative;
@@ -292,7 +292,7 @@
   }
 
   /* -------------------------------------------------------
-   * Grid-Pattern fuer ruhige Backgrounds
+   * Grid-Pattern für ruhige Backgrounds
    * ------------------------------------------------------- */
   .bg-grid {
     background-image:

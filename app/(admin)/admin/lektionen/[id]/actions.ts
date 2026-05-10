@@ -245,8 +245,8 @@ export async function blockReihenfolge(
 }
 
 /**
- * Bulk-Reorder fuer Drag-and-Drop von Inhalts-Bloecken.
- * Kein revalidatePath -- siehe modulReihenfolgeBulk fuer Begruendung.
+ * Bulk-Reorder für Drag-and-Drop von Inhalts-Bloecken.
+ * Kein revalidatePath -- siehe modulReihenfolgeBulk für Begruendung.
  */
 export async function blockReihenfolgeBulk(
   lessonId: string,

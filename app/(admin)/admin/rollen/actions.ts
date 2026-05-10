@@ -29,7 +29,7 @@ function validBaseLevel(s: string): BaseLevel | null {
 }
 
 /**
- * Liest aus FormData die ausgewaehlten Permissions.
+ * Liest aus FormData die ausgewählten Permissions.
  * Felder heissen `permission_<modul>_<aktion>` mit value="on".
  *
  * Strict-Trennung (defense in depth gegen Form-Tampering):
@@ -128,7 +128,7 @@ export async function rolleAnlegen(formData: FormData): Promise<void> {
 
 /**
  * Aktualisiert eine Rolle. System-Rollen koennen nur in den
- * Permissions geaendert werden -- Name/Beschreibung/base_level
+ * Permissions geändert werden -- Name/Beschreibung/base_level
  * bleiben fix.
  */
 export async function rolleAktualisieren(
@@ -146,7 +146,7 @@ export async function rolleAktualisieren(
     .maybeSingle();
   if (!rolle) redirect("/admin/rollen?toast=error");
 
-  // Nur fuer Custom-Rollen: Name/Beschreibung/base_level updaten
+  // Nur für Custom-Rollen: Name/Beschreibung/base_level updaten
   if (!rolle.is_system) {
     const name = String(formData.get("name") ?? "").trim();
     const beschreibung =
@@ -173,7 +173,7 @@ export async function rolleAktualisieren(
   //
   // Filter-Baseline: Bei Custom-Rolle die DB-Baseline (vor Update) holen
   // und gegen die filtern; bei System-Rolle bleibt der Permissions-
-  // Bereich frei. Falls die Action selbst gerade das base_level aendert,
+  // Bereich frei. Falls die Action selbst gerade das base_level ändert,
   // ist der NEUE Wert relevant -- den ziehen wir wieder aus FormData.
   const aktuellesBaseLevel = rolle.is_system
     ? null
@@ -248,8 +248,8 @@ export async function rolleArchivieren(id: string): Promise<void> {
 }
 
 /**
- * Helper fuer die UI: laedt die Permissions einer System-Rolle als
- * Vorlage fuer das Anlegen einer neuen Custom-Rolle. Wird vom
+ * Helper für die UI: laedt die Permissions einer System-Rolle als
+ * Vorlage für das Anlegen einer neuen Custom-Rolle. Wird vom
  * "Vorlage laden"-Button genutzt -- aber als Server-Action damit man
  * die Permissions clientseitig rendern kann ohne extra-Query.
  */

@@ -1,9 +1,9 @@
 -- Vitness Academy -- Row Level Security
 -- Grundregeln:
 --   * Mitarbeiter sehen nur eigene Profile/Fortschritte und nur ihnen zugewiesene Lernpfade.
---   * Fuehrungskraefte sehen alle Profile/Fortschritte (Standortfilter spaeter).
+--   * Fuehrungskraefte sehen alle Profile/Fortschritte (Standortfilter später).
 --   * Admin/Superadmin haben Vollzugriff.
---   * Inhalts-Tabellen (learning_paths, modules, lessons, content_blocks) sind fuer
+--   * Inhalts-Tabellen (learning_paths, modules, lessons, content_blocks) sind für
 --     authentifizierte Nutzer lesbar; Schreibzugriff nur Admin.
 
 -- RLS aktivieren

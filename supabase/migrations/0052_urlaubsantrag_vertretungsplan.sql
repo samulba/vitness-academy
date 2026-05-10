@@ -8,7 +8,7 @@
 -- Nachher: ein neues Field-Type "vertretungs_plan", verlinkt mit
 -- den von/bis-Date-Feldern. Renderer generiert client-side eine
 -- Reihe pro Kalendertag im Range, jede Reihe ein freies Textfeld
--- fuer die Vertretung. Daten landen als Array of {tag, person}
+-- für die Vertretung. Daten landen als Array of {tag, person}
 -- im jsonb data.
 --
 -- Existierende Submissions bleiben unangetastet (UPDATE auf

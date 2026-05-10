@@ -53,7 +53,7 @@ export async function abmelden() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   // Standort-Cookie löschen, damit auf gemeinsam genutzten Geraeten
-  // der naechste User nicht den alten aktiven Standort erbt.
+  // der nächste User nicht den alten aktiven Standort erbt.
   const jar = await cookies();
   jar.delete(STANDORT_COOKIE);
   redirect("/login");

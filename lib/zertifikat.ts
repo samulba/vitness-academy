@@ -34,7 +34,7 @@ export async function ladeZertifikat(
 
 /**
  * Zertifikats-Detail mit User-Name + Pfad-Titel für die Druck-Seite.
- * Liest auch zugaenglich für fremde User-IDs IF auth.uid() === userId
+ * Liest auch zugänglich für fremde User-IDs IF auth.uid() === userId
  * (durch RLS abgesichert).
  */
 export async function ladeZertifikatDetail(

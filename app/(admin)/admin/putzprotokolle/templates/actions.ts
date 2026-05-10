@@ -39,7 +39,7 @@ export async function sectionAnlegen(
   }
 
   const supabase = await createClient();
-  // Standort des Templates ermitteln (fuer revalidate-Pfad)
+  // Standort des Templates ermitteln (für revalidate-Pfad)
   const { data: tpl } = await supabase
     .from("cleaning_protocol_templates")
     .select("location_id")

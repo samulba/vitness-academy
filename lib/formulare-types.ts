@@ -28,7 +28,7 @@ export type FormField = {
   accept?: string;
   max_size_mb?: number;
   /**
-   * Nur fuer type "vertretungs_plan": Namen der zwei date-Felder
+   * Nur für type "vertretungs_plan": Namen der zwei date-Felder
    * im selben Template, deren Range die Tagesreihen erzeugt.
    * Default: { from: "von", to: "bis" }.
    */
@@ -108,7 +108,7 @@ export type Submission = {
   /**
    * Felder des Templates -- wird mitgeladen damit der Detail-Dialog
    * die Werte mit echten Labels (statt nur Field-Keys) anzeigen kann.
-   * Leere Liste falls Template inzwischen geloescht wurde.
+   * Leere Liste falls Template inzwischen gelöscht wurde.
    */
   template_fields: FormField[];
   data: Record<string, unknown>;

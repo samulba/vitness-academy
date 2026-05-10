@@ -14,7 +14,7 @@ import type { TopVergessen } from "@/lib/putzprotokoll_stats";
 
 /**
  * Horizontaler BarChart "Top vergessene Aufgaben". Liste sortiert
- * nach Haeufigkeit (haeufigster oben). Magenta-Bars.
+ * nach Häufigkeit (häufigster oben). Magenta-Bars.
  */
 export function TopVergessenChart({ data }: { data: TopVergessen[] }) {
   if (data.length === 0) {

@@ -152,7 +152,7 @@ export default async function AuditLogPage({
 
   const roh = await ladeAuditLog({ tableName, action, limit: 200 });
   // Update-Eintraege ausblenden, wenn nach dem Rausch-Filter keine
-  // sichtbare Aenderung uebrig bleibt (z.B. nur updated_at touched).
+  // sichtbare Änderung uebrig bleibt (z.B. nur updated_at touched).
   const eintraege = roh.filter((e) => {
     if (e.action !== "update") return true;
     return geaenderteFelder(e.before, e.after).length > 0;

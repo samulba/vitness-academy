@@ -2,7 +2,7 @@
 -- 0023_notifications.sql
 -- Notifications-System: jeder Mitarbeiter hat eine eigene
 -- Inbox. Trigger schreiben automatisch Notifications bei
--- Status-Changes auf Maengeln, Submissions, Praxis-Anfragen
+-- Status-Changes auf Mängeln, Submissions, Praxis-Anfragen
 -- und neuen Antworten in Lektion-QA.
 -- =========================================================
 
@@ -50,7 +50,7 @@ create policy "notifications_update_own"
   with check (user_id = auth.uid());
 
 -- INSERT erfolgt nur durch Service-Role / Trigger (security definer)
--- Keine INSERT-Policy fuer authenticated Users.
+-- Keine INSERT-Policy für authenticated Users.
 
 -- ----------------------- Trigger-Helper -------------------
 create or replace function public.notify_user(

@@ -19,7 +19,7 @@ export {
 } from "@/lib/putzprotokoll-types";
 
 /**
- * Laedt das aktive Template + alle Sections fuer einen Standort.
+ * Laedt das aktive Template + alle Sections für einen Standort.
  * Sections sortiert nach sort_order.
  */
 export async function ladeTemplateMitSections(
@@ -104,8 +104,8 @@ function map(r: RohProtokoll): CleaningProtocol {
 }
 
 /**
- * Laedt das Putzprotokoll fuer Standort + Datum (heute).
- * Liefert null wenn fuer diesen Tag noch keins eingereicht wurde.
+ * Laedt das Putzprotokoll für Standort + Datum (heute).
+ * Liefert null wenn für diesen Tag noch keins eingereicht wurde.
  */
 export async function ladeProtokollFuerDatum(
   locationId: string,
@@ -148,7 +148,7 @@ export async function ladeProtokoll(
 }
 
 /**
- * Liste fuer Admin-View. Optional gefiltert auf Standort + Datum-Range.
+ * Liste für Admin-View. Optional gefiltert auf Standort + Datum-Range.
  */
 export async function ladeProtokolleListe(opts?: {
   locationId?: string | null;

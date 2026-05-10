@@ -1,4 +1,4 @@
--- Migration 0049: Fehlende Indexes fuer Admin-Listen-Performance
+-- Migration 0049: Fehlende Indexes für Admin-Listen-Performance
 -- ===============================================================
 -- /admin/benutzer sortiert nach created_at DESC -- ohne Index = Full-Scan.
 -- /admin/kontakte sortiert nach last_name + first_name -- ohne Index = Sort.
