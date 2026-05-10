@@ -212,7 +212,7 @@ export default async function BenutzerBearbeitenPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const aktuell = await requirePermission("benutzer", "edit");
+  const aktuell = await requirePermission("benutzer", "create");
 
   const [
     profil,
