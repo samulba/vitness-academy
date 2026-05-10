@@ -153,9 +153,19 @@ export async function rolleAktualisieren(
     }
   }
 
-  // Permissions: Neu setzen (delete-all + insert)
+  // Permissions: Neu setzen (delete-all + insert).
+  // Beide Fehler werfen wir explizit weiter (vorher nur geloggt) --
+  // sonst zeigt das Form "Gespeichert" obwohl RLS den Schreibvorgang
+  // blockiert hat.
   const permissions = permissionsAusFormData(formData);
-  await supabase.from("role_permissions").delete().eq("role_id", id);
+  const { error: deleteError } = await supabase
+    .from("role_permissions")
+    .delete()
+    .eq("role_id", id);
+  if (deleteError) {
+    console.error("[rolleAktualisieren] delete failed:", deleteError);
+    redirect(`/admin/rollen/${id}?toast=error`);
+  }
   if (permissions.length > 0) {
     const rows = permissions.map((p) => ({
       role_id: id,
@@ -166,7 +176,8 @@ export async function rolleAktualisieren(
       .from("role_permissions")
       .insert(rows);
     if (permsError) {
-      console.error("[rolleAktualisieren] permissions failed:", permsError);
+      console.error("[rolleAktualisieren] insert failed:", permsError);
+      redirect(`/admin/rollen/${id}?toast=error`);
     }
   }
 

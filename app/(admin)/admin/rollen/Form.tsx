@@ -32,13 +32,16 @@ export function RollenForm(props: FormProps) {
   const istSystem = istEdit && props.is_system;
   const [pending, startTransition] = useTransition();
 
-  async function onSubmit(formData: FormData) {
-    if (istEdit) {
-      await rolleAktualisieren(props.id, formData);
-    } else {
-      await rolleAnlegen(formData);
-    }
-  }
+  // Server-Action direkt als Form-Action binden (Next.js Standard-
+  // Pattern). Vorher hatte ich einen async-Client-Wrapper drumherum,
+  // der den redirect()-Throw aus der Server-Action geschluckt hat --
+  // dadurch sind die DB-Updates manchmal nicht durchgekommen, der
+  // "Gespeichert"-Toast aber trotzdem gezeigt. Mit .bind(null, id)
+  // wird die Action direkt vom Form-Submit-Mechanismus aufgerufen.
+  const submitAction =
+    props.mode === "edit"
+      ? rolleAktualisieren.bind(null, props.id)
+      : rolleAnlegen;
 
   function archivieren() {
     if (!istEdit) return;
@@ -49,7 +52,7 @@ export function RollenForm(props: FormProps) {
   }
 
   return (
-    <form action={onSubmit} className="space-y-6">
+    <form action={submitAction} className="space-y-6">
       {/* Meta-Felder */}
       <section className="space-y-4 rounded-2xl border border-border bg-card p-5">
         <h2 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[hsl(var(--brand-pink))]">
