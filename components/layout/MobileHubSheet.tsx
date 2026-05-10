@@ -41,26 +41,27 @@ type HubLink = {
 };
 
 const STUDIO: HubLink[] = [
-  { href: "/putzprotokoll", label: "Putzprotokoll", icon: Sparkles },
-  { href: "/maengel", label: "Mängel", icon: AlertTriangle },
+  { href: "/putzprotokoll", label: "Putzprotokoll", icon: Sparkles, modul: "mitarbeiter-putzprotokoll" },
+  { href: "/maengel", label: "Mängel", icon: AlertTriangle, modul: "mitarbeiter-maengel" },
 ];
 
 const TEAM: HubLink[] = [
-  { href: "/infos", label: "Infos", icon: Megaphone },
-  { href: "/feedback", label: "Feedback", icon: MessageCircle },
-  { href: "/kontakte", label: "Kontakte", icon: Contact },
+  { href: "/infos", label: "Infos", icon: Megaphone, modul: "mitarbeiter-infos" },
+  { href: "/feedback", label: "Feedback", icon: MessageCircle, modul: "mitarbeiter-feedback" },
+  { href: "/kontakte", label: "Kontakte", icon: Contact, modul: "mitarbeiter-kontakte" },
 ];
 
 const LERNEN: HubLink[] = [
-  { href: "/lernpfade", label: "Lernpfade", icon: GraduationCap },
-  { href: "/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare },
-  { href: "/wissen", label: "Handbuch", icon: BookOpen },
+  { href: "/lernpfade", label: "Lernpfade", icon: GraduationCap, modul: "mitarbeiter-lernpfade" },
+  { href: "/praxisfreigaben", label: "Praxisfreigaben", icon: CheckSquare, modul: "mitarbeiter-praxisfreigaben" },
+  { href: "/wissen", label: "Handbuch", icon: BookOpen, modul: "mitarbeiter-wissen" },
 ];
 
 const VERKAUF: HubLink = {
   href: "/provisionen",
   label: "Provisionen",
   icon: TrendingUp,
+  modul: "mitarbeiter-provisionen",
 };
 
 // Admin-Hub: 5 Sektionen analog zur Sidebar — Operations zuerst.
@@ -124,13 +125,18 @@ export function MobileHubSheet({
 }) {
   const istFuehrung = istFuehrungskraftOderHoeher(rolle);
   const permsSet = new Set(permissions);
-  const permissionsAktiv = permsSet.size > 0;
+  let verwaltungAktiv = false;
+  let mitarbeiterAktiv = false;
+  for (const p of permsSet) {
+    if (p.startsWith("mitarbeiter-")) mitarbeiterAktiv = true;
+    else verwaltungAktiv = true;
+    if (verwaltungAktiv && mitarbeiterAktiv) break;
+  }
 
-  // Filter-Helper: zeige Eintrag wenn Permissions aktiv UND modul
-  // erlaubt, ODER Permissions inaktiv (Migrations-Lag, alte Logik).
-  // Eintraege ohne `modul` immer sichtbar.
+  // Filter-Helper: zeige Eintrag wenn Bereich aktiv UND modul erlaubt,
+  // ODER Bereich inaktiv (Migrations-Lag, alte Logik).
   function filterAdmin(items: HubLink[]): HubLink[] {
-    if (!permissionsAktiv) {
+    if (!verwaltungAktiv) {
       // Alte Logik: Provisionen nur mit Flag, Rollen-Eintrag nur Admin+
       return items.filter((i) => {
         if (i.href === "/admin/provisionen" && !kannProvisionen) return false;
@@ -140,6 +146,18 @@ export function MobileHubSheet({
     }
     return items.filter((i) => !i.modul || hatModulZugriff(permsSet, i.modul));
   }
+  function filterMitarbeiter(items: HubLink[]): HubLink[] {
+    if (!mitarbeiterAktiv) {
+      return items.filter((i) => {
+        if (i.href === "/provisionen" && !kannProvisionen) return false;
+        return true;
+      });
+    }
+    return items.filter((i) => !i.modul || hatModulZugriff(permsSet, i.modul));
+  }
+  const verkaufSichtbar = mitarbeiterAktiv
+    ? hatModulZugriff(permsSet, "mitarbeiter-provisionen")
+    : kannProvisionen;
 
   // ESC-Key schliesst Sheet
   useEffect(() => {
@@ -250,16 +268,31 @@ export function MobileHubSheet({
             </>
           ) : (
             <>
-              <Section titel="Studio">
-                <Grid items={STUDIO} onNavigate={onClose} />
-              </Section>
-              <Section titel="Team">
-                <Grid items={TEAM} onNavigate={onClose} />
-              </Section>
-              <Section titel="Lernen & Wissen">
-                <Grid items={LERNEN} onNavigate={onClose} />
-              </Section>
-              {kannProvisionen && (
+              {(() => {
+                const studio = filterMitarbeiter(STUDIO);
+                const team = filterMitarbeiter(TEAM);
+                const lernen = filterMitarbeiter(LERNEN);
+                return (
+                  <>
+                    {studio.length > 0 && (
+                      <Section titel="Studio">
+                        <Grid items={studio} onNavigate={onClose} />
+                      </Section>
+                    )}
+                    {team.length > 0 && (
+                      <Section titel="Team">
+                        <Grid items={team} onNavigate={onClose} />
+                      </Section>
+                    )}
+                    {lernen.length > 0 && (
+                      <Section titel="Lernen & Wissen">
+                        <Grid items={lernen} onNavigate={onClose} />
+                      </Section>
+                    )}
+                  </>
+                );
+              })()}
+              {verkaufSichtbar && (
                 <Section titel="Verkauf">
                   <Grid items={[VERKAUF]} onNavigate={onClose} />
                 </Section>

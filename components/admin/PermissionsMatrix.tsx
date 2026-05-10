@@ -6,8 +6,11 @@ import { cn } from "@/lib/utils";
 import {
   AKTIONEN,
   AKTION_LABELS,
+  aktionenFuerModul,
+  MITARBEITER_MODULE,
   MODULE,
   MODUL_LABELS,
+  VERWALTUNG_MODULE,
   type Aktion,
   type Modul,
 } from "@/lib/permissions";
@@ -18,15 +21,17 @@ type Permission = { modul: Modul; aktion: Aktion };
  * Tabelle Module x Aktionen mit Checkboxen fuer die Rollen-Form.
  * Form-Fields heissen `permission_<modul>_<aktion>` (Werte = "on").
  *
+ * Zwei Sektionen:
+ *   - Verwaltungs-Bereich (alle 4 Aktionen pro Modul)
+ *   - Mitarbeiter-Bereich (nur "Sehen" -- regelt die Sidebar-Tabs)
+ *
  * Quick-Actions:
  * - Spalte: alle Aktionen pro Modul togglen
- * - "Alle setzen" / "Alle entfernen"
+ * - "Alle setzen" / "Alle entfernen" pro Sektion
  * - "Vorlage laden" -> ruft Server-Action auf (Permissions einer
  *   System-Rolle laden) und uebernimmt sie in die Matrix
  *
  * `initial` ist die initiale Permission-Liste (z.B. Edit-Form).
- * `disabled` z.B. bei System-Rollen die nur Permissions, nicht Meta
- * editieren koennen -- die Checkboxen bleiben aber editierbar.
  */
 export function PermissionsMatrix({
   initial,
@@ -61,10 +66,27 @@ export function PermissionsMatrix({
   function setzeModulZeile(m: Modul, alle: boolean) {
     setAktiveKeys((prev) => {
       const next = new Set(prev);
-      for (const a of AKTIONEN) {
+      for (const a of aktionenFuerModul(m)) {
         const k = key(m, a);
         if (alle) next.add(k);
         else next.delete(k);
+      }
+      return next;
+    });
+  }
+
+  function setzeBereich(
+    module: readonly Modul[],
+    alle: boolean,
+  ) {
+    setAktiveKeys((prev) => {
+      const next = new Set(prev);
+      for (const m of module) {
+        for (const a of aktionenFuerModul(m)) {
+          const k = key(m, a);
+          if (alle) next.add(k);
+          else next.delete(k);
+        }
       }
       return next;
     });
@@ -77,7 +99,7 @@ export function PermissionsMatrix({
     }
     const next = new Set<string>();
     for (const m of MODULE) {
-      for (const a of AKTIONEN) {
+      for (const a of aktionenFuerModul(m)) {
         next.add(key(m, a));
       }
     }
@@ -94,8 +116,13 @@ export function PermissionsMatrix({
     });
   }
 
+  const gesamtMoeglich = MODULE.reduce(
+    (sum, m) => sum + aktionenFuerModul(m).length,
+    0,
+  );
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Hidden-Inputs fuer alle aktiven Permissions -- damit FormData
           die ankreuzten Checkboxen mitsendet auch wenn die echten
           Inputs ausserhalb des Forms haetten sein koennen. */}
@@ -163,7 +190,108 @@ export function PermissionsMatrix({
         )}
       </div>
 
-      {/* Matrix-Tabelle. Auf Mobile horizontal scrollbar. */}
+      <BereichTabelle
+        titel="Verwaltungs-Bereich"
+        beschreibung="Sichtbarkeit der Tabs unter /admin/* und Schreib-Rechte. Default-Deny: nicht angekreuzt = unsichtbar."
+        module={VERWALTUNG_MODULE}
+        sichtbareAktionen={AKTIONEN}
+        aktiveKeys={aktiveKeys}
+        toggle={toggle}
+        setzeZeile={setzeModulZeile}
+        onAlleSetzen={() => setzeBereich(VERWALTUNG_MODULE, true)}
+        onAlleEntfernen={() => setzeBereich(VERWALTUNG_MODULE, false)}
+      />
+
+      <BereichTabelle
+        titel="Mitarbeiter-Bereich"
+        beschreibung={`Sichtbarkeit der Tabs in der Mitarbeiter-App (Mein Tag, Studio, Team, Verkauf, Lernen). Nur „Sehen“, weil interne Aktionen in der Mitarbeiter-App durch die DB-Policies geregelt sind.`}
+        module={MITARBEITER_MODULE}
+        sichtbareAktionen={["view"]}
+        aktiveKeys={aktiveKeys}
+        toggle={toggle}
+        setzeZeile={setzeModulZeile}
+        onAlleSetzen={() => setzeBereich(MITARBEITER_MODULE, true)}
+        onAlleEntfernen={() => setzeBereich(MITARBEITER_MODULE, false)}
+      />
+
+      <p className="text-xs text-muted-foreground">
+        {aktiveKeys.size} von {gesamtMoeglich} Permissions aktiv.
+      </p>
+    </div>
+  );
+}
+
+function BereichTabelle({
+  titel,
+  beschreibung,
+  module,
+  sichtbareAktionen,
+  aktiveKeys,
+  toggle,
+  setzeZeile,
+  onAlleSetzen,
+  onAlleEntfernen,
+}: {
+  titel: string;
+  beschreibung: string;
+  module: readonly Modul[];
+  sichtbareAktionen: readonly Aktion[];
+  aktiveKeys: Set<string>;
+  toggle: (m: Modul, a: Aktion) => void;
+  setzeZeile: (m: Modul, alle: boolean) => void;
+  onAlleSetzen: () => void;
+  onAlleEntfernen: () => void;
+}) {
+  function key(m: Modul, a: Aktion): string {
+    return `${m}:${a}`;
+  }
+
+  const aktivInBereich = module.reduce((sum, m) => {
+    return (
+      sum +
+      sichtbareAktionen.reduce(
+        (s, a) => s + (aktiveKeys.has(key(m, a)) ? 1 : 0),
+        0,
+      )
+    );
+  }, 0);
+  const moeglichInBereich = module.reduce(
+    (sum, m) => sum + aktionenFuerModul(m).length,
+    0,
+  );
+
+  return (
+    <section className="space-y-2">
+      <header className="flex flex-wrap items-end justify-between gap-2 border-b border-border pb-1.5">
+        <div>
+          <h3 className="text-[13px] font-semibold tracking-tight text-foreground">
+            {titel}
+          </h3>
+          <p className="mt-0.5 max-w-xl text-[11px] text-muted-foreground">
+            {beschreibung}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span>
+            {aktivInBereich}/{moeglichInBereich}
+          </span>
+          <button
+            type="button"
+            onClick={onAlleSetzen}
+            className="rounded-md border border-border bg-background px-2 py-0.5 font-medium text-foreground transition-colors hover:bg-muted"
+          >
+            Alle
+          </button>
+          <button
+            type="button"
+            onClick={onAlleEntfernen}
+            className="rounded-md border border-border bg-background px-2 py-0.5 font-medium text-foreground transition-colors hover:bg-muted"
+          >
+            Keine
+          </button>
+        </div>
+      </header>
+
       <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         <table className="min-w-full border-separate border-spacing-0">
           <thead>
@@ -171,7 +299,7 @@ export function PermissionsMatrix({
               <th className="sticky left-0 z-10 bg-background px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Modul
               </th>
-              {AKTIONEN.map((a) => (
+              {sichtbareAktionen.map((a) => (
                 <th
                   key={a}
                   className="px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
@@ -185,8 +313,9 @@ export function PermissionsMatrix({
             </tr>
           </thead>
           <tbody>
-            {MODULE.map((m, idx) => {
-              const zeileAlle = AKTIONEN.every((a) =>
+            {module.map((m, idx) => {
+              const erlaubteAktionen = aktionenFuerModul(m);
+              const zeileAlle = erlaubteAktionen.every((a) =>
                 aktiveKeys.has(key(m, a)),
               );
               return (
@@ -200,7 +329,15 @@ export function PermissionsMatrix({
                   <td className="sticky left-0 z-10 whitespace-nowrap bg-background px-3 py-2 text-[13px] font-medium">
                     {MODUL_LABELS[m]}
                   </td>
-                  {AKTIONEN.map((a) => {
+                  {sichtbareAktionen.map((a) => {
+                    const guelitg = (erlaubteAktionen as readonly Aktion[]).includes(a);
+                    if (!guelitg) {
+                      return (
+                        <td key={a} className="px-3 py-2 text-center">
+                          <span className="text-[10px] text-muted-foreground/50">—</span>
+                        </td>
+                      );
+                    }
                     const checked = aktiveKeys.has(key(m, a));
                     return (
                       <td key={a} className="px-3 py-2 text-center">
@@ -224,7 +361,7 @@ export function PermissionsMatrix({
                   <td className="px-3 py-2 text-right">
                     <button
                       type="button"
-                      onClick={() => setzeModulZeile(m, !zeileAlle)}
+                      onClick={() => setzeZeile(m, !zeileAlle)}
                       className="rounded-md border border-border bg-background px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-muted"
                     >
                       {zeileAlle ? "Aus" : "Alle"}
@@ -236,11 +373,7 @@ export function PermissionsMatrix({
           </tbody>
         </table>
       </div>
-
-      <p className="text-xs text-muted-foreground">
-        {aktiveKeys.size} von {MODULE.length * AKTIONEN.length} Permissions
-        aktiv.
-      </p>
-    </div>
+    </section>
   );
 }
+
