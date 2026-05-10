@@ -94,8 +94,19 @@ export async function profilAktualisieren(
   const tags = tagsParsen(formData.get("tags"));
   const interne_notiz = nullbarString(formData.get("interne_notiz"));
 
+  // Custom-Rolle: leerer String = "keine Custom-Rolle" = null setzen.
+  // Nicht-UUID = Wert ignorieren (Form-Tampering-Schutz).
+  const customRoleRaw = String(formData.get("custom_role_id") ?? "").trim();
+  const custom_role_id =
+    customRoleRaw.length > 0 && istUUID(customRoleRaw) ? customRoleRaw : null;
+
   const supabase = await createClient();
   const voll = {
+    full_name, first_name, last_name, phone, role, location_id,
+    kann_provisionen, personalnummer, geburtsdatum, eintritt_am, austritt_am,
+    vertragsart, wochenstunden, tags, interne_notiz, custom_role_id,
+  };
+  const ohneCustom = {
     full_name, first_name, last_name, phone, role, location_id,
     kann_provisionen, personalnummer, geburtsdatum, eintritt_am, austritt_am,
     vertragsart, wochenstunden, tags, interne_notiz,
@@ -106,11 +117,22 @@ export async function profilAktualisieren(
   };
   const basis = { full_name, role, location_id, kann_provisionen };
 
+  // 4-Stufen-Fallback: voll (mit custom_role_id) -> ohne Custom-Rolle
+  // (Migration 0025 fehlt) -> ohne neue Felder (0044 fehlt) -> Basis.
   const erst = await supabase.from("profiles").update(voll).eq("id", benutzerId);
   if (erst.error) {
-    const zweit = await supabase.from("profiles").update(ohneNeu).eq("id", benutzerId);
+    const zweit = await supabase
+      .from("profiles")
+      .update(ohneCustom)
+      .eq("id", benutzerId);
     if (zweit.error) {
-      await supabase.from("profiles").update(basis).eq("id", benutzerId);
+      const dritt = await supabase
+        .from("profiles")
+        .update(ohneNeu)
+        .eq("id", benutzerId);
+      if (dritt.error) {
+        await supabase.from("profiles").update(basis).eq("id", benutzerId);
+      }
     }
   }
 
