@@ -37,6 +37,7 @@ export function PermissionsMatrix({
   initial,
   vorlageLaden,
   bereich,
+  lockedKeys,
 }: {
   initial: Permission[];
   /** Optional: Server-Action zum Laden einer System-Rolle als
@@ -49,8 +50,17 @@ export function PermissionsMatrix({
    *  Pages, die nicht typgebunden sind). "mitarbeiter": nur Mitarbeiter-
    *  Bereich (Tab-Sichtbarkeit). "verwaltung": nur Verwaltungs-Bereich. */
   bereich?: "mitarbeiter" | "verwaltung";
+  /** Pflicht-Permissions die nicht abgewählt werden dürfen (z.B. bei
+   *  System-Rollen Admin/Superadmin). Format: "modul:aktion"-Strings.
+   *  Werden im UI als locked angezeigt + bleiben immer in aktiveKeys. */
+  lockedKeys?: readonly string[];
 }) {
+  const lockedSet = new Set(lockedKeys ?? []);
+  // Locked-Keys werden in den initialen Set zwangsweise aktiv gemacht
+  // -- damit Form-Tampering oder veraltete DB-Daten (locked Permission
+  // fehlt im initial) automatisch korrigiert werden.
   const initialKeys = new Set(initial.map((p) => `${p.modul}:${p.aktion}`));
+  for (const k of lockedSet) initialKeys.add(k);
   const [aktiveKeys, setAktiveKeys] = useState<Set<string>>(initialKeys);
   const [pending, startTransition] = useTransition();
 
@@ -60,6 +70,7 @@ export function PermissionsMatrix({
 
   function toggle(m: Modul, a: Aktion) {
     const k = key(m, a);
+    if (lockedSet.has(k)) return; // Pflicht-Permission, nicht togglebar
     setAktiveKeys((prev) => {
       const next = new Set(prev);
       if (next.has(k)) next.delete(k);
@@ -73,6 +84,10 @@ export function PermissionsMatrix({
       const next = new Set(prev);
       for (const a of aktionenFuerModul(m)) {
         const k = key(m, a);
+        if (lockedSet.has(k)) {
+          next.add(k); // Pflicht bleibt
+          continue;
+        }
         if (alle) next.add(k);
         else next.delete(k);
       }
@@ -89,6 +104,10 @@ export function PermissionsMatrix({
       for (const m of module) {
         for (const a of aktionenFuerModul(m)) {
           const k = key(m, a);
+          if (lockedSet.has(k)) {
+            next.add(k);
+            continue;
+          }
           if (alle) next.add(k);
           else next.delete(k);
         }
@@ -101,7 +120,7 @@ export function PermissionsMatrix({
     // Bei typgebundener Matrix ("mitarbeiter"/"verwaltung") wirken
     // "Alle setzen/entfernen" nur auf die sichtbare Sektion. Permissions
     // der anderen Sektion (z.B. aus Edit-Page mit gemischten Daten)
-    // bleiben unberuehrt.
+    // bleiben unberührt.
     const wirkBereich =
       bereich === "mitarbeiter"
         ? MITARBEITER_MODULE
@@ -113,6 +132,10 @@ export function PermissionsMatrix({
       for (const m of wirkBereich) {
         for (const a of aktionenFuerModul(m)) {
           const k = key(m, a);
+          if (lockedSet.has(k)) {
+            next.add(k);
+            continue;
+          }
           if (alle) next.add(k);
           else next.delete(k);
         }
@@ -212,6 +235,7 @@ export function PermissionsMatrix({
           module={VERWALTUNG_MODULE}
           sichtbareAktionen={AKTIONEN}
           aktiveKeys={aktiveKeys}
+          lockedKeys={lockedSet}
           toggle={toggle}
           setzeZeile={setzeModulZeile}
           onAlleSetzen={() => setzeBereich(VERWALTUNG_MODULE, true)}
@@ -226,6 +250,7 @@ export function PermissionsMatrix({
           module={MITARBEITER_MODULE}
           sichtbareAktionen={["view"]}
           aktiveKeys={aktiveKeys}
+          lockedKeys={lockedSet}
           toggle={toggle}
           setzeZeile={setzeModulZeile}
           onAlleSetzen={() => setzeBereich(MITARBEITER_MODULE, true)}
@@ -246,6 +271,7 @@ function BereichTabelle({
   module,
   sichtbareAktionen,
   aktiveKeys,
+  lockedKeys,
   toggle,
   setzeZeile,
   onAlleSetzen,
@@ -256,6 +282,7 @@ function BereichTabelle({
   module: readonly Modul[];
   sichtbareAktionen: readonly Aktion[];
   aktiveKeys: Set<string>;
+  lockedKeys: Set<string>;
   toggle: (m: Modul, a: Aktion) => void;
   setzeZeile: (m: Modul, alle: boolean) => void;
   onAlleSetzen: () => void;
@@ -358,15 +385,23 @@ function BereichTabelle({
                       );
                     }
                     const checked = aktiveKeys.has(key(m, a));
+                    const locked = lockedKeys.has(key(m, a));
                     return (
                       <td key={a} className="px-3 py-2 text-center">
                         <button
                           type="button"
                           onClick={() => toggle(m, a)}
+                          disabled={locked}
                           aria-pressed={checked}
-                          aria-label={`${MODUL_LABELS[m]}: ${AKTION_LABELS[a]} ${checked ? "aktiv" : "inaktiv"}`}
+                          aria-label={`${MODUL_LABELS[m]}: ${AKTION_LABELS[a]} ${checked ? "aktiv" : "inaktiv"}${locked ? " (Pflicht, nicht änderbar)" : ""}`}
+                          title={
+                            locked
+                              ? "Pflicht-Permission — kann nicht entfernt werden, sonst Self-Lockout."
+                              : undefined
+                          }
                           className={cn(
                             "inline-flex h-6 w-6 items-center justify-center rounded-md border transition-colors",
+                            locked && "cursor-not-allowed opacity-70",
                             checked
                               ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
                               : "border-border bg-background hover:border-[hsl(var(--primary)/0.4)]",

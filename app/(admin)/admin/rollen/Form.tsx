@@ -9,7 +9,11 @@ import {
   rolleAnlegen,
   rolleArchivieren,
 } from "./actions";
-import type { Aktion, Modul } from "@/lib/permissions";
+import {
+  PFLICHT_PERMISSIONS,
+  type Aktion,
+  type Modul,
+} from "@/lib/permissions";
 import type { RolleBaseLevel } from "@/lib/rollen-verwaltung";
 
 /**
@@ -179,6 +183,9 @@ export function RollenForm(props: FormProps) {
           initial={istEdit ? props.initialPermissions : []}
           vorlageLaden={istEdit ? undefined : ladeSystemRollenVorlage}
           bereich={istMitarbeiterTyp ? "mitarbeiter" : "verwaltung"}
+          lockedKeys={
+            istEdit ? PFLICHT_PERMISSIONS[props.id] ?? [] : []
+          }
         />
       </section>
 

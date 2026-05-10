@@ -9,6 +9,7 @@ import {
   AKTIONEN,
   istMitarbeiterModul,
   MODULE,
+  PFLICHT_PERMISSIONS,
   type Aktion,
   type Modul,
 } from "@/lib/permissions";
@@ -183,6 +184,18 @@ export async function rolleAktualisieren(
     aktuellesBaseLevel,
     rolle.is_system,
   );
+
+  // Self-Lockout-Schutz: Pflicht-Permissions (Admin/Superadmin) immer
+  // mit-schreiben, auch wenn die UI via Form-Tampering versucht sie
+  // wegzulassen.
+  const pflicht = PFLICHT_PERMISSIONS[id] ?? [];
+  for (const key of pflicht) {
+    const [modul, aktion] = key.split(":") as [Modul, Aktion];
+    if (!permissions.some((p) => p.modul === modul && p.aktion === aktion)) {
+      permissions.push({ modul, aktion });
+    }
+  }
+
   const { error: deleteError } = await supabase
     .from("role_permissions")
     .delete()
