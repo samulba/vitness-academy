@@ -16,6 +16,9 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const profile = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  // Permissions als string[] fuer Client-Components (Set ist nicht
+  // serialisierbar ueber Server-Boundary).
+  const permissionsArr = Array.from(profile.permissions);
 
   // KEIN Standort-Switcher im Admin-Bereich — Verwaltung sieht
   // standardmaessig alle Standorte. Filter pro Page bei Bedarf via
@@ -40,6 +43,7 @@ export default async function AdminLayout({
         avatarPath={profile.avatar_path}
         notificationSlot={<NotificationBellServer placement="side-right" />}
         kannProvisionen={profile.kann_provisionen}
+        permissions={permissionsArr}
       />
       <main
         id="main"
@@ -53,6 +57,7 @@ export default async function AdminLayout({
       <MobileNav
         rolle={profile.role}
         kannProvisionen={profile.kann_provisionen}
+        permissions={permissionsArr}
       />
     </>
   );

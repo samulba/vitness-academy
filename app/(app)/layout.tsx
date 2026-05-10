@@ -76,6 +76,7 @@ export default async function AppLayout({
         notificationSlot={<NotificationBellServer placement="side-right" />}
         standortSlot={switcherSidebar}
         kannProvisionen={profile.kann_provisionen}
+        permissions={Array.from(profile.permissions)}
       />
       <main
         id="main"
@@ -86,6 +87,7 @@ export default async function AppLayout({
       <MobileNav
         rolle={profile.role}
         kannProvisionen={profile.kann_provisionen}
+        permissions={Array.from(profile.permissions)}
       />
       {!profile.onboarding_done && (
         <OnboardingDialog vorname={profile.first_name ?? profile.full_name} />

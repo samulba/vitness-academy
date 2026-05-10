@@ -29,12 +29,15 @@ import {
 } from "lucide-react";
 import { abmelden } from "@/app/login/actions";
 import { cn } from "@/lib/utils";
-import { istFuehrungskraftOderHoeher, type Rolle } from "@/lib/rollen";
+import { istAdmin, istFuehrungskraftOderHoeher, type Rolle } from "@/lib/rollen";
+import { hatModulZugriff, type Modul } from "@/lib/permissions";
 
 type HubLink = {
   href: string;
   label: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  /** Permission-Modul. Leer = immer sichtbar (z.B. Mitarbeiter-Bereich). */
+  modul?: Modul;
 };
 
 const STUDIO: HubLink[] = [
@@ -61,39 +64,41 @@ const VERKAUF: HubLink = {
 };
 
 // Admin-Hub: 5 Sektionen analog zur Sidebar — Operations zuerst.
+// Pro Eintrag das Permission-Modul fuer Filterung.
 const ADMIN_OPERATIONS: HubLink[] = [
-  { href: "/admin/aufgaben", label: "Aufgaben", icon: ListTodo },
-  { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle },
-  { href: "/admin/putzprotokolle", label: "Putzprotokolle", icon: Sparkles },
-  { href: "/admin/formulare/eingaenge", label: "Eingänge", icon: Inbox },
-  { href: "/admin/praxisfreigaben", label: "Praxis-Anfragen", icon: CheckSquare },
-  { href: "/admin/feedback", label: "Feedback", icon: MessageCircle },
+  { href: "/admin/aufgaben", label: "Aufgaben", icon: ListTodo, modul: "aufgaben" },
+  { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle, modul: "maengel" },
+  { href: "/admin/putzprotokolle", label: "Putzprotokolle", icon: Sparkles, modul: "putzprotokolle" },
+  { href: "/admin/formulare/eingaenge", label: "Eingänge", icon: Inbox, modul: "formulare" },
+  { href: "/admin/praxisfreigaben", label: "Praxis-Anfragen", icon: CheckSquare, modul: "praxisfreigaben" },
+  { href: "/admin/feedback", label: "Feedback", icon: MessageCircle, modul: "feedback" },
 ];
 
 const ADMIN_TEAM: HubLink[] = [
-  { href: "/admin/benutzer", label: "Benutzer", icon: Users },
-  { href: "/admin/lohn", label: "Lohn", icon: Euro },
-  { href: "/admin/provisionen", label: "Provisionen", icon: TrendingUp },
+  { href: "/admin/benutzer", label: "Benutzer", icon: Users, modul: "benutzer" },
+  { href: "/admin/lohn", label: "Lohn", icon: Euro, modul: "lohn" },
+  { href: "/admin/provisionen", label: "Provisionen", icon: TrendingUp, modul: "provisionen" },
 ];
 
 const ADMIN_KOMMUNIKATION: HubLink[] = [
-  { href: "/admin/infos", label: "Infos", icon: Megaphone },
-  { href: "/admin/kontakte", label: "Kontakte", icon: Contact },
-  { href: "/admin/formulare", label: "Formulare", icon: FileText },
-  { href: "/admin/wissen", label: "Handbuch", icon: BookOpen },
+  { href: "/admin/infos", label: "Infos", icon: Megaphone, modul: "infos" },
+  { href: "/admin/kontakte", label: "Kontakte", icon: Contact, modul: "kontakte" },
+  { href: "/admin/formulare", label: "Formulare", icon: FileText, modul: "formulare" },
+  { href: "/admin/wissen", label: "Handbuch", icon: BookOpen, modul: "wissen" },
 ];
 
 const ADMIN_AKADEMIE: HubLink[] = [
-  { href: "/admin/lernpfade", label: "Lernpfade", icon: GraduationCap },
-  { href: "/admin/quizze", label: "Quizze", icon: HelpCircle },
-  { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare },
-  { href: "/admin/onboarding-templates", label: "Onboarding", icon: Sparkles },
+  { href: "/admin/lernpfade", label: "Lernpfade", icon: GraduationCap, modul: "lernpfade" },
+  { href: "/admin/quizze", label: "Quizze", icon: HelpCircle, modul: "quizze" },
+  { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare, modul: "praxisaufgaben" },
+  { href: "/admin/onboarding-templates", label: "Onboarding", icon: Sparkles, modul: "onboarding-templates" },
 ];
 
 const ADMIN_STAMMDATEN: HubLink[] = [
-  { href: "/admin/standorte", label: "Standorte", icon: MapPin },
-  { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity },
-  { href: "/admin/audit-log", label: "Audit-Log", icon: ShieldCheck },
+  { href: "/admin/standorte", label: "Standorte", icon: MapPin, modul: "standorte" },
+  { href: "/admin/rollen", label: "Rollen & Rechte", icon: Shield, modul: "rollen" },
+  { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity, modul: "fortschritt" },
+  { href: "/admin/audit-log", label: "Audit-Log", icon: ShieldCheck, modul: "audit" },
 ];
 
 /**
@@ -107,15 +112,34 @@ export function MobileHubSheet({
   onClose,
   rolle,
   kannProvisionen,
+  permissions = [],
   adminMode,
 }: {
   offen: boolean;
   onClose: () => void;
   rolle: Rolle;
   kannProvisionen: boolean;
+  permissions?: readonly string[];
   adminMode: boolean;
 }) {
-  const istAdmin = istFuehrungskraftOderHoeher(rolle);
+  const istFuehrung = istFuehrungskraftOderHoeher(rolle);
+  const permsSet = new Set(permissions);
+  const permissionsAktiv = permsSet.size > 0;
+
+  // Filter-Helper: zeige Eintrag wenn Permissions aktiv UND modul
+  // erlaubt, ODER Permissions inaktiv (Migrations-Lag, alte Logik).
+  // Eintraege ohne `modul` immer sichtbar.
+  function filterAdmin(items: HubLink[]): HubLink[] {
+    if (!permissionsAktiv) {
+      // Alte Logik: Provisionen nur mit Flag, Rollen-Eintrag nur Admin+
+      return items.filter((i) => {
+        if (i.href === "/admin/provisionen" && !kannProvisionen) return false;
+        if (i.href === "/admin/rollen" && !istAdmin(rolle)) return false;
+        return true;
+      });
+    }
+    return items.filter((i) => !i.modul || hatModulZugriff(permsSet, i.modul));
+  }
 
   // ESC-Key schliesst Sheet
   useEffect(() => {
@@ -183,30 +207,43 @@ export function MobileHubSheet({
         <div className="space-y-6 p-5 pb-24">
           {adminMode ? (
             <>
-              <Section titel="Operations">
-                <Grid items={ADMIN_OPERATIONS} onNavigate={onClose} />
-              </Section>
-              <Section titel="Mitarbeiter">
-                <Grid
-                  items={
-                    kannProvisionen
-                      ? ADMIN_TEAM
-                      : ADMIN_TEAM.filter(
-                          (i) => i.href !== "/admin/provisionen",
-                        )
-                  }
-                  onNavigate={onClose}
-                />
-              </Section>
-              <Section titel="Kommunikation">
-                <Grid items={ADMIN_KOMMUNIKATION} onNavigate={onClose} />
-              </Section>
-              <Section titel="Akademie">
-                <Grid items={ADMIN_AKADEMIE} onNavigate={onClose} />
-              </Section>
-              <Section titel="Stammdaten & Auswertung">
-                <Grid items={ADMIN_STAMMDATEN} onNavigate={onClose} />
-              </Section>
+              {(() => {
+                // Pro Sektion filtern, leere Sektionen ausblenden.
+                const operations = filterAdmin(ADMIN_OPERATIONS);
+                const team = filterAdmin(ADMIN_TEAM);
+                const kommunikation = filterAdmin(ADMIN_KOMMUNIKATION);
+                const akademie = filterAdmin(ADMIN_AKADEMIE);
+                const stammdaten = filterAdmin(ADMIN_STAMMDATEN);
+                return (
+                  <>
+                    {operations.length > 0 && (
+                      <Section titel="Operations">
+                        <Grid items={operations} onNavigate={onClose} />
+                      </Section>
+                    )}
+                    {team.length > 0 && (
+                      <Section titel="Mitarbeiter">
+                        <Grid items={team} onNavigate={onClose} />
+                      </Section>
+                    )}
+                    {kommunikation.length > 0 && (
+                      <Section titel="Kommunikation">
+                        <Grid items={kommunikation} onNavigate={onClose} />
+                      </Section>
+                    )}
+                    {akademie.length > 0 && (
+                      <Section titel="Akademie">
+                        <Grid items={akademie} onNavigate={onClose} />
+                      </Section>
+                    )}
+                    {stammdaten.length > 0 && (
+                      <Section titel="Stammdaten & Auswertung">
+                        <Grid items={stammdaten} onNavigate={onClose} />
+                      </Section>
+                    )}
+                  </>
+                );
+              })()}
               <Section titel="Modus">
                 <ZurApp adminMode onClose={onClose} />
               </Section>
@@ -227,7 +264,7 @@ export function MobileHubSheet({
                   <Grid items={[VERKAUF]} onNavigate={onClose} />
                 </Section>
               )}
-              {istAdmin && (
+              {istFuehrung && (
                 <Section titel="Modus">
                   <ZurApp adminMode={false} onClose={onClose} />
                 </Section>

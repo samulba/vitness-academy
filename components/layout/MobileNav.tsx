@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { istFuehrungskraftOderHoeher, type Rolle } from "@/lib/rollen";
+import { hatModulZugriff, type Modul } from "@/lib/permissions";
 import { MobileHubSheet } from "./MobileHubSheet";
 
 type MobileLink = {
@@ -26,9 +27,12 @@ type MobileLink = {
    *  aktiv -- sonst wuerde z.B. "Uebersicht" /admin auch bei
    *  /admin/benutzer aktiv erscheinen. */
   exact?: boolean;
+  /** Permission-Modul. Leer = immer sichtbar. */
+  modul?: Modul;
 };
 
 // Mitarbeiter: 4 daily-use Tabs + Center-FAB zum Hub-Sheet
+// (Mitarbeiter-Bereich nicht permission-gated -- bleibt unveraendert.)
 const MITARBEITER_LINKS: MobileLink[] = [
   { href: "/dashboard", label: "Mein Tag", icon: Home },
   { href: "/aufgaben", label: "Aufgaben", icon: ListTodo },
@@ -38,27 +42,44 @@ const MITARBEITER_LINKS: MobileLink[] = [
 
 // Verwaltungs-Modus: 4 Operations-Tabs + Center-FAB zum Admin-Hub.
 // Alle 4 sind Inbox-/Daily-Use-Bereiche — Team/Auswertung kommen ueber
-// den Hub-Sheet, sind sekundaer.
-const VERWALTUNG_LINKS: MobileLink[] = [
+// den Hub-Sheet, sind sekundaer. Pro Eintrag das Permission-Modul.
+const VERWALTUNG_LINKS_ALLE: MobileLink[] = [
   { href: "/admin", label: "Übersicht", icon: ShieldCheck, exact: true },
-  { href: "/admin/formulare/eingaenge", label: "Eingänge", icon: Inbox },
-  { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle },
-  { href: "/admin/aufgaben", label: "Aufgaben", icon: ClipboardList },
+  { href: "/admin/formulare/eingaenge", label: "Eingänge", icon: Inbox, modul: "formulare" },
+  { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle, modul: "maengel" },
+  { href: "/admin/aufgaben", label: "Aufgaben", icon: ClipboardList, modul: "aufgaben" },
 ];
 
 export function MobileNav({
   rolle,
   kannProvisionen = false,
+  permissions = [],
 }: {
   rolle: Rolle;
   kannProvisionen?: boolean;
+  permissions?: readonly string[];
 }) {
   const pathname = usePathname();
   const [hubOffen, setHubOffen] = useState(false);
   const zeigeAdmin = istFuehrungskraftOderHoeher(rolle);
   const adminMode = pathname === "/admin" || pathname.startsWith("/admin/");
+  const permsSet = new Set(permissions);
+  const permissionsAktiv = permsSet.size > 0;
 
-  const links = zeigeAdmin && adminMode ? VERWALTUNG_LINKS : MITARBEITER_LINKS;
+  // Verwaltung-Tabs auf Permissions filtern. Wenn Permissions inaktiv
+  // (Migrations-Lag), zeige alle Tabs (alte Logik).
+  // Wir behalten immer 4 Tabs -- wenn ein Tab gefiltert wuerde, fallen
+  // wir auf "Übersicht" als Platzhalter zurueck, damit das Grid stabil
+  // bleibt. Echte Filterung passiert auch im Hub-Sheet.
+  const verwaltungLinks: MobileLink[] = permissionsAktiv
+    ? VERWALTUNG_LINKS_ALLE.map((l) =>
+        !l.modul || hatModulZugriff(permsSet, l.modul)
+          ? l
+          : VERWALTUNG_LINKS_ALLE[0],
+      )
+    : VERWALTUNG_LINKS_ALLE;
+
+  const links = zeigeAdmin && adminMode ? verwaltungLinks : MITARBEITER_LINKS;
 
   return (
     <>
@@ -91,6 +112,7 @@ export function MobileNav({
         onClose={() => setHubOffen(false)}
         rolle={rolle}
         kannProvisionen={kannProvisionen}
+        permissions={permissions}
         adminMode={zeigeAdmin && adminMode}
       />
     </>

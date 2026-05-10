@@ -36,6 +36,7 @@ import {
   istFuehrungskraftOderHoeher,
   type Rolle,
 } from "@/lib/rollen";
+import { hatModulZugriff, type Modul } from "@/lib/permissions";
 import { rolleLabel } from "@/lib/format";
 import { SearchTrigger } from "@/components/search/SearchTrigger";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -50,6 +51,12 @@ type NavEintrag = {
    * "Übersicht" /admin -- sonst wäre der Eintrag auf jeder Admin-
    * Sub-Page mit-markiert. */
   exact?: boolean;
+  /** Welches Permission-Modul der Eintrag braucht. Eintrag wird nur
+   * angezeigt wenn der User mind. eine Aktion auf dem Modul hat
+   * (hatModulZugriff). Ohne `modul` immer sichtbar (z.B.
+   * Mitarbeiter-Mode-Sidebar -- Permissions wirken nur auf
+   * Verwaltung-Mode). */
+  modul?: Modul;
 };
 
 type AdminGruppe = {
@@ -112,52 +119,53 @@ const ADMIN_GROUPS: AdminGruppe[] = [
     id: "operations",
     label: "Operations",
     eintraege: [
-      { href: "/admin/aufgaben", label: "Aufgaben", icon: ListTodo },
-      { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle },
-      { href: "/admin/putzprotokolle", label: "Putzprotokolle", icon: Sparkles },
-      { href: "/admin/formulare/eingaenge", label: "Eingänge", icon: Inbox },
-      { href: "/admin/praxisfreigaben", label: "Praxis-Anfragen", icon: CheckSquare },
-      { href: "/admin/feedback", label: "Mitglieder-Feedback", icon: MessageCircle },
+      { href: "/admin/aufgaben", label: "Aufgaben", icon: ListTodo, modul: "aufgaben" },
+      { href: "/admin/maengel", label: "Mängel", icon: AlertTriangle, modul: "maengel" },
+      { href: "/admin/putzprotokolle", label: "Putzprotokolle", icon: Sparkles, modul: "putzprotokolle" },
+      { href: "/admin/formulare/eingaenge", label: "Eingänge", icon: Inbox, modul: "formulare" },
+      { href: "/admin/praxisfreigaben", label: "Praxis-Anfragen", icon: CheckSquare, modul: "praxisfreigaben" },
+      { href: "/admin/feedback", label: "Mitglieder-Feedback", icon: MessageCircle, modul: "feedback" },
     ],
   },
   {
     id: "team",
     label: "Mitarbeiter",
     eintraege: [
-      { href: "/admin/benutzer", label: "Benutzer", icon: Users },
-      { href: "/admin/lohn", label: "Lohnabrechnungen", icon: Euro },
-      { href: "/admin/provisionen", label: "Provisionen", icon: TrendingUp },
+      { href: "/admin/benutzer", label: "Benutzer", icon: Users, modul: "benutzer" },
+      { href: "/admin/lohn", label: "Lohnabrechnungen", icon: Euro, modul: "lohn" },
+      { href: "/admin/provisionen", label: "Provisionen", icon: TrendingUp, modul: "provisionen" },
     ],
   },
   {
     id: "kommunikation",
     label: "Kommunikation",
     eintraege: [
-      { href: "/admin/infos", label: "Wichtige Infos", icon: Megaphone },
-      { href: "/admin/kontakte", label: "Kontakte", icon: Contact },
-      { href: "/admin/formulare", label: "Formulare", icon: FileText },
-      { href: "/admin/wissen", label: "Handbuch", icon: BookOpen },
+      { href: "/admin/infos", label: "Wichtige Infos", icon: Megaphone, modul: "infos" },
+      { href: "/admin/kontakte", label: "Kontakte", icon: Contact, modul: "kontakte" },
+      { href: "/admin/formulare", label: "Formulare", icon: FileText, modul: "formulare" },
+      { href: "/admin/wissen", label: "Handbuch", icon: BookOpen, modul: "wissen" },
     ],
   },
   {
     id: "akademie",
     label: "Akademie",
     eintraege: [
-      { href: "/admin/lernpfade", label: "Lernpfade", icon: GraduationCap },
-      { href: "/admin/quizze", label: "Quizze", icon: HelpCircle },
-      { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare },
-      { href: "/admin/onboarding-templates", label: "Onboarding-Templates", icon: Sparkles },
+      { href: "/admin/lernpfade", label: "Lernpfade", icon: GraduationCap, modul: "lernpfade" },
+      { href: "/admin/quizze", label: "Quizze", icon: HelpCircle, modul: "quizze" },
+      { href: "/admin/praxisaufgaben", label: "Praxisaufgaben", icon: CheckSquare, modul: "praxisaufgaben" },
+      { href: "/admin/onboarding-templates", label: "Onboarding-Templates", icon: Sparkles, modul: "onboarding-templates" },
     ],
   },
   {
     id: "stammdaten",
     label: "Stammdaten & Auswertung",
     eintraege: [
-      { href: "/admin/standorte", label: "Standorte", icon: MapPin },
-      { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity },
-      { href: "/admin/audit-log", label: "Audit-Log", icon: ShieldCheck },
+      { href: "/admin/standorte", label: "Standorte", icon: MapPin, modul: "standorte" },
+      { href: "/admin/rollen", label: "Rollen & Rechte", icon: Shield, modul: "rollen" },
+      { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity, modul: "fortschritt" },
+      { href: "/admin/audit-log", label: "Audit-Log", icon: ShieldCheck, modul: "audit" },
       // Design-Showcase nur in Development sichtbar — Production muss
-      // sauber sein. Filter unten in der Component.
+      // sauber sein. Filter unten in der Component (kein Modul, nur Dev-Flag).
       { href: "/admin/showcase", label: "Design-Showcase", icon: Sparkles },
     ],
   },
@@ -193,6 +201,7 @@ export function Sidebar({
   notificationSlot,
   standortSlot,
   kannProvisionen = false,
+  permissions = [],
 }: {
   rolle: Rolle;
   fullName?: string | null;
@@ -200,21 +209,39 @@ export function Sidebar({
   notificationSlot?: React.ReactNode;
   standortSlot?: React.ReactNode;
   kannProvisionen?: boolean;
+  /** Permissions als "modul:aktion"-Strings vom Layout. Set fuer
+   * O(1)-Lookup intern erzeugt. Leer fuer User ohne Custom-Rolle und
+   * fehlender Migration. */
+  permissions?: readonly string[];
 }) {
   const pathname = usePathname();
   const showAdmin = istFuehrungskraftOderHoeher(rolle);
   const adminMode = pathname === "/admin" || pathname.startsWith("/admin/");
   const offen = aktiverGruppenId(pathname);
   const [openGroup, setOpenGroup] = useState<string | null>(offen);
+  const permsSet = new Set(permissions);
 
-  // Conditional Filter: Provisionen + Design-Showcase wegfiltern wenn
-  // nicht berechtigt / nicht in Dev. Map auf gefilterte Eintraege.
+  // Filter ADMIN_GROUPS auf Permission-Basis:
+  //  - Eintrag mit `modul`: nur sichtbar wenn hatModulZugriff(permissions, modul)
+  //  - Eintrag ohne `modul` (z.B. Showcase): nach alter Logik (Dev-Flag)
+  // Fallback fuer Migrations-Lag: wenn Permissions leer sind UND der
+  // User Fuehrungskraft+ ist, zeige nach alter Rolle-basierter Logik
+  // (kann_provisionen, istDev, sonst alles). So bricht der UI nicht
+  // bevor Migration 0061 eingespielt ist.
   const istDev = process.env.NODE_ENV === "development";
+  const permissionsAktiv = permsSet.size > 0;
   const sichtbareGruppen = ADMIN_GROUPS.map((g) => ({
     ...g,
     eintraege: g.eintraege.filter((e) => {
+      if (e.href === "/admin/showcase") return istDev;
+      if (permissionsAktiv) {
+        if (!e.modul) return true;
+        return hatModulZugriff(permsSet, e.modul);
+      }
+      // Fallback: alte Rolle-basierte Logik (vor Migration 0061)
       if (e.href === "/admin/provisionen" && !kannProvisionen) return false;
-      if (e.href === "/admin/showcase" && !istDev) return false;
+      // Fuer "Rollen & Rechte" gilt der alte Pattern: nur Admin+
+      if (e.href === "/admin/rollen" && !istAdmin(rolle)) return false;
       return true;
     }),
   })).filter((g) => g.eintraege.length > 0);
