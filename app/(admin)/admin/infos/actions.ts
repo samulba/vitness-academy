@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { istValideKategorie } from "@/lib/infos";
 
 function buildPayload(formData: FormData) {
@@ -28,7 +28,7 @@ function buildPayload(formData: FormData) {
 }
 
 export async function infoAnlegen(formData: FormData): Promise<void> {
-  const profile = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  const profile = await requirePermission("infos", "create");
   const payload = buildPayload(formData);
   if (!payload.title) return;
 
@@ -48,7 +48,7 @@ export async function infoAktualisieren(
   id: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("infos", "edit");
   const payload = buildPayload(formData);
   if (!payload.title) return;
   const supabase = await createClient();
@@ -67,7 +67,7 @@ export async function infoAktualisieren(
 }
 
 export async function infoLoeschen(id: string): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("infos", "delete");
   const supabase = await createClient();
   const { error } = await supabase
     .from("studio_announcements")

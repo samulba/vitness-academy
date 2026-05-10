@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import {
   formatEuro,
   laufzeitLabel,
@@ -28,7 +28,7 @@ export default async function PrintPage({
 }: {
   params: Promise<{ monat: string; vertrieblerId: string }>;
 }) {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "view");
   const { monat, vertrieblerId } = await params;
 
   if (!/^\d{4}-\d{2}$/.test(monat)) notFound();

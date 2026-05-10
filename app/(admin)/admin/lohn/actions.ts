@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { appUrl, sendEmail } from "@/lib/email";
 import { lohnabrechnungMail } from "@/lib/email-templates/lohnabrechnung";
 import { monatLabel } from "@/lib/lohn-types";
@@ -27,7 +27,7 @@ export type Ergebnis =
 export async function lohnabrechnungHochladen(
   formData: FormData,
 ): Promise<Ergebnis> {
-  const admin = await requireRole(["admin", "superadmin"]);
+  const admin = await requirePermission("lohn", "create");
 
   const userId = String(formData.get("user_id") ?? "").trim();
   const monat = String(formData.get("monat") ?? "").trim();
@@ -166,7 +166,7 @@ export async function lohnabrechnungHochladen(
 }
 
 export async function lohnabrechnungLoeschen(id: string): Promise<Ergebnis> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("lohn", "delete");
   const supabase = await createClient();
 
   const { data } = await supabase

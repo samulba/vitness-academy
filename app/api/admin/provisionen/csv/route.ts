@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import {
   ladeEntries,
   laufzeitLabel,
@@ -17,7 +17,7 @@ function fmtNum(n: number): string {
 }
 
 export async function GET(request: Request) {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "view");
 
   const url = new URL(request.url);
   const monat = url.searchParams.get("monat") ?? undefined;

@@ -1,11 +1,11 @@
 import { PageHeader } from "@/components/ui/page-header";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { TemplateForm, type PfadOption } from "../TemplateForm";
 import { templateAnlegen } from "../actions";
 
 export default async function NeuesTemplatePage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("onboarding-templates", "create");
   const supabase = await createClient();
   const { data: pfade } = await supabase
     .from("learning_paths")

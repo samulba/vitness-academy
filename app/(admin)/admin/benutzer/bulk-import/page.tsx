@@ -1,10 +1,10 @@
 import { PageHeader } from "@/components/ui/page-header";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { BulkImportForm } from "./BulkImportForm";
 
 export default async function BulkImportPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("benutzer", "create");
   const supabase = await createClient();
   const { data } = await supabase
     .from("learning_paths")

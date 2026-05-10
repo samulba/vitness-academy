@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ladeTemplate } from "@/lib/onboarding-templates";
 import { ladeChecklistItems } from "@/lib/onboarding-checklist";
@@ -14,7 +14,7 @@ export default async function TemplateBearbeitenPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("onboarding-templates", "view");
   const { id } = await params;
   const template = await ladeTemplate(id);
   if (!template) notFound();

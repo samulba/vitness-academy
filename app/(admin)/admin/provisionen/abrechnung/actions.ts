@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ladeAbrechnungsVorschau } from "@/lib/provisionen";
 
@@ -13,7 +13,7 @@ import { ladeAbrechnungsVorschau } from "@/lib/provisionen";
  * commission_entries für betroffene Monate.
  */
 export async function monatLocken(formData: FormData): Promise<void> {
-  const profile = await requireRole(["admin", "superadmin"]);
+  const profile = await requirePermission("provisionen", "edit");
   const monatYYYYMM = String(formData.get("monat_yyyymm") ?? "").trim();
 
   if (!/^\d{4}-\d{2}$/.test(monatYYYYMM)) {
@@ -57,7 +57,7 @@ export async function monatLocken(formData: FormData): Promise<void> {
  * werden.
  */
 export async function monatEntsperren(monatYYYYMM: string): Promise<void> {
-  await requireRole(["superadmin"]);
+  await requirePermission("provisionen", "delete");
 
   if (!/^\d{4}-\d{2}$/.test(monatYYYYMM)) {
     redirect("/admin/provisionen/abrechnung?toast=error");
@@ -88,7 +88,7 @@ export async function auszahlungSetzen(
   payoutId: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "edit");
 
   const am = String(formData.get("ausgezahlt_am") ?? "").trim();
   const via = String(formData.get("ausgezahlt_via") ?? "").trim();
@@ -138,7 +138,7 @@ export async function auszahlungSetzen(
 export async function auszahlungZuruecksetzen(
   payoutId: string,
 ): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "edit");
 
   const supabase = await createClient();
   const { data: row, error } = await supabase

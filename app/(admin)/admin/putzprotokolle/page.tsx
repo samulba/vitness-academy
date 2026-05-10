@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Camera, CheckCircle2, ClipboardCheck, Sparkles } from "lucide-react";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeProtokolleListe } from "@/lib/putzprotokoll";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
@@ -11,7 +11,7 @@ import { PutzprotokolleNav } from "@/components/admin/PutzprotokolleNav";
 export const dynamic = "force-dynamic";
 
 export default async function PutzprotokolleAdminPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("putzprotokolle", "view");
 
   // Im Admin-Bereich IMMER alle Standorte zeigen — pro Eintrag
   // wird der Standort als Pill in der Row angezeigt.

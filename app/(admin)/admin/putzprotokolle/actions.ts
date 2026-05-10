@@ -3,13 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 
 export async function protokollReviewen(
   id: string,
   formData: FormData,
 ): Promise<void> {
-  const profile = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  const profile = await requirePermission("putzprotokolle", "edit");
   const note = String(formData.get("review_note") ?? "").trim();
 
   const supabase = await createClient();
@@ -34,7 +34,7 @@ export async function protokollReviewen(
 }
 
 export async function protokollLoeschen(id: string): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("putzprotokolle", "delete");
   const supabase = await createClient();
   const { error } = await supabase
     .from("cleaning_protocols")

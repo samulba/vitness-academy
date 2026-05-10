@@ -8,7 +8,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeTemplateMitSections } from "@/lib/putzprotokoll";
 import { createClient } from "@/lib/supabase/server";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,7 @@ export default async function TemplateEditorPage({
 }: {
   params: Promise<{ locationId: string }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("putzprotokolle", "view");
   const { locationId } = await params;
 
   const supabase = await createClient();

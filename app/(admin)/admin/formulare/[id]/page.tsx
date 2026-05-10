@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeTemplate } from "@/lib/formulare";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
 import { VorschauButton } from "@/components/admin/VorschauButton";
@@ -15,7 +15,7 @@ export default async function TemplateBearbeitenPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("formulare", "view");
   const { id } = await params;
   const t = await ladeTemplate(id);
   if (!t) notFound();

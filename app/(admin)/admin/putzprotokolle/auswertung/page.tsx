@@ -7,7 +7,7 @@ import {
   Sparkles,
   Wrench,
 } from "lucide-react";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeStandorte } from "@/lib/standorte";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
@@ -39,7 +39,7 @@ export default async function AuswertungPage({
     locationId?: string;
   }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("putzprotokolle", "view");
   const standorte = await ladeStandorte();
   const sp = await searchParams;
 

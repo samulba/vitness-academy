@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Euro, FileText, Inbox } from "lucide-react";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/page-header";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
@@ -18,7 +18,7 @@ type RowMitArbeiter = {
 };
 
 export default async function LohnAdminPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("lohn", "view");
   const supabase = await createClient();
 
   // Aktive Mitarbeiter laden

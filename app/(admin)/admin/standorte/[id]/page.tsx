@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import {
   ladeMitarbeiterAnStandort,
   ladeStandort,
@@ -21,7 +21,7 @@ export default async function StandortDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("standorte", "view");
   const { id } = await params;
   const standort = await ladeStandort(id);
   if (!standort) notFound();

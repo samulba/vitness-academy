@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import {
@@ -28,7 +28,7 @@ export default async function MitarbeiterLohnPage({
   params: Promise<{ userId: string }>;
   searchParams: Promise<{ monat?: string }>;
 }) {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("lohn", "view");
   const { userId } = await params;
   const sp = await searchParams;
 

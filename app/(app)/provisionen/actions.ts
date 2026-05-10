@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireProfile, requireRole } from "@/lib/auth";
+import { requireProfile, requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 const UUID_RE =
@@ -91,7 +91,7 @@ export async function abschlussLoeschen(
 }
 
 export async function abschlussLoeschenAdmin(id: string): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "delete");
   if (!UUID_RE.test(id)) {
     redirect("/admin/provisionen?toast=error");
   }

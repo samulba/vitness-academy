@@ -1,11 +1,11 @@
 import { PageHeader } from "@/components/ui/page-header";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeStandorte } from "@/lib/standorte";
 import { InfoForm } from "../InfoForm";
 import { infoAnlegen } from "../actions";
 
 export default async function NeueInfoPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("infos", "create");
   const standorte = await ladeStandorte();
   return (
     <div className="mx-auto max-w-2xl space-y-6">

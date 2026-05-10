@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ColoredAvatar } from "@/components/admin/ColoredAvatar";
 import { StatusPill } from "@/components/admin/StatusPill";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import {
   LAUFZEIT_OPTIONS,
   ladeBonusStufen,
@@ -24,7 +24,7 @@ import {
 import { LoeschenButton } from "./LoeschenButton";
 
 export default async function ProvisionsSaetzePage() {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "view");
   const [allRates, vertriebler, bonusStufen] = await Promise.all([
     ladeRates(),
     ladeVertriebler(),

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeAnnouncement } from "@/lib/infos";
 import { ladeStandorte } from "@/lib/standorte";
 import { InfoForm } from "../InfoForm";
@@ -12,7 +12,7 @@ export default async function InfoBearbeitenPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("infos", "view");
   const { id } = await params;
   const [info, standorte] = await Promise.all([
     ladeAnnouncement(id),

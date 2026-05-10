@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 
 function buildPayload(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
@@ -27,7 +27,7 @@ function buildPayload(formData: FormData) {
 }
 
 export async function aufgabeAnlegen(formData: FormData): Promise<void> {
-  const profile = await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  const profile = await requirePermission("aufgaben", "create");
   const payload = buildPayload(formData);
   if (!payload.title) return;
 
@@ -47,7 +47,7 @@ export async function aufgabeAktualisieren(
   id: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("aufgaben", "edit");
   const payload = buildPayload(formData);
   if (!payload.title) return;
   const supabase = await createClient();
@@ -59,7 +59,7 @@ export async function aufgabeAktualisieren(
 }
 
 export async function aufgabeLoeschen(id: string): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("aufgaben", "delete");
   const supabase = await createClient();
   await supabase.from("studio_tasks").delete().eq("id", id);
   revalidatePath("/admin/aufgaben");

@@ -2,14 +2,14 @@ import { GraduationCap, ListChecks, Plus, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeTemplates } from "@/lib/onboarding-templates";
 import { ladeChecklistItems } from "@/lib/onboarding-checklist";
 import { OnboardingTemplatesTable } from "./OnboardingTemplatesTable";
 import { ChecklistItemsListe } from "./ChecklistItemsListe";
 
 export default async function OnboardingTemplatesPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("onboarding-templates", "view");
   const [templates, checklistItems] = await Promise.all([
     ladeTemplates(),
     ladeChecklistItems(null),

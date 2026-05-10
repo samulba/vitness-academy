@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { LoeschenButton } from "@/components/admin/LoeschenButton";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ladeAufgabe } from "@/lib/aufgaben";
 import { AufgabeForm } from "../AufgabeForm";
@@ -12,7 +12,7 @@ export default async function AufgabeBearbeitenPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("aufgaben", "view");
   const { id } = await params;
   const a = await ladeAufgabe(id);
   if (!a) notFound();

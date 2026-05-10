@@ -3,10 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 
 export async function standortAnlegen(formData: FormData): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("standorte", "create");
   const name = String(formData.get("name") ?? "").trim();
   if (!name) redirect("/admin/standorte/neu?toast=name-fehlt");
 
@@ -30,7 +30,7 @@ export async function standortAktualisieren(
   id: string,
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("standorte", "edit");
   const name = String(formData.get("name") ?? "").trim();
   if (!name) redirect(`/admin/standorte/${id}?toast=name-fehlt`);
 
@@ -49,7 +49,7 @@ export async function standortAktualisieren(
 }
 
 export async function standortLoeschen(id: string): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("standorte", "delete");
   const supabase = await createClient();
   const { error } = await supabase.from("locations").delete().eq("id", id);
   if (error) {

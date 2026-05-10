@@ -3,7 +3,7 @@ import { ArrowRight, Calendar, CheckCircle2, Clock, Lock } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { StatusPill } from "@/components/admin/StatusPill";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { formatEuro, ladePayouts } from "@/lib/provisionen";
 
 function letzteMonate(n: number): string[] {
@@ -26,7 +26,7 @@ function monatsLabel(yyyymm: string): string {
 }
 
 export default async function AbrechnungUebersichtPage() {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("provisionen", "view");
 
   // Alle Payouts laden -- gruppiere pro Monat
   const payouts = await ladePayouts();

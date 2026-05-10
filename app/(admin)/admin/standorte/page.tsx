@@ -2,12 +2,12 @@ import { MapPin, Plus, Users } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeStandorte } from "@/lib/standorte";
 import { StandorteTable } from "./StandorteTable";
 
 export default async function StandorteAdminPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("standorte", "view");
   const standorte = await ladeStandorte();
   const mitarbeiterSumme = standorte.reduce(
     (s, x) => s + x.mitarbeiter_count,

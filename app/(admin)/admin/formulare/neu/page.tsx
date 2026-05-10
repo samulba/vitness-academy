@@ -1,10 +1,10 @@
 import { PageHeader } from "@/components/ui/page-header";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { TemplateForm } from "../TemplateForm";
 import { templateAnlegen } from "../actions";
 
 export default async function NeuesTemplatePage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("formulare", "create");
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader

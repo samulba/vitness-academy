@@ -8,12 +8,12 @@ import {
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeAlleAufgabenAdmin } from "@/lib/aufgaben";
 import { InstancesTable, TemplatesTable } from "./AufgabenTables";
 
 export default async function AufgabenAdminPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("aufgaben", "view");
   // Admin sieht Aufgaben ueber alle Standorte.
   const alle = await ladeAlleAufgabenAdmin(null);
   const templates = alle.filter((a) => a.recurrence !== "none");

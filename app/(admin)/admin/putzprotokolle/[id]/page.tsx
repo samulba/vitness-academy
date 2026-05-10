@@ -7,7 +7,7 @@ import {
   Printer,
   Trash2,
 } from "lucide-react";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import {
   ladeProtokoll,
   ladeTemplateMitSections,
@@ -31,7 +31,7 @@ export default async function ProtokollDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("putzprotokolle", "view");
   const { id } = await params;
   const protokoll = await ladeProtokoll(id);
   if (!protokoll) notFound();

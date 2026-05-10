@@ -5,7 +5,7 @@ import { RealtimeRefresh } from "@/lib/hooks/useRealtimeRefresh";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState, EmptyStateTablePreview } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { ladeSubmissions } from "@/lib/formulare";
 import { EingaengeTable } from "./EingaengeTable";
 
@@ -14,7 +14,7 @@ export default async function EingaengePage({
 }: {
   searchParams: Promise<{ template?: string }>;
 }) {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("formulare", "view");
   const sp = await searchParams;
   const filter = sp.template ?? null;
 

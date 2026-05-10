@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireProfile, requireRole } from "@/lib/auth";
+import { requireProfile, requirePermission } from "@/lib/auth";
 
 const FOTO_MAX_BYTES = 5 * 1024 * 1024;
 const FOTO_ERLAUBT = ["image/jpeg", "image/png", "image/webp"];
@@ -103,7 +103,7 @@ export async function mangelStatusSetzen(
   status: "offen" | "in_bearbeitung" | "behoben" | "verworfen",
   formData: FormData,
 ): Promise<void> {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("maengel", "edit");
   const note = String(formData.get("resolution_note") ?? "").trim();
   const supabase = await createClient();
   const { error } = await supabase
@@ -127,7 +127,7 @@ export async function mangelStatusSetzen(
 }
 
 export async function mangelLoeschen(id: string): Promise<void> {
-  await requireRole(["admin", "superadmin"]);
+  await requirePermission("maengel", "delete");
   const supabase = await createClient();
   const { error } = await supabase.from("studio_issues").delete().eq("id", id);
   if (error) {

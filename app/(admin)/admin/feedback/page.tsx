@@ -2,12 +2,12 @@ import { Frown, MessageCircle, Smile, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { feedbackStats, ladeFeedback } from "@/lib/feedback";
 import { FeedbackTable } from "./FeedbackTable";
 
 export default async function FeedbackAdminPage() {
-  await requireRole(["fuehrungskraft", "admin", "superadmin"]);
+  await requirePermission("feedback", "view");
   // Admin sieht Feedback ueber alle Standorte.
   const [feedback, stats] = await Promise.all([
     ladeFeedback({ locationId: null, limit: 200 }),
