@@ -51,8 +51,9 @@ function readTheme(): Mode {
 export function ThemeToggle({
   variant = "icon",
 }: {
-  /** "icon" = nur Icon, "row" = Icon + Label für Sidebar */
-  variant?: "icon" | "row";
+  /** "icon" = nur Icon, "row" = Icon + Label für Sidebar,
+   *  "menuItem" = Icon + Label fuer DropdownMenu (kein Border) */
+  variant?: "icon" | "row" | "menuItem";
 }) {
   const [mode, setMode] = useState<Mode | null>(null);
 
@@ -87,6 +88,20 @@ export function ThemeToggle({
         className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
         <Icon className="h-4 w-4" strokeWidth={1.75} />
+        <span>{label}</span>
+      </button>
+    );
+  }
+
+  if (variant === "menuItem") {
+    return (
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={label}
+        className="flex w-full items-center gap-2 text-left"
+      >
+        <Icon className="h-4 w-4" />
         <span>{label}</span>
       </button>
     );
