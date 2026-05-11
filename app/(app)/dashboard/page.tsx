@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { requireProfile } from "@/lib/auth";
 import { ladeMeineLernpfade, offeneLektionen } from "@/lib/lernpfade";
-import { aktivitaetsStats } from "@/lib/lektion";
 import { aktiveBannerInfo, ladeAnnouncements } from "@/lib/infos";
 import { formatDatum } from "@/lib/format";
 import { ladeMeineAufgaben } from "@/lib/aufgaben";
@@ -90,7 +89,6 @@ export default async function DashboardPage() {
   const [
     pfade,
     anzOffenePraxis,
-    aktivitaet,
     banner,
     aufgaben,
     anfragen,
@@ -98,7 +96,6 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     ladeMeineLernpfade(profile.id),
     ladeOffenePraxis(profile.id),
-    aktivitaetsStats(profile.id),
     aktiveBannerInfo(profile.id, aktiv?.id ?? null),
     ladeMeineAufgaben(profile.id, aktiv?.id ?? null),
     ladeSubmissions({
@@ -226,21 +223,6 @@ export default async function DashboardPage() {
                 wert={anzOffenePraxis}
                 href="/praxisfreigaben"
                 akzent="primary"
-              />
-            )}
-            {aktivitaet.tageLetzte30 > 0 && (
-              <HeroStat
-                icon={<Sparkles className="h-3.5 w-3.5" />}
-                label="Tage aktiv"
-                wert={aktivitaet.tageLetzte30}
-              />
-            )}
-            {gesamt > 0 && abgeschlossen < gesamt && (
-              <HeroStat
-                icon={<GraduationCap className="h-3.5 w-3.5" />}
-                label="Lektionen"
-                wert={`${abgeschlossen}/${gesamt}`}
-                href="/lernpfade"
               />
             )}
           </div>
