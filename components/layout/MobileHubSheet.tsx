@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   ArrowRight,
   BookOpen,
+  Bug,
   CheckSquare,
   Contact,
   Euro,
@@ -14,6 +15,7 @@ import {
   GraduationCap,
   HelpCircle,
   Inbox,
+  LifeBuoy,
   ListTodo,
   LogOut,
   MapPin,
@@ -100,6 +102,7 @@ const ADMIN_STAMMDATEN: HubLink[] = [
   { href: "/admin/rollen", label: "Rollen & Rechte", icon: Shield, modul: "rollen" },
   { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity, modul: "fortschritt" },
   { href: "/admin/audit-log", label: "Audit-Log", icon: ShieldCheck, modul: "audit" },
+  { href: "/admin/bug-reports", label: "Bug-Reports", icon: Bug, modul: "bug_reports" },
 ];
 
 /**
@@ -353,6 +356,15 @@ export function MobileHubSheet({
 
           <Section titel="Account">
             <div className="space-y-1.5">
+              <Link
+                href="/problem-melden"
+                onClick={onClose}
+                className="flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium transition-colors hover:border-[hsl(var(--primary)/0.4)] hover:bg-muted/40"
+              >
+                <LifeBuoy className="h-4 w-4 text-muted-foreground" />
+                Problem melden
+                <ArrowRight className="ml-auto h-3.5 w-3.5 text-muted-foreground" />
+              </Link>
               <Link
                 href="/einstellungen"
                 onClick={onClose}
