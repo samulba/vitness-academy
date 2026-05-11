@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -179,6 +179,41 @@ export function MobileHubSheet({
     };
   }, [offen]);
 
+  // Swipe-to-dismiss: Touch am Header (Drag-Handle + Titelzeile) nach
+  // unten ziehen schliesst das Sheet. Threshold 90px -> close, sonst
+  // snap-back via CSS-Transition. Während des Drags ist die Transition
+  // deaktiviert, damit der Finger 1:1 folgt.
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartY = useRef<number | null>(null);
+
+  // Reset wenn von aussen geschlossen
+  useEffect(() => {
+    if (!offen) {
+      setDragOffset(0);
+      setIsDragging(false);
+      dragStartY.current = null;
+    }
+  }, [offen]);
+
+  function handleTouchStart(e: React.TouchEvent) {
+    dragStartY.current = e.touches[0].clientY;
+    setIsDragging(true);
+  }
+  function handleTouchMove(e: React.TouchEvent) {
+    if (dragStartY.current == null) return;
+    const delta = e.touches[0].clientY - dragStartY.current;
+    setDragOffset(Math.max(0, delta));
+  }
+  function handleTouchEnd() {
+    if (dragStartY.current == null) return;
+    const wirdGeschlossen = dragOffset > 90;
+    setIsDragging(false);
+    setDragOffset(0);
+    dragStartY.current = null;
+    if (wirdGeschlossen) onClose();
+  }
+
   return (
     <>
       {/* Backdrop */}
@@ -198,13 +233,24 @@ export function MobileHubSheet({
         role="dialog"
         aria-modal="true"
         aria-label="Alle Bereiche"
+        style={{
+          transform:
+            offen && dragOffset > 0 ? `translateY(${dragOffset}px)` : undefined,
+          transition: isDragging ? "none" : undefined,
+        }}
         className={cn(
           "fixed bottom-0 left-0 right-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl border border-border bg-card shadow-2xl transition-transform duration-300 lg:hidden",
           offen ? "translate-y-0" : "translate-y-full",
         )}
       >
-        {/* Drag-Handle visuell */}
-        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border bg-card/95 px-5 pb-3 pt-3 backdrop-blur">
+        {/* Drag-Handle: Touch hier zieht Sheet nach unten weg */}
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+          className="sticky top-0 z-10 flex touch-none items-center justify-between gap-3 border-b border-border bg-card/95 px-5 pb-3 pt-3 backdrop-blur"
+        >
           <span
             aria-hidden
             className="absolute left-1/2 top-1.5 h-1 w-10 -translate-x-1/2 rounded-full bg-border"
