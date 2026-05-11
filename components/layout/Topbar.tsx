@@ -61,7 +61,6 @@ export function Topbar({
       <div className="flex items-center gap-2">
         {standortSlot}
         {notificationSlot}
-        <ThemeToggle variant="icon" />
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-2 rounded-full p-1 hover:bg-accent">
           {avatarUrl ? (
@@ -95,6 +94,9 @@ export function Topbar({
               <Settings className="h-4 w-4" />
               <span>Einstellungen</span>
             </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <ThemeToggle variant="menuItem" />
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <form action={abmelden}>
