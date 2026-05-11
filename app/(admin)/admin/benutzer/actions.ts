@@ -53,23 +53,13 @@ function nullbarNumber(raw: FormDataEntryValue | null): number | null {
   return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
-function tagsParsen(raw: FormDataEntryValue | null): string[] {
-  const s = String(raw ?? "").trim();
-  if (s.length === 0) return [];
-  return Array.from(
-    new Set(
-      s
-        .split(",")
-        .map((t) => t.trim())
-        .filter((t) => t.length > 0 && t.length <= 32),
-    ),
-  ).slice(0, 12);
-}
-
 /**
- * Aktualisiert die Stammdaten (persönliche Daten, Vertrag, Tags/Notiz).
+ * Aktualisiert die Stammdaten (persönliche Daten, Vertrag).
  * Rolle + Custom-Rollen + Heim-Standort + Provisionen-Flag werden
  * separat in profilRollenAktualisieren behandelt.
+ *
+ * Tags und interne_notiz werden hier NICHT mehr gepflegt -- die Felder
+ * sind aus der UI entfernt; in der DB bleiben sie unangetastet.
  */
 export async function profilStammdatenAktualisieren(
   benutzerId: string,
@@ -91,14 +81,11 @@ export async function profilStammdatenAktualisieren(
       ? vertragsartRaw
       : null;
   const wochenstunden = nullbarNumber(formData.get("wochenstunden"));
-  const tags = tagsParsen(formData.get("tags"));
-  const interne_notiz = nullbarString(formData.get("interne_notiz"));
 
   const supabase = await createClient();
   const voll = {
     full_name, first_name, last_name, phone, personalnummer,
     geburtsdatum, eintritt_am, austritt_am, vertragsart, wochenstunden,
-    tags, interne_notiz,
   };
   const ohneNeu = { full_name, first_name, last_name, phone, personalnummer };
   const basis = { full_name };
@@ -134,7 +121,6 @@ export async function profilRollenAktualisieren(
   if (!VALIDE_ROLLEN.includes(role)) return;
   if (role === "superadmin" && aktuell.role !== "superadmin") return;
   const location_id = nullbarString(formData.get("location_id"));
-  const kann_provisionen = formData.get("kann_provisionen") === "on";
 
   // Custom-Rollen (Multi, Migration 0066): FormData liefert mehrere
   // "role_ids" Felder. Nicht-UUIDs verwerfen (Form-Tampering).
@@ -148,10 +134,6 @@ export async function profilRollenAktualisieren(
   );
 
   const supabase = await createClient();
-  await supabase
-    .from("profiles")
-    .update({ role, location_id, kann_provisionen })
-    .eq("id", benutzerId);
 
   // Custom-Rollen-Validierung gegen DB: nur aktive, nicht-archivierte
   // Rollen akzeptieren. Verhindert Form-Tampering mit fremden UUIDs.
@@ -166,6 +148,28 @@ export async function profilRollenAktualisieren(
       (r) => r.id,
     );
   }
+
+  // kann_provisionen wird aus den zugewiesenen Custom-Rollen automatisch
+  // abgeleitet: wenn eine der ausgewaehlten Rollen das Modul
+  // "mitarbeiter-provisionen" mit Aktion "view" hat, ist die Person
+  // Vertrieb. Damit verschwindet die frueher hardcoded Doppel-Checkbox
+  // im RollenPicker -- die Quelle der Wahrheit ist die Rollen-Verwaltung.
+  let kann_provisionen = false;
+  if (gueltigeRoleIds.length > 0) {
+    const { data: provPerms } = await supabase
+      .from("role_permissions")
+      .select("role_id")
+      .in("role_id", gueltigeRoleIds)
+      .eq("modul", "mitarbeiter-provisionen")
+      .eq("aktion", "view")
+      .limit(1);
+    kann_provisionen = (provPerms ?? []).length > 0;
+  }
+
+  await supabase
+    .from("profiles")
+    .update({ role, location_id, kann_provisionen })
+    .eq("id", benutzerId);
 
   // profile_roles atomar ersetzen: delete + insert. Wenn die
   // Junction-Tabelle noch fehlt (Migration 0066 nicht gelaufen),

@@ -17,7 +17,6 @@ type Standort = { id: string; name: string };
 export function RollenPicker({
   initialRole,
   initialLocationId,
-  initialKannProvisionen,
   initialCustomRoleIds,
   alleRollen,
   standorte,
@@ -25,7 +24,6 @@ export function RollenPicker({
 }: {
   initialRole: string;
   initialLocationId: string | null;
-  initialKannProvisionen: boolean;
   initialCustomRoleIds: string[];
   alleRollen: RolleVoll[];
   standorte: Standort[];
@@ -54,9 +52,6 @@ export function RollenPicker({
           )
           .map((r) => r.id),
       ),
-  );
-  const [kannProvisionen, setKannProvisionen] = useState(
-    initialKannProvisionen,
   );
 
   const verwaltungsRollen = useMemo(
@@ -314,31 +309,6 @@ export function RollenPicker({
             </option>
           ))}
         </select>
-      </fieldset>
-
-      {/* Provisionen-Flag */}
-      <fieldset className="border-t border-border pt-5">
-        <legend className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Vertrieb &amp; Provisionen
-        </legend>
-        <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 transition-colors hover:border-[hsl(var(--primary))] has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--primary)/0.05)]">
-          <input
-            type="checkbox"
-            name="kann_provisionen"
-            checked={kannProvisionen}
-            onChange={(e) => setKannProvisionen(e.target.checked)}
-            className="mt-1 h-4 w-4 accent-[hsl(var(--primary))]"
-          />
-          <span className="flex-1">
-            <span className="block text-sm font-semibold">
-              Vertriebsrolle (Provisionen)
-            </span>
-            <span className="mt-0.5 block text-xs text-muted-foreground">
-              Schaltet das Eintragen + Abrufen eigener Provisionen frei
-              (RLS-Flag, unabhängig von der Mitarbeiter-Rolle &bdquo;Vertrieb&rdquo;).
-            </span>
-          </span>
-        </label>
       </fieldset>
 
       {/* Effective-Permissions-Preview */}

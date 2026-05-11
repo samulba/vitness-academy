@@ -172,6 +172,24 @@ export async function mitarbeiterAnlegen(
         userId,
       };
     }
+
+    // kann_provisionen automatisch aus den Permissions der Custom-Rolle
+    // ableiten: wenn sie mitarbeiter-provisionen:view enthaelt, ist die
+    // Person Vertrieb und das RLS-Flag wird gesetzt. Damit ist die
+    // frueher separate Checkbox im RollenPicker obsolet.
+    const { data: provPerms } = await admin
+      .from("role_permissions")
+      .select("role_id")
+      .eq("role_id", rolleId)
+      .eq("modul", "mitarbeiter-provisionen")
+      .eq("aktion", "view")
+      .limit(1);
+    if ((provPerms ?? []).length > 0) {
+      await admin
+        .from("profiles")
+        .update({ kann_provisionen: true })
+        .eq("id", userId);
+    }
   }
 
   // 4) Lernpfad-Zuweisungen

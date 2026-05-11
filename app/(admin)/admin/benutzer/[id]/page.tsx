@@ -30,6 +30,7 @@ import { NotizenThread } from "@/components/benutzer/NotizenThread";
 import { OnboardingChecklist } from "@/components/benutzer/OnboardingChecklist";
 import { TemplateAuswahl } from "@/components/benutzer/TemplateAuswahl";
 import { RollenPicker } from "@/components/benutzer/RollenPicker";
+import { AustrittsFeld } from "@/components/benutzer/AustrittsFeld";
 import { ladeTemplatesFuerForm } from "@/lib/onboarding-templates";
 import { ladeRollen } from "@/lib/rollen-verwaltung";
 import { requirePermission } from "@/lib/auth";
@@ -303,21 +304,21 @@ export default async function BenutzerBearbeitenPage({
         </TabList>
 
         <TabPanel value="profil">
-          <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-            <header className="mb-5">
+          <section className="rounded-2xl border border-border bg-card">
+            <header className="border-b border-border px-6 py-5 sm:px-8">
               <h2 className="text-base font-semibold tracking-tight">
                 Persönliche Daten &amp; Vertrag
               </h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Name, Kontakt, Vertragsdaten. Tags und interne Notizen unten.
+                Name, Kontakt und Vertragsdaten.
               </p>
             </header>
             <form
               action={profilStammdatenAktualisieren.bind(null, profil.id)}
-              className="space-y-6"
+              className="divide-y divide-border"
             >
-              <fieldset className="space-y-4">
-                <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <fieldset className="space-y-5 px-6 py-6 sm:px-8 sm:py-7">
+                <legend className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                   Persönliche Daten
                 </legend>
                 <div className="space-y-2">
@@ -371,8 +372,8 @@ export default async function BenutzerBearbeitenPage({
                 </div>
               </fieldset>
 
-              <fieldset className="space-y-4 border-t border-border pt-5">
-                <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <fieldset className="space-y-5 px-6 py-6 sm:px-8 sm:py-7">
+                <legend className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                   Vertrag
                 </legend>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -385,20 +386,7 @@ export default async function BenutzerBearbeitenPage({
                       defaultValue={profil.eintritt_am ?? ""}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="austritt_am">
-                      Austritt am
-                      <span className="ml-1 text-xs font-normal text-muted-foreground">
-                        (optional)
-                      </span>
-                    </Label>
-                    <Input
-                      id="austritt_am"
-                      name="austritt_am"
-                      type="date"
-                      defaultValue={profil.austritt_am ?? ""}
-                    />
-                  </div>
+                  <AustrittsFeld initial={profil.austritt_am} />
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
@@ -407,7 +395,7 @@ export default async function BenutzerBearbeitenPage({
                       id="vertragsart"
                       name="vertragsart"
                       defaultValue={profil.vertragsart ?? ""}
-                      className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                      className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <option value="">— nicht gesetzt —</option>
                       <option value="vollzeit">Vollzeit</option>
@@ -439,7 +427,7 @@ export default async function BenutzerBearbeitenPage({
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 sm:max-w-xs">
                   <Label htmlFor="personalnummer">
                     Personalnummer
                     <span className="ml-1 text-xs font-normal text-muted-foreground">
@@ -456,43 +444,7 @@ export default async function BenutzerBearbeitenPage({
                 </div>
               </fieldset>
 
-              <fieldset className="space-y-4 border-t border-border pt-5">
-                <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Tags &amp; interne Notiz
-                </legend>
-                <div className="space-y-2">
-                  <Label htmlFor="tags">
-                    Tags
-                    <span className="ml-1 text-xs font-normal text-muted-foreground">
-                      (Komma-getrennt, max. 12)
-                    </span>
-                  </Label>
-                  <Input
-                    id="tags"
-                    name="tags"
-                    defaultValue={(profil.tags ?? []).join(", ")}
-                    placeholder='z.B. "Theke-Profi, Personal Trainer, Reha-Coach"'
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="interne_notiz">
-                    Interne Notiz
-                    <span className="ml-1 text-xs font-normal text-muted-foreground">
-                      (nur Admin sichtbar)
-                    </span>
-                  </Label>
-                  <textarea
-                    id="interne_notiz"
-                    name="interne_notiz"
-                    rows={3}
-                    defaultValue={profil.interne_notiz ?? ""}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    placeholder="Quick-Memo für die Studioleitung. Längere Diskussionen → Notizen-Tab."
-                  />
-                </div>
-              </fieldset>
-
-              <div className="flex justify-end">
+              <div className="flex justify-end bg-muted/30 px-6 py-4 sm:px-8">
                 <SpeichernButton />
               </div>
             </form>
@@ -518,7 +470,6 @@ export default async function BenutzerBearbeitenPage({
               <RollenPicker
                 initialRole={profil.role}
                 initialLocationId={profil.location_id}
-                initialKannProvisionen={profil.kann_provisionen}
                 initialCustomRoleIds={profil.custom_role_ids}
                 alleRollen={alleRollen}
                 standorte={standorte}
