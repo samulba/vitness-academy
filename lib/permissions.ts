@@ -45,6 +45,8 @@ export const VERWALTUNG_MODULE = [
   "feedback",
   "lohn",
   "provisionen",
+  // Software-Fehler & Problemmeldungen (Migration 0067)
+  "bug_reports",
 ] as const;
 
 /**
@@ -122,6 +124,7 @@ export const MODUL_LABELS: Record<Modul, string> = {
   feedback: "Mitglieder-Feedback",
   lohn: "Lohnabrechnungen",
   provisionen: "Provisionen",
+  bug_reports: "Bug-Reports",
   // Mitarbeiter-Bereich
   "mitarbeiter-dashboard": "Mein Tag (Dashboard)",
   "mitarbeiter-aufgaben": "Aufgaben",

@@ -7,6 +7,7 @@ import {
   Activity,
   AlertTriangle,
   BookOpen,
+  Bug,
   CheckSquare,
   ChevronDown,
   Clock,
@@ -17,6 +18,7 @@ import {
   HelpCircle,
   Home,
   Inbox,
+  LifeBuoy,
   ListTodo,
   MapPin,
   Megaphone,
@@ -173,6 +175,7 @@ const ADMIN_GROUPS: AdminGruppe[] = [
       { href: "/admin/rollen", label: "Rollen & Rechte", icon: Shield, modul: "rollen" },
       { href: "/admin/fortschritt", label: "Fortschritt", icon: Activity, modul: "fortschritt" },
       { href: "/admin/audit-log", label: "Audit-Log", icon: ShieldCheck, modul: "audit" },
+      { href: "/admin/bug-reports", label: "Bug-Reports", icon: Bug, modul: "bug_reports" },
       // Design-Showcase nur in Development sichtbar — Production muss
       // sauber sein. Filter unten in der Component (kein Modul, nur Dev-Flag).
       { href: "/admin/showcase", label: "Design-Showcase", icon: Sparkles },
@@ -381,6 +384,20 @@ export function Sidebar({
             </>
           )}
         </nav>
+
+        {/* Problem melden -- für alle eingeloggten User sichtbar */}
+        <Link
+          href="/problem-melden"
+          className={cn(
+            "group flex items-center gap-2.5 border-t border-border px-4 py-2 text-[12px] transition-colors hover:bg-muted",
+            pathname === "/problem-melden" || pathname.startsWith("/problem-melden/")
+              ? "text-foreground"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <LifeBuoy className="h-3.5 w-3.5" strokeWidth={1.75} />
+          <span>Problem melden</span>
+        </Link>
 
         {/* Theme-Toggle */}
         <div className="border-t border-border px-2 py-1.5">
