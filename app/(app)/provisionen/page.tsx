@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   CheckCircle2,
   Receipt,
   TrendingUp,
 } from "lucide-react";
+import { MonatsPicker } from "./MonatsPicker";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { requireProfile } from "@/lib/auth";
@@ -179,32 +179,21 @@ export default async function ProvisionenPage({
       </section>
 
       <section>
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-base font-semibold tracking-tight">
             {monatsLabel(monat)}
           </h2>
-          <div className="flex flex-wrap gap-1.5 text-xs">
-            {monateOptions.map((m) => {
-              const aktiv = m === monat;
-              return (
-                <Link
-                  key={m}
-                  href={`/provisionen?monat=${m}`}
-                  className={
-                    aktiv
-                      ? "rounded-full bg-[hsl(var(--primary))] px-3 py-1 font-medium text-[hsl(var(--primary-foreground))]"
-                      : "rounded-full border border-border bg-card px-3 py-1 font-medium text-muted-foreground hover:border-[hsl(var(--brand-pink)/0.4)] hover:text-foreground"
-                  }
-                >
-                  {monatsLabel(m)}
-                </Link>
-              );
-            })}
-          </div>
+          {/* Mobile + Desktop: Dropdown statt 12 wrappender Pills.
+              Native <select> = iOS-Picker auf Mobile, sauberer als Pills. */}
+          <MonatsPicker
+            aktiv={monat}
+            optionen={monateOptions}
+            labelFn={monatsLabel}
+          />
         </div>
 
         {entries.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-12 text-center">
+          <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-8 text-center sm:p-12">
             <Receipt className="mx-auto h-10 w-10 text-zinc-300 dark:text-zinc-600" />
             <p className="mt-3 text-sm font-medium">
               Keine Abschlüsse in {monatsLabel(monat)}
@@ -214,97 +203,186 @@ export default async function ProvisionenPage({
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-border bg-card">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/40">
-                  <tr>
-                    <Th>Datum</Th>
-                    <Th>Mitglied</Th>
-                    <Th>Status</Th>
-                    <Th align="right">Laufzeit</Th>
-                    <Th align="right">Beitrag Netto</Th>
-                    <Th align="right">Startpaket</Th>
-                    <Th align="right">Provision</Th>
-                    <Th align="right" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {entries.map((e) => (
-                    <tr
-                      key={e.id}
-                      className={
-                        e.status === "abgelehnt" || e.status === "storniert"
-                          ? "bg-muted/20 hover:bg-muted/30"
-                          : "hover:bg-muted/30"
-                      }
-                    >
-                      <Td>{formatDatum(e.datum)}</Td>
-                      <Td>
-                        <span className="font-medium">{e.mitglied_name}</span>
-                        {e.mitglied_nummer && (
-                          <span className="ml-1 text-[11px] text-muted-foreground">
-                            · {e.mitglied_nummer}
+          <>
+            {/* Mobile: Card-Liste (lesbar ohne horizontalen Scroll) */}
+            <ul className="space-y-2 md:hidden">
+              {entries.map((e) => {
+                const abgelehnt =
+                  e.status === "abgelehnt" || e.status === "storniert";
+                return (
+                  <li
+                    key={e.id}
+                    className={
+                      abgelehnt
+                        ? "rounded-2xl border border-border bg-muted/20 p-4"
+                        : "rounded-2xl border border-border bg-card p-4"
+                    }
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">
+                          {e.mitglied_name}
+                        </p>
+                        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                          {formatDatum(e.datum)}
+                          {e.mitglied_nummer && (
+                            <span> · {e.mitglied_nummer}</span>
+                          )}
+                        </p>
+                      </div>
+                      <StatusBadge status={e.status} />
+                    </div>
+
+                    <div className="mt-3 flex items-end justify-between gap-3 border-t border-border pt-3">
+                      <div className="flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
+                        <span className="rounded-full bg-muted/60 px-2 py-0.5">
+                          {laufzeitLabel(e.laufzeit)}
+                        </span>
+                        <span className="rounded-full bg-muted/60 px-2 py-0.5">
+                          Netto {formatEuro(e.beitrag_netto)}
+                        </span>
+                        {e.startpaket > 0 && (
+                          <span className="rounded-full bg-muted/60 px-2 py-0.5">
+                            Start {formatEuro(e.startpaket)}
                           </span>
                         )}
-                        {e.review_note && (
-                          <span
-                            title={e.review_note}
-                            className="ml-1 cursor-help text-[11px] text-muted-foreground underline decoration-dotted"
-                          >
-                            · Notiz
-                          </span>
-                        )}
-                      </Td>
-                      <Td>
-                        <StatusBadge status={e.status} />
-                      </Td>
-                      <Td align="right">{laufzeitLabel(e.laufzeit)}</Td>
-                      <Td align="right">{formatEuro(e.beitrag_netto)}</Td>
-                      <Td align="right">{formatEuro(e.startpaket)}</Td>
-                      <Td align="right">
-                        <span
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          Provision
+                        </p>
+                        <p
                           className={
                             e.status === "genehmigt"
-                              ? "font-bold text-[hsl(var(--brand-pink))]"
+                              ? "text-base font-bold text-[hsl(var(--brand-pink))] tabular-nums"
                               : e.status === "abgelehnt"
-                                ? "text-muted-foreground line-through"
-                                : "text-muted-foreground"
+                                ? "text-base font-bold text-muted-foreground line-through tabular-nums"
+                                : "text-base font-bold text-muted-foreground tabular-nums"
                           }
                         >
                           {formatEuro(e.provision)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {(e.review_note || e.status === "eingereicht") && (
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        {e.review_note ? (
+                          <p className="flex-1 text-[11px] italic text-muted-foreground">
+                            Notiz: {e.review_note}
+                          </p>
+                        ) : (
+                          <span />
+                        )}
+                        {e.status === "eingereicht" && <LoeschenButton id={e.id} />}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+              <li className="flex items-center justify-between rounded-2xl border border-border bg-muted/40 px-4 py-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Total · genehmigt
+                </span>
+                <span className="text-base font-bold text-[hsl(var(--brand-pink))] tabular-nums">
+                  {formatEuro(stats.provision_total)}
+                </span>
+              </li>
+            </ul>
+
+            {/* Desktop: vollständige Tabelle */}
+            <div className="hidden overflow-hidden rounded-2xl border border-border bg-card md:block">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40">
+                    <tr>
+                      <Th>Datum</Th>
+                      <Th>Mitglied</Th>
+                      <Th>Status</Th>
+                      <Th align="right">Laufzeit</Th>
+                      <Th align="right">Beitrag Netto</Th>
+                      <Th align="right">Startpaket</Th>
+                      <Th align="right">Provision</Th>
+                      <Th align="right" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {entries.map((e) => (
+                      <tr
+                        key={e.id}
+                        className={
+                          e.status === "abgelehnt" || e.status === "storniert"
+                            ? "bg-muted/20 hover:bg-muted/30"
+                            : "hover:bg-muted/30"
+                        }
+                      >
+                        <Td>{formatDatum(e.datum)}</Td>
+                        <Td>
+                          <span className="font-medium">{e.mitglied_name}</span>
+                          {e.mitglied_nummer && (
+                            <span className="ml-1 text-[11px] text-muted-foreground">
+                              · {e.mitglied_nummer}
+                            </span>
+                          )}
+                          {e.review_note && (
+                            <span
+                              title={e.review_note}
+                              className="ml-1 cursor-help text-[11px] text-muted-foreground underline decoration-dotted"
+                            >
+                              · Notiz
+                            </span>
+                          )}
+                        </Td>
+                        <Td>
+                          <StatusBadge status={e.status} />
+                        </Td>
+                        <Td align="right">{laufzeitLabel(e.laufzeit)}</Td>
+                        <Td align="right">{formatEuro(e.beitrag_netto)}</Td>
+                        <Td align="right">{formatEuro(e.startpaket)}</Td>
+                        <Td align="right">
+                          <span
+                            className={
+                              e.status === "genehmigt"
+                                ? "font-bold text-[hsl(var(--brand-pink))]"
+                                : e.status === "abgelehnt"
+                                  ? "text-muted-foreground line-through"
+                                  : "text-muted-foreground"
+                            }
+                          >
+                            {formatEuro(e.provision)}
+                          </span>
+                        </Td>
+                        <Td align="right">
+                          {e.status === "eingereicht" ? (
+                            <LoeschenButton id={e.id} />
+                          ) : (
+                            <span className="text-[11px] text-muted-foreground/50">
+                              —
+                            </span>
+                          )}
+                        </Td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-muted/40">
+                    <tr>
+                      <Td colSpan={6}>
+                        <span className="font-bold uppercase tracking-wider text-[10px]">
+                          Total {monatsLabel(monat)} · genehmigt
                         </span>
                       </Td>
                       <Td align="right">
-                        {e.status === "eingereicht" ? (
-                          <LoeschenButton id={e.id} />
-                        ) : (
-                          <span className="text-[11px] text-muted-foreground/50">
-                            —
-                          </span>
-                        )}
+                        <span className="text-base font-bold text-[hsl(var(--brand-pink))]">
+                          {formatEuro(stats.provision_total)}
+                        </span>
                       </Td>
+                      <Td />
                     </tr>
-                  ))}
-                </tbody>
-                <tfoot className="bg-muted/40">
-                  <tr>
-                    <Td colSpan={6}>
-                      <span className="font-bold uppercase tracking-wider text-[10px]">
-                        Total {monatsLabel(monat)} · genehmigt
-                      </span>
-                    </Td>
-                    <Td align="right">
-                      <span className="text-base font-bold text-[hsl(var(--brand-pink))]">
-                        {formatEuro(stats.provision_total)}
-                      </span>
-                    </Td>
-                    <Td />
-                  </tr>
-                </tfoot>
-              </table>
+                  </tfoot>
+                </table>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </section>
 

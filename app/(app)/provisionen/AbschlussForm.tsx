@@ -150,7 +150,8 @@ export function AbschlussForm({ rates }: { rates: CommissionRate[] }) {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-4">
+      {/* Beitraege: auf Mobile 2-spaltig (sonst 4 endlose Rows), Desktop 4-spaltig */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="space-y-1.5">
           <Label htmlFor="beitrag_14taegig">Beitrag 14-tägig</Label>
           <Input
@@ -211,37 +212,41 @@ export function AbschlussForm({ rates }: { rates: CommissionRate[] }) {
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-        <div className="space-y-0.5">
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Vorschau Provision
-          </p>
-          <p className="text-2xl font-bold tabular-nums text-[hsl(var(--brand-pink))]">
-            {formatEuro(vorschau)}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {error && (
-            <p className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--destructive)/0.1)] px-3 py-2 text-xs font-medium text-[hsl(var(--destructive))]">
-              <AlertCircle className="h-3.5 w-3.5" />
-              {error}
+      {/* Submit-Row: Vorschau prominent links, Button rechts.
+          Mobile: Vorschau + Button untereinander, Button full-width.
+          Desktop: nebeneinander mit Button rechts.
+          Status-Meldungen unter dem Button damit nichts overflowt. */}
+      <div className="space-y-3 border-t border-border pt-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-baseline justify-between gap-3 sm:block sm:space-y-0.5">
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Vorschau Provision
             </p>
-          )}
-          {erfolg && (
-            <p className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--success)/0.12)] px-3 py-2 text-xs font-medium text-[hsl(var(--success))]">
-              <Check className="h-3.5 w-3.5" />
-              Eingereicht — wartet auf Genehmigung der Studioleitung
+            <p className="text-2xl font-bold tabular-nums text-[hsl(var(--brand-pink))]">
+              {formatEuro(vorschau)}
             </p>
-          )}
+          </div>
           <Button
             type="submit"
             disabled={pending}
-            className="h-10 gap-2 rounded-lg bg-[hsl(var(--primary))] font-medium text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/0.9)]"
+            className="h-11 w-full gap-2 rounded-lg bg-[hsl(var(--primary))] font-medium text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/0.9)] sm:h-10 sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             {pending ? "Sende …" : "Abschluss eintragen"}
           </Button>
         </div>
+        {error && (
+          <p className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--destructive)/0.1)] px-3 py-2 text-xs font-medium text-[hsl(var(--destructive))]">
+            <AlertCircle className="h-3.5 w-3.5" />
+            {error}
+          </p>
+        )}
+        {erfolg && (
+          <p className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--success)/0.12)] px-3 py-2 text-xs font-medium text-[hsl(var(--success))]">
+            <Check className="h-3.5 w-3.5" />
+            Eingereicht — wartet auf Genehmigung der Studioleitung
+          </p>
+        )}
       </div>
     </form>
   );
