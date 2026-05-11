@@ -83,8 +83,7 @@ export default async function MaengelPage({
   const istLeer = sichtbar.length === 0;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6">
-      <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_300px] md:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_300px] md:grid-cols-[minmax(0,1fr)_300px]">
         {/* Linke Sidebar */}
         <aside className="hidden lg:block">
           <div className="sticky top-24">
@@ -153,7 +152,6 @@ export default async function MaengelPage({
             <StatsSidebar stats={stats} />
           </div>
         </aside>
-      </div>
     </div>
   );
 }

@@ -69,8 +69,7 @@ export default async function InfosPage({
   const vorname = profile.first_name ?? profile.full_name?.split(" ")[0] ?? null;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6">
-      <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_300px] md:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_300px] md:grid-cols-[minmax(0,1fr)_300px]">
         {/* Linke Sidebar — Filter (nur lg+) */}
         <aside className="hidden lg:block">
           <div className="sticky top-24">
@@ -166,7 +165,6 @@ export default async function InfosPage({
             <StatsSidebar angepinnt={angepinnt} stats={stats} />
           </div>
         </aside>
-      </div>
     </div>
   );
 }
