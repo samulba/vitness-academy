@@ -2,13 +2,14 @@ import { PageHeader } from "@/components/ui/page-header";
 import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ladeTemplatesFuerForm } from "@/lib/onboarding-templates";
+import { ladeRollen } from "@/lib/rollen-verwaltung";
 import { NeuerBenutzerForm } from "./Form";
 
 export default async function NeuerBenutzerPage() {
   await requirePermission("benutzer", "create");
 
   const supabase = await createClient();
-  const [{ data: pfade }, { data: locs }, templates] = await Promise.all([
+  const [{ data: pfade }, { data: locs }, templates, rollen] = await Promise.all([
     supabase
       .from("learning_paths")
       .select("id, title, description")
@@ -19,7 +20,20 @@ export default async function NeuerBenutzerPage() {
       .select("id, name")
       .order("name", { ascending: true }),
     ladeTemplatesFuerForm(),
+    ladeRollen(),
   ]);
+
+  // Nur nicht-archivierte, nicht-superadmin Rollen anbieten -- superadmin
+  // wird nicht ueber das Onboarding-Form vergeben.
+  const verfuegbareRollen = rollen
+    .filter((r) => !r.archived_at && r.base_level !== "superadmin")
+    .map((r) => ({
+      id: r.id,
+      name: r.name,
+      beschreibung: r.beschreibung,
+      base_level: r.base_level,
+      is_system: r.is_system,
+    }));
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -40,6 +54,7 @@ export default async function NeuerBenutzerPage() {
         }
         standorte={(locs ?? []) as { id: string; name: string }[]}
         templates={templates}
+        rollen={verfuegbareRollen}
       />
     </div>
   );

@@ -33,7 +33,13 @@ export async function mitarbeiterAnlegen(
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
-  const role = String(formData.get("role") ?? "mitarbeiter") as Rolle;
+  // Neue Zwei-Stufen-Auswahl: bereich + rolle_id. Aus der rolle_id leiten
+  // wir base_level (-> profiles.role) UND ggf. einen Eintrag in
+  // profile_roles ab (wenn Custom-Rolle, !is_system).
+  const rolleId = (() => {
+    const v = String(formData.get("rolle_id") ?? "").trim();
+    return istUUID(v) ? v : null;
+  })();
   const lernpfadIds = formData
     .getAll("lernpfade")
     .map((v) => String(v))
@@ -61,11 +67,36 @@ export async function mitarbeiterAnlegen(
   if (!emailRegex.test(email)) {
     return { ok: false, message: "Bitte gib eine gültige E-Mail-Adresse ein." };
   }
-  if (!["mitarbeiter", "fuehrungskraft"].includes(role)) {
-    return { ok: false, message: "Ungültige Rolle." };
+  if (!rolleId) {
+    return { ok: false, message: "Bitte eine Rolle auswählen." };
   }
 
   const admin = createAdminClient();
+
+  // Rolle aus DB laden, base_level und is_system bestimmen.
+  const { data: rolleRow, error: rolleErr } = await admin
+    .from("roles")
+    .select("id, base_level, is_system, archived_at")
+    .eq("id", rolleId)
+    .maybeSingle();
+  if (rolleErr || !rolleRow) {
+    return { ok: false, message: "Die gewählte Rolle existiert nicht." };
+  }
+  if (rolleRow.archived_at) {
+    return {
+      ok: false,
+      message: "Die gewählte Rolle ist archiviert und kann nicht zugewiesen werden.",
+    };
+  }
+  const baseLevel = String(rolleRow.base_level);
+  if (!["mitarbeiter", "fuehrungskraft", "admin"].includes(baseLevel)) {
+    return {
+      ok: false,
+      message: "Diese Rolle kann nicht über das Onboarding zugewiesen werden.",
+    };
+  }
+  const role = baseLevel as Rolle;
+  const istCustomRolle = !rolleRow.is_system;
   const fullName = [firstName, lastName].filter(Boolean).join(" ") || null;
 
   // 1) Invite via Auth Admin API — sendet die branded Magic-Link-Mail
@@ -122,7 +153,28 @@ export async function mitarbeiterAnlegen(
     };
   }
 
-  // 3) Lernpfad-Zuweisungen
+  // 3) Custom-Rolle in profile_roles-Junction eintragen
+  //    System-Rollen werden NICHT als Junction-Eintrag persistiert -- die
+  //    Permissions kommen dann ueber SYSTEM_ROLE_IDS[role] in
+  //    getCurrentProfile(). Custom-Rollen muessen explizit verknuepft sein.
+  if (istCustomRolle) {
+    const { error: prError } = await admin
+      .from("profile_roles")
+      .insert({
+        profile_id: userId,
+        role_id: rolleId,
+      });
+    if (prError) {
+      return {
+        ok: false,
+        message:
+          "Custom-Rolle konnte nicht zugewiesen werden: " + prError.message,
+        userId,
+      };
+    }
+  }
+
+  // 4) Lernpfad-Zuweisungen
   if (lernpfadIds.length > 0) {
     const rows = lernpfadIds.map((pfadId) => ({
       user_id: userId,
@@ -132,7 +184,7 @@ export async function mitarbeiterAnlegen(
     await admin.from("user_learning_path_assignments").insert(rows);
   }
 
-  // 4) Standort-Memberships
+  // 5) Standort-Memberships
   const zusatzStandorte = standortIds.filter((s) => s !== primaryStandort);
   if (zusatzStandorte.length > 0) {
     const rows = zusatzStandorte.map((locId) => ({

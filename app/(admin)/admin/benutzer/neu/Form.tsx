@@ -27,14 +27,34 @@ type Template = {
 
 type Standort = { id: string; name: string };
 
+type RolleOption = {
+  id: string;
+  name: string;
+  beschreibung: string | null;
+  base_level: "mitarbeiter" | "fuehrungskraft" | "admin" | "superadmin";
+  is_system: boolean;
+};
+
+type Bereich = "mitarbeiter" | "admin";
+
+// Welche base_levels zaehlen zu welchem Bereich. Fuehrungskraft ist
+// konzeptionell Admin (Studio-Leiter mit beschraenktem /admin/-Zugriff),
+// nicht Mitarbeiter.
+const BEREICH_BASE_LEVELS: Record<Bereich, ReadonlyArray<RolleOption["base_level"]>> = {
+  mitarbeiter: ["mitarbeiter"],
+  admin: ["fuehrungskraft", "admin"],
+};
+
 export function NeuerBenutzerForm({
   lernpfade,
   standorte,
   templates,
+  rollen,
 }: {
   lernpfade: Pfad[];
   standorte: Standort[];
   templates: Template[];
+  rollen: RolleOption[];
 }) {
   const { run, pending, state } = useFormAction(
     async (fd: FormData): Promise<Ergebnis> => {
@@ -86,20 +106,52 @@ export function NeuerBenutzerForm({
     setPrimaryStandort("");
   }
 
-  const [role, setRole] = useState<string>("mitarbeiter");
+  // Schritt 2: Bereich + konkrete Rolle.
+  //  - Bereich = "mitarbeiter" oder "admin", filtert die Rollen-Liste.
+  //  - rolleId = id einer Rolle aus rollen[] (System oder Custom).
+  // base_level der ausgewaehlten Rolle wird beim Submit in profiles.role
+  // geschrieben. Bei Custom-Rolle wird ZUSAETZLICH ein Eintrag in
+  // profile_roles angelegt (siehe Server-Action).
+  const [bereich, setBereich] = useState<Bereich>("mitarbeiter");
+  const [rolleId, setRolleId] = useState<string>(() => {
+    // Default: System-Mitarbeiter-Rolle, falls vorhanden
+    const sys = rollen.find(
+      (r) => r.is_system && r.base_level === "mitarbeiter",
+    );
+    return sys?.id ?? rollen[0]?.id ?? "";
+  });
   const [pfadIds, setPfadIds] = useState<Set<string>>(new Set());
   const [aktivesTemplate, setAktivesTemplate] = useState<string>("__leer");
+
+  const rollenImBereich = rollen.filter((r) =>
+    BEREICH_BASE_LEVELS[bereich].includes(r.base_level),
+  );
+
+  function bereichWechseln(b: Bereich) {
+    setBereich(b);
+    // Erste passende Rolle im neuen Bereich auswaehlen (System bevorzugt)
+    const passend = rollen.filter((r) =>
+      BEREICH_BASE_LEVELS[b].includes(r.base_level),
+    );
+    const next =
+      passend.find((r) => r.is_system) ?? passend[0] ?? null;
+    setRolleId(next?.id ?? "");
+  }
 
   function templateAnwenden(templateId: string) {
     setAktivesTemplate(templateId);
     if (templateId === "__leer") {
-      setRole("mitarbeiter");
+      bereichWechseln("mitarbeiter");
       setPfadIds(new Set());
       return;
     }
     const t = templates.find((x) => x.id === templateId);
     if (!t) return;
-    setRole(t.role);
+    // Template gibt nur base_level her -- daraus Bereich + Default-Rolle
+    // ableiten.
+    const zielBereich: Bereich =
+      t.role === "admin" || t.role === "fuehrungskraft" ? "admin" : "mitarbeiter";
+    bereichWechseln(zielBereich);
     setPfadIds(new Set(t.lernpfad_ids));
   }
 
@@ -206,27 +258,60 @@ export function NeuerBenutzerForm({
         </div>
       </Section>
 
-      {/* Rolle */}
+      {/* Rolle -- zwei-stufig: Bereich, dann konkrete Rolle */}
       <Section
         eyebrow="Schritt 2"
         titel="Rolle"
-        beschreibung="Mitarbeiter:innen sehen nur ihren eigenen Bereich. Führungskräfte sehen auch Praxisfreigaben."
+        beschreibung="Erst der grobe Bereich, dann die konkrete Rolle. Die Rolle bestimmt, welche Bereiche der App diese Person sieht."
       >
-        <div className="space-y-3">
-          <RoleOption
-            value="mitarbeiter"
-            label="Mitarbeiter:in"
-            beschreibung="Standard-Rolle: eigenes Dashboard, eigene Lernpfade, Praxisfreigaben einreichen."
-            checked={role === "mitarbeiter"}
-            onChange={() => setRole("mitarbeiter")}
-          />
-          <RoleOption
-            value="fuehrungskraft"
-            label="Führungskraft"
-            beschreibung="Zusätzlich Praxisfreigaben anderer Mitarbeiter:innen einsehen und freigeben."
-            checked={role === "fuehrungskraft"}
-            onChange={() => setRole("fuehrungskraft")}
-          />
+        {/* Hidden: rolle_id wird an Server-Action durchgereicht. */}
+        <input type="hidden" name="rolle_id" value={rolleId} />
+
+        {/* Bereich-Toggle */}
+        <div>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+            Bereich
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <BereichTile
+              value="mitarbeiter"
+              label="Mitarbeiter"
+              beschreibung="Sieht den Mitarbeiter-Bereich (Aufgaben, Lernpfade, Lohn …). Kein Verwaltungs-Zugriff."
+              checked={bereich === "mitarbeiter"}
+              onChange={() => bereichWechseln("mitarbeiter")}
+            />
+            <BereichTile
+              value="admin"
+              label="Admin / Verwaltung"
+              beschreibung="Hat zusätzlich Zugriff auf den Verwaltungs-Bereich. Welche Verwaltungs-Module sichtbar sind, regelt die konkrete Rolle."
+              checked={bereich === "admin"}
+              onChange={() => bereichWechseln("admin")}
+            />
+          </div>
+        </div>
+
+        {/* Konkrete Rolle */}
+        <div className="mt-5">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+            Konkrete Rolle
+          </p>
+          {rollenImBereich.length === 0 ? (
+            <p className="rounded-md border border-dashed border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+              Keine Rolle für diesen Bereich konfiguriert. Lege im
+              Bereich „Rollen &amp; Rechte&ldquo; eine an.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {rollenImBereich.map((r) => (
+                <RolleTile
+                  key={r.id}
+                  rolle={r}
+                  checked={rolleId === r.id}
+                  onChange={() => setRolleId(r.id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </Section>
 
@@ -388,14 +473,14 @@ function Section({
   );
 }
 
-function RoleOption({
+function BereichTile({
   value,
   label,
   beschreibung,
   checked,
   onChange,
 }: {
-  value: string;
+  value: Bereich;
   label: string;
   beschreibung: string;
   checked: boolean;
@@ -405,18 +490,55 @@ function RoleOption({
     <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 transition-colors hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.04)] has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--primary)/0.06)]">
       <input
         type="radio"
-        name="role"
+        name="bereich"
         value={value}
         checked={checked}
         onChange={onChange}
         className="mt-1 h-4 w-4 accent-[hsl(var(--primary))]"
-        required
       />
       <span className="flex-1">
         <span className="block text-sm font-semibold">{label}</span>
         <span className="mt-0.5 block text-xs text-muted-foreground">
           {beschreibung}
         </span>
+      </span>
+    </label>
+  );
+}
+
+function RolleTile({
+  rolle,
+  checked,
+  onChange,
+}: {
+  rolle: RolleOption;
+  checked: boolean;
+  onChange: () => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 transition-colors hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.04)] has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--primary)/0.06)]">
+      <input
+        type="radio"
+        name="rolle_radio"
+        value={rolle.id}
+        checked={checked}
+        onChange={onChange}
+        className="mt-1 h-4 w-4 accent-[hsl(var(--primary))]"
+      />
+      <span className="flex-1">
+        <span className="flex items-center gap-2">
+          <span className="text-sm font-semibold">{rolle.name}</span>
+          {rolle.is_system && (
+            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+              System
+            </span>
+          )}
+        </span>
+        {rolle.beschreibung && (
+          <span className="mt-0.5 block text-xs text-muted-foreground">
+            {rolle.beschreibung}
+          </span>
+        )}
       </span>
     </label>
   );
