@@ -48,13 +48,12 @@ function readTheme(): Mode {
     : "light";
 }
 
-export function ThemeToggle({
-  variant = "icon",
-}: {
-  /** "icon" = nur Icon, "row" = Icon + Label für Sidebar,
-   *  "menuItem" = Icon + Label fuer DropdownMenu (kein Border) */
-  variant?: "icon" | "row" | "menuItem";
-}) {
+/**
+ * Hook fuer Theme-State + Toggle-Funktion. Eigenstaendig nutzbar wenn
+ * man Icon/Label nicht ueber die ThemeToggle-Komponente rendern will
+ * (z.B. innerhalb eines DropdownMenuItem-Layouts).
+ */
+export function useThemeToggle() {
   const [mode, setMode] = useState<Mode | null>(null);
 
   useEffect(() => {
@@ -74,10 +73,22 @@ export function ThemeToggle({
     });
   }
 
-  // Vor Hydration: identische Render-Variante (kein Flash)
   const istDark = mode === "dark";
-  const Icon = istDark ? Sun : Moon;
-  const label = istDark ? "Heller Modus" : "Dunkler Modus";
+  return {
+    istDark,
+    toggle,
+    Icon: istDark ? Sun : Moon,
+    label: istDark ? "Heller Modus" : "Dunkler Modus",
+  };
+}
+
+export function ThemeToggle({
+  variant = "icon",
+}: {
+  /** "icon" = nur Icon, "row" = Icon + Label für Sidebar */
+  variant?: "icon" | "row";
+}) {
+  const { toggle, Icon, label } = useThemeToggle();
 
   if (variant === "row") {
     return (
@@ -88,20 +99,6 @@ export function ThemeToggle({
         className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
         <Icon className="h-4 w-4" strokeWidth={1.75} />
-        <span>{label}</span>
-      </button>
-    );
-  }
-
-  if (variant === "menuItem") {
-    return (
-      <button
-        type="button"
-        onClick={toggle}
-        aria-label={label}
-        className="flex w-full items-center gap-2 text-left"
-      >
-        <Icon className="h-4 w-4" />
         <span>{label}</span>
       </button>
     );

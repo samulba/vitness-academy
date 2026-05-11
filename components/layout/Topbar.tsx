@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { abmelden } from "@/app/login/actions";
 import { rolleLabel } from "@/lib/format";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { useThemeToggle } from "@/components/ThemeToggle";
 
 type Props = {
   fullName: string | null;
@@ -46,6 +46,7 @@ export function Topbar({
   standortSlot,
 }: Props) {
   const avatarUrl = avatarUrlFuerPfad(avatarPath);
+  const theme = useThemeToggle();
   return (
     <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/70 lg:hidden">
       <Link
@@ -95,8 +96,9 @@ export function Topbar({
               <span>Einstellungen</span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <ThemeToggle variant="menuItem" />
+          <DropdownMenuItem onSelect={() => theme.toggle()}>
+            <theme.Icon className="h-4 w-4" />
+            <span>{theme.label}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <form action={abmelden}>
