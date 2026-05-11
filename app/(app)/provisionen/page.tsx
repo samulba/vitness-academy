@@ -108,7 +108,12 @@ export default async function ProvisionenPage({
   // Target für aktuellen Monat (oder gewählten Monat)
   const target = await ladeTarget(profile.id, monat);
 
-  const monateOptions = letzteMonate(12);
+  // Monats-Optionen mit serverseitig vorberechneten Labels --
+  // MonatsPicker ist Client-Component, kein labelFn als Function-Prop.
+  const monateOptions = letzteMonate(12).map((m) => ({
+    value: m,
+    label: monatsLabel(m),
+  }));
 
   return (
     <div className="space-y-8">
@@ -185,11 +190,7 @@ export default async function ProvisionenPage({
           </h2>
           {/* Mobile + Desktop: Dropdown statt 12 wrappender Pills.
               Native <select> = iOS-Picker auf Mobile, sauberer als Pills. */}
-          <MonatsPicker
-            aktiv={monat}
-            optionen={monateOptions}
-            labelFn={monatsLabel}
-          />
+          <MonatsPicker aktiv={monat} optionen={monateOptions} />
         </div>
 
         {entries.length === 0 ? (

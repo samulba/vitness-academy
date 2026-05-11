@@ -6,15 +6,16 @@ import { useRouter } from "next/navigation";
  * Mobile-friendly Monats-Picker fuer /provisionen. Ersetzt den
  * 12-Pill-Wrap durch ein natives <select> -- iOS-Picker auf Mobile,
  * sauber auf Desktop. Wechselt Route bei onChange.
+ *
+ * WICHTIG: Labels werden serverseitig vorberechnet (Plain-Data), keine
+ * Funktion als Prop -- RSC verbietet Function-Props auf Client-Components.
  */
 export function MonatsPicker({
   aktiv,
   optionen,
-  labelFn,
 }: {
   aktiv: string;
-  optionen: string[];
-  labelFn: (yyyymm: string) => string;
+  optionen: { value: string; label: string }[];
 }) {
   const router = useRouter();
   return (
@@ -32,8 +33,8 @@ export function MonatsPicker({
         className="h-9 rounded-full border border-border bg-card px-3 text-sm font-medium"
       >
         {optionen.map((m) => (
-          <option key={m} value={m}>
-            {labelFn(m)}
+          <option key={m.value} value={m.value}>
+            {m.label}
           </option>
         ))}
       </select>
