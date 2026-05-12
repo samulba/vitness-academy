@@ -153,10 +153,12 @@ export async function mitarbeiterAnlegen(
     };
   }
 
-  // 3) Custom-Rolle in profile_roles-Junction eintragen
-  //    System-Rollen werden NICHT als Junction-Eintrag persistiert -- die
-  //    Permissions kommen dann ueber SYSTEM_ROLE_IDS[role] in
-  //    getCurrentProfile(). Custom-Rollen muessen explizit verknuepft sein.
+  // 3) Custom-Rolle persistieren
+  //    Primaerer Pfad: Eintrag in profile_roles-Junction (Migration 0066).
+  //    Fallback: profiles.custom_role_id (Migration 0025) wenn die
+  //    Junction-Tabelle in der DB noch nicht existiert -- Postgres meldet
+  //    dann "Could not find the table ... in the schema cache". Bei
+  //    anderen Fehlern echte Fehlermeldung zurueckgeben.
   if (istCustomRolle) {
     const { error: prError } = await admin
       .from("profile_roles")
@@ -165,12 +167,33 @@ export async function mitarbeiterAnlegen(
         role_id: rolleId,
       });
     if (prError) {
-      return {
-        ok: false,
-        message:
-          "Custom-Rolle konnte nicht zugewiesen werden: " + prError.message,
-        userId,
-      };
+      const msg = prError.message.toLowerCase();
+      const istSchemaFehler =
+        msg.includes("could not find") ||
+        msg.includes("schema cache") ||
+        msg.includes("does not exist");
+      if (istSchemaFehler) {
+        const fallback = await admin
+          .from("profiles")
+          .update({ custom_role_id: rolleId })
+          .eq("id", userId);
+        if (fallback.error) {
+          return {
+            ok: false,
+            message:
+              "Custom-Rolle konnte nicht zugewiesen werden: " +
+              fallback.error.message,
+            userId,
+          };
+        }
+      } else {
+        return {
+          ok: false,
+          message:
+            "Custom-Rolle konnte nicht zugewiesen werden: " + prError.message,
+          userId,
+        };
+      }
     }
 
     // kann_provisionen automatisch aus den Permissions der Custom-Rolle

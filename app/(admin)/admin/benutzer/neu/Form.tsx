@@ -290,10 +290,11 @@ export function NeuerBenutzerForm({
           </div>
         </div>
 
-        {/* Konkrete Rolle */}
+        {/* Konkrete Rolle. Custom-Rollen oben, System-Rolle ("Standard")
+            ans Ende -- sonst wirkt sie wie ein Duplikat des Bereich-Tiles. */}
         <div className="mt-5">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-            Konkrete Rolle
+            {bereich === "mitarbeiter" ? "Zusatz-Rolle" : "Konkrete Rolle"}
           </p>
           {rollenImBereich.length === 0 ? (
             <p className="rounded-md border border-dashed border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
@@ -302,14 +303,17 @@ export function NeuerBenutzerForm({
             </p>
           ) : (
             <div className="space-y-2">
-              {rollenImBereich.map((r) => (
-                <RolleTile
-                  key={r.id}
-                  rolle={r}
-                  checked={rolleId === r.id}
-                  onChange={() => setRolleId(r.id)}
-                />
-              ))}
+              {[...rollenImBereich]
+                .sort((a, b) => Number(a.is_system) - Number(b.is_system))
+                .map((r) => (
+                  <RolleTile
+                    key={r.id}
+                    rolle={r}
+                    checked={rolleId === r.id}
+                    onChange={() => setRolleId(r.id)}
+                    bereich={bereich}
+                  />
+                ))}
             </div>
           )}
         </div>
@@ -510,11 +514,28 @@ function RolleTile({
   rolle,
   checked,
   onChange,
+  bereich,
 }: {
   rolle: RolleOption;
   checked: boolean;
   onChange: () => void;
+  bereich: Bereich;
 }) {
+  // System-Rolle wird nicht mit ihrem internen Namen ("Mitarbeiter",
+  // "Admin") gezeigt -- der wirkt sonst wie ein Duplikat zum
+  // Bereich-Tile oben drueber. Stattdessen klare Default-Beschriftung.
+  const istStandard = rolle.is_system;
+  const label = istStandard
+    ? bereich === "mitarbeiter"
+      ? "Standard — keine Zusatzrolle"
+      : "Standard — alle Verwaltungs-Rechte"
+    : rolle.name;
+  const subtext = istStandard
+    ? bereich === "mitarbeiter"
+      ? "Mitarbeiter ohne spezielle Rolle. Sieht alle Mitarbeiter-Tabs."
+      : "Voller Verwaltungs-Zugriff (alle Module)."
+    : rolle.beschreibung;
+
   return (
     <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 transition-colors hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.04)] has-[:checked]:border-[hsl(var(--primary))] has-[:checked]:bg-[hsl(var(--primary)/0.06)]">
       <input
@@ -526,17 +547,10 @@ function RolleTile({
         className="mt-1 h-4 w-4 accent-[hsl(var(--primary))]"
       />
       <span className="flex-1">
-        <span className="flex items-center gap-2">
-          <span className="text-sm font-semibold">{rolle.name}</span>
-          {rolle.is_system && (
-            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-              System
-            </span>
-          )}
-        </span>
-        {rolle.beschreibung && (
+        <span className="text-sm font-semibold">{label}</span>
+        {subtext && (
           <span className="mt-0.5 block text-xs text-muted-foreground">
-            {rolle.beschreibung}
+            {subtext}
           </span>
         )}
       </span>
