@@ -35,7 +35,15 @@ function parseEuro(s: string): number {
   return Number.isFinite(n) ? Math.max(0, n) : 0;
 }
 
-export function AbschlussForm({ rates }: { rates: CommissionRate[] }) {
+export function AbschlussForm({
+  rates,
+  onSuccess,
+}: {
+  rates: CommissionRate[];
+  /** Optionaler Callback nach erfolgreichem Submit. Wird vom
+   *  Sheet-Wrapper genutzt, um das Sheet automatisch zu schliessen. */
+  onSuccess?: () => void;
+}) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [pending, startTransition] = useTransition();
@@ -80,6 +88,7 @@ export function AbschlussForm({ rates }: { rates: CommissionRate[] }) {
         setTimeout(() => {
           router.refresh();
           setErfolg(false);
+          onSuccess?.();
         }, 1200);
       } else {
         setError(res.message);
