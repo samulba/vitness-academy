@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CommissionRate } from "@/lib/provisionen-types";
@@ -11,16 +11,15 @@ import { AbschlussForm } from "./AbschlussForm";
  *
  * Rendert standardmaessig nur einen prominenten CTA-Button. Klick
  * oeffnet ein Sheet:
- *  - Mobile (< sm): Full-Screen-Bottom-Sheet mit Backdrop, slide-up.
+ *  - Mobile (< sm): Bottom-Sheet, slide-up, swipe-down to dismiss.
  *  - Desktop:        Centered Modal mit Backdrop.
  * Nach erfolgreichem Submit schliesst sich das Sheet automatisch.
- *
- * Verdraengt das frueher direkt in die Page eingebettete Formular --
- * /provisionen zeigt jetzt erstmal das Dashboard, das Eintragen wird
- * bewusst per Button getriggert.
  */
 export function AbschlussSheet({ rates }: { rates: CommissionRate[] }) {
   const [offen, setOffen] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartY = useRef<number | null>(null);
 
   // ESC schliesst Sheet
   useEffect(() => {
@@ -41,6 +40,34 @@ export function AbschlussSheet({ rates }: { rates: CommissionRate[] }) {
       document.body.style.overflow = original;
     };
   }, [offen]);
+
+  // Drag-Reset wenn von aussen geschlossen
+  useEffect(() => {
+    if (!offen) {
+      setDragOffset(0);
+      setIsDragging(false);
+      dragStartY.current = null;
+    }
+  }, [offen]);
+
+  // Swipe-to-dismiss am Drag-Handle / Header. Threshold 90px.
+  function handleTouchStart(e: React.TouchEvent) {
+    dragStartY.current = e.touches[0].clientY;
+    setIsDragging(true);
+  }
+  function handleTouchMove(e: React.TouchEvent) {
+    if (dragStartY.current == null) return;
+    const delta = e.touches[0].clientY - dragStartY.current;
+    setDragOffset(Math.max(0, delta));
+  }
+  function handleTouchEnd() {
+    if (dragStartY.current == null) return;
+    const wirdGeschlossen = dragOffset > 90;
+    setIsDragging(false);
+    setDragOffset(0);
+    dragStartY.current = null;
+    if (wirdGeschlossen) setOffen(false);
+  }
 
   return (
     <>
@@ -65,29 +92,46 @@ export function AbschlussSheet({ rates }: { rates: CommissionRate[] }) {
         )}
       />
 
-      {/* Sheet: Mobile = bottom-sheet, Desktop = centered modal */}
+      {/* Sheet: Mobile = bottom-sheet, Desktop = centered modal.
+          w-screen + overflow-hidden auf dem Sheet selbst verhindert,
+          dass intrinsic-width von Date-Inputs / Selects auf iOS das
+          Layout horizontal sprengt. */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Neuer Abschluss"
+        style={{
+          transform:
+            offen && dragOffset > 0
+              ? `translateY(${dragOffset}px)`
+              : undefined,
+          transition: isDragging ? "none" : undefined,
+        }}
         className={cn(
-          "fixed z-50 flex flex-col border border-border bg-card shadow-2xl transition-transform duration-300",
+          "fixed z-50 flex w-screen max-w-full flex-col overflow-hidden border border-border bg-card shadow-2xl transition-transform duration-300",
           // Mobile bottom-sheet
           "bottom-0 left-0 right-0 max-h-[92vh] rounded-t-3xl",
           // Desktop centered modal
-          "sm:bottom-auto sm:left-1/2 sm:right-auto sm:top-1/2 sm:max-h-[88vh] sm:w-full sm:max-w-2xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl",
+          "sm:bottom-auto sm:left-1/2 sm:right-auto sm:top-1/2 sm:w-full sm:max-h-[88vh] sm:max-w-2xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl",
           offen
             ? "translate-y-0 sm:opacity-100"
             : "translate-y-full sm:translate-y-[-40%] sm:opacity-0",
         )}
       >
-        {/* Header mit Drag-Handle (Mobile) + Close */}
-        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border bg-card/95 px-5 py-3 backdrop-blur sm:px-6 sm:py-4">
+        {/* Header. Touch-Events nur hier, sonst wuerde jedes Antippen
+            der Form-Felder das Sheet zudruecken. */}
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+          className="relative flex shrink-0 touch-none items-start justify-between gap-3 border-b border-border bg-card px-5 pb-3 pt-5 sm:px-6 sm:pt-4"
+        >
           <span
             aria-hidden
             className="absolute left-1/2 top-1.5 h-1 w-10 -translate-x-1/2 rounded-full bg-border sm:hidden"
           />
-          <div className="mt-1.5 sm:mt-0">
+          <div className="min-w-0">
             <h2 className="text-base font-semibold tracking-tight">
               Neuer Abschluss
             </h2>
@@ -105,7 +149,9 @@ export function AbschlussSheet({ rates }: { rates: CommissionRate[] }) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+        {/* Scroll-Bereich. overflow-x-hidden + min-w-0 verhindert
+            horizontalen Scroll-Bug auf iOS. */}
+        <div className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-6 pt-5 sm:px-6 sm:pt-6">
           <AbschlussForm rates={rates} onSuccess={() => setOffen(false)} />
         </div>
       </div>
