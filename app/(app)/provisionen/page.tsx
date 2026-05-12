@@ -28,7 +28,7 @@ import { formatDatum } from "@/lib/format";
 import { MonatsTrend } from "@/components/provisionen/MonatsTrend";
 import { TargetTracker } from "@/components/provisionen/TargetTracker";
 import { BonusStatus } from "@/components/provisionen/BonusStatus";
-import { AbschlussForm } from "./AbschlussForm";
+import { AbschlussSheet } from "./AbschlussSheet";
 import { LoeschenButton } from "./LoeschenButton";
 
 function StatusBadge({ status }: { status: EntryStatus }) {
@@ -117,11 +117,16 @@ export default async function ProvisionenPage({
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        eyebrow="Verkauf"
-        title="Provisionen"
-        description="Abschlüsse eintragen, Provision wird automatisch aus den aktuellen Sätzen berechnet."
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <PageHeader
+          eyebrow="Verkauf"
+          title="Provisionen"
+          description="Dein Verkaufs-Dashboard. Abschlüsse werden automatisch aus den aktuellen Sätzen verprovisioniert."
+        />
+        <div className="shrink-0">
+          <AbschlussSheet rates={rates} />
+        </div>
+      </div>
 
       {/* Dashboard: Trend + Target + Bonus-Status */}
       <section className="grid gap-4 md:grid-cols-3">
@@ -171,18 +176,6 @@ export default async function ProvisionenPage({
         />
       </StatGrid>
 
-      <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <header className="mb-5">
-          <h2 className="text-base font-semibold tracking-tight">
-            Neuer Abschluss
-          </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Provision wird live in der Vorschau berechnet.
-          </p>
-        </header>
-        <AbschlussForm rates={rates} />
-      </section>
-
       <section>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-base font-semibold tracking-tight">
@@ -200,7 +193,7 @@ export default async function ProvisionenPage({
               Keine Abschlüsse in {monatsLabel(monat)}
             </p>
             <p className="mt-1 max-w-sm text-xs text-muted-foreground">
-              Trag deinen ersten Abschluss oben ein.
+              Klick oben auf &bdquo;Neuer Abschluss&ldquo;, um deinen ersten Eintrag anzulegen.
             </p>
           </div>
         ) : (
